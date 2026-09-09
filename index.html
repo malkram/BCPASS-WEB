@@ -227,6 +227,43 @@ ul{ margin:0; padding:0; list-style:none; }
   .display{ font-size: 2rem; }
 }
 
+/* ============ PHASE 1 WIZARD ============ */
+.score-badge{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+.score-num{ font-family: var(--font-display); font-size:1.9rem; font-weight:600; color: var(--ink); line-height:1; }
+.score-label{ font-size:0.78rem; color: var(--muted); font-weight:500; }
+
+.wizard-progress{ margin-bottom: 26px; }
+.wizard-progress-track{ height:4px; background: var(--line); border-radius:4px; overflow:hidden; margin-bottom:10px; }
+.wizard-progress-fill{ height:100%; background: var(--accent); transition: width .2s; }
+.wizard-steps{ display:flex; flex-wrap:wrap; gap:6px; }
+.wizard-step-pill{ font-size:0.76rem; padding:5px 11px; border-radius:20px; border:1px solid var(--line-strong); color: var(--muted); background: var(--paper-raise); cursor:pointer; }
+.wizard-step-pill.done{ border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.wizard-step-pill.current{ background: var(--ink); color:#fff; border-color: var(--ink); }
+
+.wizard-section-title{ font-size:1.15rem; margin-bottom:4px; }
+.wizard-section-sub{ font-size:0.85rem; color: var(--muted); margin-bottom:20px; }
+
+.field-group{ margin-bottom:20px; }
+.field-label{ display:flex; align-items:center; gap:8px; font-size:0.88rem; font-weight:600; color: var(--ink-soft); margin-bottom:8px; }
+.field-critical-dot{ width:6px; height:6px; border-radius:50%; background: var(--amber); flex-shrink:0; }
+.ai-badge{ font-size:0.66rem; font-weight:700; letter-spacing:0.02em; color: var(--accent); background: var(--accent-soft); padding:2px 7px; border-radius:3px; text-transform:uppercase; }
+
+.field-text{ width:100%; font-family: inherit; font-size:0.92rem; padding:11px 12px; border:1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper-raise); color: var(--text); }
+.field-text:focus{ border-color: var(--accent); outline:none; }
+textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
+
+.field-select-row{ display:flex; flex-wrap:wrap; gap:8px; }
+.select-pill{ font-size:0.85rem; padding:9px 14px; border-radius: var(--radius); border:1px solid var(--line-strong); background: var(--paper-raise); color: var(--ink-soft); cursor:pointer; }
+.select-pill:hover{ border-color: var(--accent); }
+.select-pill.picked{ background: var(--ink); color:#fff; border-color: var(--ink); }
+
+.field-note{ font-size:0.78rem; color: var(--muted); margin-top:6px; }
+
+@media (max-width: 720px){
+  .wizard-steps{ display:none; }
+  .score-badge{ align-items:flex-start; }
+}
+
 </style>
 </head>
 <body>
@@ -350,46 +387,34 @@ ul{ margin:0; padding:0; list-style:none; }
     <section class="screen" id="screen-build">
       <header class="screen-head">
         <div>
-          <p class="kicker">Meridian Freight Co · Step 1 of 3</p>
-          <h1>Describe your business</h1>
+          <p class="kicker">Meridian Freight Co</p>
+          <h1>Build your KYC profile</h1>
+        </div>
+        <div class="score-badge" id="score-badge">
+          <span class="score-num" id="score-num">0</span>
+          <span class="score-label" id="score-label">Early draft</span>
         </div>
       </header>
 
+      <div class="wizard-progress">
+        <div class="wizard-progress-track"><div class="wizard-progress-fill" id="wizard-progress-fill"></div></div>
+        <div class="wizard-steps" id="wizard-steps"></div>
+      </div>
+
       <div class="split">
         <div class="split-main">
-          <p class="lede">Speak naturally, the way you'd explain it to a new investor. We'll turn it into a structured profile and ask you to confirm anything unclear.</p>
-
-          <div class="voice-panel">
-            <button class="mic-btn" id="mic-btn" aria-pressed="false">
-              <span class="mic-icon">●</span>
-            </button>
-            <p class="mic-state" id="mic-state">Tap to start speaking</p>
-            <div class="waveform" id="waveform" aria-hidden="true">
-              <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-            </div>
-          </div>
-
-          <div class="transcript-box">
-            <p class="transcript-label">Transcript</p>
-            <p class="transcript-text" id="transcript-text">"We're a freight forwarding company based in Manchester, incorporated in 2019. We move goods between the UK and Southeast Asia for about forty regular clients, mostly manufacturers. Our directors are myself and my co-founder Tom Reilly. We're looking for a trade finance facility to smooth out payment timing on larger shipments…"</p>
-          </div>
-
+          <div id="wizard-panel"></div>
           <div class="build-actions">
-            <button class="btn btn-ghost">Type instead</button>
-            <button class="btn btn-primary" data-goto="documents">Looks right, continue →</button>
+            <button class="btn btn-ghost" id="wizard-back">← Back</button>
+            <button class="btn btn-primary" id="wizard-next">Next →</button>
           </div>
         </div>
 
         <aside class="split-side">
-          <p class="side-title">Helpful to mention</p>
-          <ul class="prompt-list">
-            <li>What the business does, and for whom</li>
-            <li>How long you've been trading</li>
-            <li>Ownership and directors</li>
-            <li>Where money moves — customers, suppliers, banks</li>
-            <li>What you need from a financial institution</li>
-          </ul>
-          <p class="side-note">You can re-record any section later. Nothing is shared until you build a pass.</p>
+          <p class="side-title">Still need from you</p>
+          <ul class="prompt-list" id="followup-list"></ul>
+          <p class="side-note" id="signoff-note">Complete the critical fields in each step to unlock sign-off.</p>
+          <button class="btn btn-primary btn-block" id="signoff-btn" style="margin-top:14px" disabled>Sign off &amp; continue →</button>
         </aside>
       </div>
     </section>
@@ -705,17 +730,208 @@ if(loginForm){
   });
 }
 
-// ---- Mic toggle on the voice build screen ----
-const micBtn = document.getElementById('mic-btn');
-const micState = document.getElementById('mic-state');
-const waveform = document.getElementById('waveform');
-if(micBtn){
-  micBtn.addEventListener('click', () => {
-    const listening = micBtn.getAttribute('aria-pressed') === 'true';
-    micBtn.setAttribute('aria-pressed', String(!listening));
-    micState.textContent = !listening ? 'Listening — speak naturally' : 'Tap to start speaking';
-    waveform.classList.toggle('live', !listening);
+// ---- Phase 1: structured KYC wizard ----
+// Schema mirrors the summarization agent prompt's field list & tiers exactly,
+// so the score computed here (plain code) matches the same rubric the AI uses later.
+const KYC_SCHEMA = [
+  { id:'company_overview', title:'Company overview', sub:'The basics of who you are.', fields:[
+    {key:'legal_entity_name', tier:'critical', type:'text', label:'Legal entity name', placeholder:'e.g. Meridian Freight Co Ltd'},
+    {key:'registration_country', tier:'critical', type:'select', label:'Registration country', options:['United Kingdom','Hong Kong','Singapore','Ireland','Other']},
+    {key:'incorporation_years', tier:'supporting', type:'select', label:'How long have you been trading?', options:['Less than 1 year','1–3 years','3–10 years','10+ years']},
+    {key:'business_type', tier:'supporting', type:'multiselect', label:'Business type', options:['Import','Export','Trading','Manufacturing','Service','Local business']},
+    {key:'registered_address', tier:'supporting', type:'text', label:'Registered / trading address'},
+    {key:'website', tier:'supporting', type:'text', label:'Website', placeholder:'Optional'},
+    {key:'group_parent_company', tier:'supporting', type:'text', label:'Group / parent company', placeholder:'Optional, if applicable'},
+    {key:'sister_entities', tier:'supporting', type:'text', label:'Associated / sister entities', placeholder:'Optional'},
+  ]},
+  { id:'business_activity', title:'Business activity', sub:'What you actually do, day to day.', fields:[
+    {key:'what_business_does', tier:'critical', type:'textarea', ai:true, label:'Describe what your business does', placeholder:"Products/services, who you sell to, how long you've done this..."},
+    {key:'industry_sector', tier:'supporting', type:'select', label:'Industry / sector', options:['Electronics & manufacturing','Trading & logistics','Retail & consumer goods','Construction & energy','Professional services','Technology','Other']},
+    {key:'suppliers', tier:'supporting', type:'text', label:'Who are your suppliers, and where are they based?'},
+    {key:'customers_buyers', tier:'supporting', type:'text', label:'Who are your customers, and where are they based?'},
+  ]},
+  { id:'corporate_structure_ownership', title:'Corporate structure & ownership', sub:'Who owns and runs the company.', fields:[
+    {key:'immediate_parent', tier:'supporting', type:'text', label:'Immediate parent company', placeholder:'Optional'},
+    {key:'ultimate_holding', tier:'supporting', type:'text', label:'Ultimate holding company', placeholder:'Optional'},
+    {key:'shareholding_chain', tier:'supporting', type:'textarea', label:'Shareholding chain', placeholder:'Optional — how ownership passes down to this company'},
+    {key:'ubo', tier:'critical', type:'textarea', ai:true, label:'Who owns 25% or more of the company?', placeholder:'Name(s) and approximate ownership %'},
+    {key:'directors', tier:'supporting', type:'text', label:'Directors'},
+    {key:'restructuring', tier:'supporting', type:'textarea', label:'Any recent restructuring or transfers between related entities?', placeholder:'Optional'},
+  ]},
+  { id:'source_of_funds', title:'Source of funds', sub:'Where the money moving through this account comes from, going forward.', fields:[
+    {key:'ongoing_sof', tier:'critical', type:'textarea', ai:true, label:'What ongoing business activity generates these funds?', placeholder:'e.g. sale of goods, service fees...'},
+    {key:'originating_bank', tier:'supporting', type:'text', label:'Originating bank / account', placeholder:'Optional'},
+    {key:'origin_countries', tier:'supporting', type:'multiselect', label:'Origin countries of funds', options:['United Kingdom','Hong Kong','European Union','United States','China','Other']},
+    {key:'destination_countries', tier:'supporting', type:'multiselect', label:'Destination countries of funds', options:['United Kingdom','Hong Kong','European Union','United States','China','Other']},
+  ]},
+  { id:'source_of_wealth', title:'Source of wealth', sub:'How the company or its owners built their financial position historically.', fields:[
+    {key:'wealth_history', tier:'critical', type:'textarea', ai:true, label:'How did the company or its owners build their wealth over time?', placeholder:'Company history, career background, milestones...'},
+    {key:'founder_background', tier:'supporting', type:'textarea', label:'Founder / key individual background', placeholder:'Optional'},
+    {key:'supporting_milestones', tier:'supporting', type:'textarea', label:'Any supporting milestones?', placeholder:'Optional — trade fairs, funding rounds, major contracts...'},
+  ]},
+  { id:'financial_position_evidence', title:'Financial position', sub:'A rough picture — exact figures get confirmed from documents at the next stage.', fields:[
+    {key:'revenue_band', tier:'critical', type:'select', label:'Annual revenue / turnover', options:['Under £1M','£1M–£5M','£5M–£20M','£20M–£50M','£50M+']},
+    {key:'profit_band', tier:'supporting', type:'select', label:'Net profit or loss', options:['Loss-making','Break-even','Under £1M profit','£1M–£5M profit','£5M+ profit']},
+    {key:'net_assets_band', tier:'supporting', type:'select', label:'Net assets / equity', options:['Under £500K','£500K–£2M','£2M–£10M','£10M+']},
+    {key:'liabilities_band', tier:'supporting', type:'select', label:'Bank loans / liabilities', options:['None','Under £500K','£500K–£2M','£2M+']},
+    {key:'supporting_docs', tier:'supporting', type:'multiselect', label:'What can you provide to support these figures?', options:['Financial statements','Bank statements','Shareholder registry','Company website','Invoices']},
+  ]},
+  { id:'estimated_annual_volume', title:'Estimated annual volume', sub:'How much you expect to move through this account.', fields:[
+    {key:'eav_band', tier:'critical', type:'select', label:'Expected annual volume', options:['Under £100K','£100K–£500K','£500K–£1M','£1M–£5M','£5M+']},
+    {key:'eav_justification', tier:'supporting', type:'text', label:'How does this tie back to your revenue?', placeholder:'Optional'},
+    {key:'currencies', tier:'supporting', type:'multiselect', label:'Currencies to buy / sell', options:['GBP','EUR','USD','HKD','CNH','Other']},
+    {key:'payment_size_band', tier:'supporting', type:'select', label:'Typical payment size', options:['Under £10K','£10K–£50K','£50K–£100K','£100K+']},
+    {key:'payment_volume_band', tier:'supporting', type:'select', label:'Roughly how many payments per year?', options:['1–10/year','11–50/year','51–200/year','201–500/year','500+/year']},
+    {key:'products_required', tier:'supporting', type:'multiselect', label:'Products you expect to need', options:['Spot transfers','Forward contracts','Local currency accounts','IBAN accounts','Trade finance']},
+  ]},
+  { id:'purpose_services_required', title:'Purpose & services required', sub:"What you'll use this for.", fields:[
+    {key:'reason_for_using', tier:'critical', type:'multiselect', label:'What will you mainly use this account for?', options:['Supplier payments','Payroll','Tax payments','Intercompany funding','FX hedging','Other']},
+    {key:'value_vs_current', tier:'supporting', type:'text', label:"What's prompting you to look beyond your current bank?", placeholder:'Optional'},
+    {key:'current_banking', tier:'supporting', type:'text', label:'Current banking relationships', placeholder:'Optional'},
+  ]},
+];
+const CRITICAL_TOTAL = 9;   // matches the summarization agent prompt's scoring rubric
+const SUPPORTING_TOTAL = 31; // includes 1 derived point (business_model_narrative, tied to "what_business_does")
+
+const kycProfile = {};
+let wizardStep = 0;
+
+const wizardPanel = document.getElementById('wizard-panel');
+const wizardStepsEl = document.getElementById('wizard-steps');
+const wizardFill = document.getElementById('wizard-progress-fill');
+
+function fieldFilled(f){
+  const v = kycProfile[f.key];
+  if(f.type === 'multiselect') return Array.isArray(v) && v.length > 0;
+  return typeof v === 'string' && v.trim().length > 0;
+}
+
+function computeCounts(){
+  let critical = 0, supporting = 0;
+  KYC_SCHEMA.forEach(section => section.fields.forEach(f => {
+    if(fieldFilled(f)){ if(f.tier === 'critical') critical++; else supporting++; }
+  }));
+  // derived: business_model_narrative is generated from what_business_does, not a separate input
+  const wbd = KYC_SCHEMA[1].fields[0];
+  if(fieldFilled(wbd)) supporting++;
+  return { critical, supporting };
+}
+
+function scoreLabel(score){
+  if(score >= 85) return 'Ready for review';
+  if(score >= 65) return 'Mostly complete';
+  if(score >= 40) return 'Good start';
+  return 'Early draft';
+}
+
+function renderStepNav(){
+  wizardStepsEl.innerHTML = KYC_SCHEMA.map((s, i) =>
+    `<button class="wizard-step-pill ${i === wizardStep ? 'current' : i < wizardStep ? 'done' : ''}" data-step="${i}">${i + 1}. ${s.title}</button>`
+  ).join('');
+  wizardFill.style.width = `${((wizardStep + 1) / KYC_SCHEMA.length) * 100}%`;
+  wizardStepsEl.querySelectorAll('.wizard-step-pill').forEach(btn => {
+    btn.addEventListener('click', () => { wizardStep = Number(btn.dataset.step); renderPanel(); renderStepNav(); });
   });
+}
+
+function fieldControlHTML(f){
+  const val = kycProfile[f.key];
+  if(f.type === 'text'){
+    return `<input class="field-text" type="text" data-key="${f.key}" placeholder="${f.placeholder || ''}" value="${val || ''}">`;
+  }
+  if(f.type === 'textarea'){
+    return `<textarea class="field-text" data-key="${f.key}" rows="3" placeholder="${f.placeholder || ''}">${val || ''}</textarea>`;
+  }
+  // select / multiselect — rendered as pill rows
+  const multi = f.type === 'multiselect';
+  const picked = multi ? (val || []) : [val];
+  return `<div class="field-select-row">` + f.options.map(opt =>
+    `<button type="button" class="select-pill ${picked.includes(opt) ? 'picked' : ''}" data-key="${f.key}" data-value="${opt}" data-multi="${multi ? 1 : 0}">${opt}</button>`
+  ).join('') + `</div>`;
+}
+
+function renderPanel(){
+  const section = KYC_SCHEMA[wizardStep];
+  wizardPanel.innerHTML = `
+    <h2 class="wizard-section-title">${section.title}</h2>
+    <p class="wizard-section-sub">${section.sub}</p>
+    ${section.fields.map(f => `
+      <div class="field-group">
+        <div class="field-label">
+          ${f.tier === 'critical' ? '<span class="field-critical-dot" title="Critical field"></span>' : ''}
+          <span>${f.label}</span>
+          ${f.ai ? '<span class="ai-badge">AI-assisted</span>' : ''}
+        </div>
+        ${fieldControlHTML(f)}
+        ${f.ai ? '<p class="field-note">This response is read by the KYC summarization agent to extract and score your profile.</p>' : ''}
+      </div>
+    `).join('')}
+  `;
+  document.getElementById('wizard-back').disabled = wizardStep === 0;
+  const nextBtn = document.getElementById('wizard-next');
+  if(wizardStep === KYC_SCHEMA.length - 1){ nextBtn.textContent = "You're on the last step"; nextBtn.disabled = true; }
+  else { nextBtn.textContent = 'Next →'; nextBtn.disabled = false; }
+}
+
+function updateSidebar(){
+  const { critical, supporting } = computeCounts();
+  const score = Math.round(70 * (critical / CRITICAL_TOTAL) + 30 * (supporting / SUPPORTING_TOTAL));
+  document.getElementById('score-num').textContent = score;
+  document.getElementById('score-label').textContent = scoreLabel(score);
+
+  const missingCritical = [];
+  const missingSupporting = [];
+  KYC_SCHEMA.forEach(section => section.fields.forEach(f => {
+    if(!fieldFilled(f)) (f.tier === 'critical' ? missingCritical : missingSupporting).push(f.label);
+  }));
+  const followUps = [...missingCritical, ...missingSupporting].slice(0, 6);
+  const list = document.getElementById('followup-list');
+  list.innerHTML = followUps.length
+    ? followUps.map(l => `<li>${l}</li>`).join('')
+    : `<li>Nothing outstanding — nice work.</li>`;
+
+  const signoffBtn = document.getElementById('signoff-btn');
+  const signoffNote = document.getElementById('signoff-note');
+  if(missingCritical.length === 0){
+    signoffBtn.disabled = false;
+    signoffNote.textContent = 'All essential fields are complete. You can sign off now, or keep adding detail.';
+  } else {
+    signoffBtn.disabled = true;
+    signoffNote.textContent = `${missingCritical.length} critical field${missingCritical.length > 1 ? 's' : ''} still needed before you can sign off.`;
+  }
+}
+
+if(wizardPanel){
+  wizardPanel.addEventListener('input', (e) => {
+    if(e.target.matches('.field-text')){
+      kycProfile[e.target.dataset.key] = e.target.value;
+      updateSidebar();
+    }
+  });
+  wizardPanel.addEventListener('click', (e) => {
+    const pill = e.target.closest('.select-pill');
+    if(!pill) return;
+    const key = pill.dataset.key, value = pill.dataset.value, multi = pill.dataset.multi === '1';
+    if(multi){
+      let arr = kycProfile[key] || [];
+      arr = arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value];
+      kycProfile[key] = arr;
+      pill.classList.toggle('picked');
+    } else {
+      pill.closest('.field-select-row').querySelectorAll('.select-pill').forEach(p => p.classList.remove('picked'));
+      pill.classList.add('picked');
+      kycProfile[key] = value;
+    }
+    updateSidebar();
+  });
+
+  document.getElementById('wizard-back').addEventListener('click', () => { if(wizardStep > 0){ wizardStep--; renderPanel(); renderStepNav(); } });
+  document.getElementById('wizard-next').addEventListener('click', () => { if(wizardStep < KYC_SCHEMA.length - 1){ wizardStep++; renderPanel(); renderStepNav(); } });
+  document.getElementById('signoff-btn').addEventListener('click', () => goToScreen('documents'));
+
+  renderStepNav();
+  renderPanel();
+  updateSidebar();
 }
 
 // ---- Mask / consultant option selection ----
