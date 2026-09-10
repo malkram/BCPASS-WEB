@@ -259,6 +259,21 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
 
 .field-note{ font-size:0.78rem; color: var(--muted); margin-top:6px; }
 
+.pct-grid{ display:flex; flex-direction:column; gap:4px; }
+.pct-grid-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:5px 0; }
+.pct-grid-row label{ font-size:0.87rem; color: var(--ink-soft); }
+.pct-input, .cp-pct{ width:72px; text-align:right; padding:7px 8px; border:1px solid var(--line-strong); border-radius: var(--radius); font-family: inherit; font-size:0.88rem; background: var(--paper-raise); color: var(--text); }
+.pct-total{ margin-top:8px; font-size:0.82rem; font-weight:600; color: var(--ink-soft); }
+.pct-total.warn{ color: var(--amber); }
+
+.cp-list{ display:flex; flex-direction:column; }
+.cp-row{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+.cp-country{ flex:1; padding:9px 10px; border:1px solid var(--line-strong); border-radius: var(--radius); font-family: inherit; font-size:0.88rem; background: var(--paper-raise); color: var(--text); }
+.cp-remove{ background:none; border:none; color: var(--muted); font-size:1.15rem; cursor:pointer; padding:4px 6px; line-height:1; }
+.cp-remove:hover{ color: var(--amber); }
+.cp-add{ font-size:0.82rem; color: var(--accent); background:none; border:1px dashed var(--line-strong); border-radius: var(--radius); padding:7px 12px; cursor:pointer; margin-top:2px; }
+.cp-add:hover{ border-color: var(--accent); }
+
 @media (max-width: 720px){
   .wizard-steps{ display:none; }
   .score-badge{ align-items:flex-start; }
@@ -733,51 +748,55 @@ if(loginForm){
 // ---- Phase 1: structured KYC wizard ----
 // Schema mirrors the summarization agent prompt's field list & tiers exactly,
 // so the score computed here (plain code) matches the same rubric the AI uses later.
+const COUNTRY_OPTIONS = ['United Kingdom','Hong Kong','China','United States','European Union','Singapore','Japan','South Korea','Australia','India','United Arab Emirates','Africa','Latin America','Other'];
+const BUSINESS_TYPE_CATEGORIES = ['Trading','Manufacturing','Retail','Ecommerce','Services','Project','Others'];
+
 const KYC_SCHEMA = [
   { id:'company_overview', title:'Company overview', sub:'The basics of who you are.', fields:[
     {key:'legal_entity_name', tier:'critical', type:'text', label:'Legal entity name', placeholder:'e.g. Meridian Freight Co Ltd'},
     {key:'registration_country', tier:'critical', type:'select', label:'Registration country', options:['United Kingdom','Hong Kong','Singapore','Ireland','Other']},
+    {key:'contact_phone_number', tier:'critical', type:'text', label:'Contact phone number', placeholder:'e.g. +44 20 7946 0958'},
+    {key:'type_of_business', tier:'critical', type:'percentage_grid', label:'Type of business', categories: BUSINESS_TYPE_CATEGORIES},
     {key:'incorporation_years', tier:'supporting', type:'select', label:'How long have you been trading?', options:['Less than 1 year','1–3 years','3–10 years','10+ years']},
-    {key:'business_type', tier:'supporting', type:'multiselect', label:'Business type', options:['Import','Export','Trading','Manufacturing','Service','Local business']},
     {key:'registered_address', tier:'supporting', type:'text', label:'Registered / trading address'},
     {key:'website', tier:'supporting', type:'text', label:'Website', placeholder:'Optional'},
     {key:'group_parent_company', tier:'supporting', type:'text', label:'Group / parent company', placeholder:'Optional, if applicable'},
     {key:'sister_entities', tier:'supporting', type:'text', label:'Associated / sister entities', placeholder:'Optional'},
   ]},
   { id:'business_activity', title:'Business activity', sub:'What you actually do, day to day.', fields:[
-    {key:'what_business_does', tier:'critical', type:'textarea', ai:true, label:'Describe what your business does', placeholder:"Products/services, who you sell to, how long you've done this..."},
+    {key:'description_of_business', tier:'critical', type:'textarea', ai:true, label:'Describe what your business does', placeholder:"Products/services, who you sell to, how long you've done this..."},
+    {key:'location_of_main_suppliers', tier:'critical', type:'country_percentage_list', label:'Location of main suppliers', options: COUNTRY_OPTIONS},
+    {key:'location_of_main_buyers_customers', tier:'critical', type:'country_percentage_list', label:'Location of main buyers / customers', options: COUNTRY_OPTIONS},
     {key:'industry_sector', tier:'supporting', type:'select', label:'Industry / sector', options:['Electronics & manufacturing','Trading & logistics','Retail & consumer goods','Construction & energy','Professional services','Technology','Other']},
-    {key:'suppliers', tier:'supporting', type:'text', label:'Who are your suppliers, and where are they based?'},
-    {key:'customers_buyers', tier:'supporting', type:'text', label:'Who are your customers, and where are they based?'},
   ]},
   { id:'corporate_structure_ownership', title:'Corporate structure & ownership', sub:'Who owns and runs the company.', fields:[
     {key:'immediate_parent', tier:'supporting', type:'text', label:'Immediate parent company', placeholder:'Optional'},
     {key:'ultimate_holding', tier:'supporting', type:'text', label:'Ultimate holding company', placeholder:'Optional'},
     {key:'shareholding_chain', tier:'supporting', type:'textarea', label:'Shareholding chain', placeholder:'Optional — how ownership passes down to this company'},
-    {key:'ubo', tier:'critical', type:'textarea', ai:true, label:'Who owns 25% or more of the company?', placeholder:'Name(s) and approximate ownership %'},
+    {key:'ubo', tier:'supporting', type:'textarea', ai:true, label:'Who owns 25% or more of the company?', placeholder:'Name(s) and approximate ownership %'},
     {key:'directors', tier:'supporting', type:'text', label:'Directors'},
     {key:'restructuring', tier:'supporting', type:'textarea', label:'Any recent restructuring or transfers between related entities?', placeholder:'Optional'},
   ]},
   { id:'source_of_funds', title:'Source of funds', sub:'Where the money moving through this account comes from, going forward.', fields:[
-    {key:'ongoing_sof', tier:'critical', type:'textarea', ai:true, label:'What ongoing business activity generates these funds?', placeholder:'e.g. sale of goods, service fees...'},
+    {key:'ongoing_sof', tier:'supporting', type:'textarea', ai:true, label:'What ongoing business activity generates these funds?', placeholder:'e.g. sale of goods, service fees...'},
     {key:'originating_bank', tier:'supporting', type:'text', label:'Originating bank / account', placeholder:'Optional'},
-    {key:'origin_countries', tier:'supporting', type:'multiselect', label:'Origin countries of funds', options:['United Kingdom','Hong Kong','European Union','United States','China','Other']},
-    {key:'destination_countries', tier:'supporting', type:'multiselect', label:'Destination countries of funds', options:['United Kingdom','Hong Kong','European Union','United States','China','Other']},
+    {key:'origin_countries', tier:'supporting', type:'multiselect', label:'Origin countries of funds', options: COUNTRY_OPTIONS},
+    {key:'destination_countries', tier:'supporting', type:'multiselect', label:'Destination countries of funds', options: COUNTRY_OPTIONS},
   ]},
   { id:'source_of_wealth', title:'Source of wealth', sub:'How the company or its owners built their financial position historically.', fields:[
-    {key:'wealth_history', tier:'critical', type:'textarea', ai:true, label:'How did the company or its owners build their wealth over time?', placeholder:'Company history, career background, milestones...'},
+    {key:'wealth_history', tier:'supporting', type:'textarea', ai:true, label:'How did the company or its owners build their wealth over time?', placeholder:'Company history, career background, milestones...'},
     {key:'founder_background', tier:'supporting', type:'textarea', label:'Founder / key individual background', placeholder:'Optional'},
     {key:'supporting_milestones', tier:'supporting', type:'textarea', label:'Any supporting milestones?', placeholder:'Optional — trade fairs, funding rounds, major contracts...'},
   ]},
   { id:'financial_position_evidence', title:'Financial position', sub:'A rough picture — exact figures get confirmed from documents at the next stage.', fields:[
-    {key:'revenue_band', tier:'critical', type:'select', label:'Annual revenue / turnover', options:['Under £1M','£1M–£5M','£5M–£20M','£20M–£50M','£50M+']},
+    {key:'revenue_band', tier:'supporting', type:'select', label:'Annual revenue / turnover', options:['Under £1M','£1M–£5M','£5M–£20M','£20M–£50M','£50M+']},
     {key:'profit_band', tier:'supporting', type:'select', label:'Net profit or loss', options:['Loss-making','Break-even','Under £1M profit','£1M–£5M profit','£5M+ profit']},
     {key:'net_assets_band', tier:'supporting', type:'select', label:'Net assets / equity', options:['Under £500K','£500K–£2M','£2M–£10M','£10M+']},
     {key:'liabilities_band', tier:'supporting', type:'select', label:'Bank loans / liabilities', options:['None','Under £500K','£500K–£2M','£2M+']},
     {key:'supporting_docs', tier:'supporting', type:'multiselect', label:'What can you provide to support these figures?', options:['Financial statements','Bank statements','Shareholder registry','Company website','Invoices']},
   ]},
   { id:'estimated_annual_volume', title:'Estimated annual volume', sub:'How much you expect to move through this account.', fields:[
-    {key:'eav_band', tier:'critical', type:'select', label:'Expected annual volume', options:['Under £100K','£100K–£500K','£500K–£1M','£1M–£5M','£5M+']},
+    {key:'eav_band', tier:'supporting', type:'select', label:'Expected annual volume', options:['Under £100K','£100K–£500K','£500K–£1M','£1M–£5M','£5M+']},
     {key:'eav_justification', tier:'supporting', type:'text', label:'How does this tie back to your revenue?', placeholder:'Optional'},
     {key:'currencies', tier:'supporting', type:'multiselect', label:'Currencies to buy / sell', options:['GBP','EUR','USD','HKD','CNH','Other']},
     {key:'payment_size_band', tier:'supporting', type:'select', label:'Typical payment size', options:['Under £10K','£10K–£50K','£50K–£100K','£100K+']},
@@ -785,13 +804,13 @@ const KYC_SCHEMA = [
     {key:'products_required', tier:'supporting', type:'multiselect', label:'Products you expect to need', options:['Spot transfers','Forward contracts','Local currency accounts','IBAN accounts','Trade finance']},
   ]},
   { id:'purpose_services_required', title:'Purpose & services required', sub:"What you'll use this for.", fields:[
-    {key:'reason_for_using', tier:'critical', type:'multiselect', label:'What will you mainly use this account for?', options:['Supplier payments','Payroll','Tax payments','Intercompany funding','FX hedging','Other']},
+    {key:'areas_of_interest', tier:'critical', type:'multiselect', label:'Areas of interest — what will you mainly use this account for?', options:['Supplier payments','Payroll','Tax payments','Intercompany funding','FX hedging','Other']},
+    {key:'main_banks', tier:'critical', type:'text', label:'Main bank(s) you currently use', placeholder:'e.g. HSBC, Standard Chartered'},
     {key:'value_vs_current', tier:'supporting', type:'text', label:"What's prompting you to look beyond your current bank?", placeholder:'Optional'},
-    {key:'current_banking', tier:'supporting', type:'text', label:'Current banking relationships', placeholder:'Optional'},
   ]},
 ];
-const CRITICAL_TOTAL = 9;   // matches the summarization agent prompt's scoring rubric
-const SUPPORTING_TOTAL = 31; // includes 1 derived point (business_model_narrative, tied to "what_business_does")
+const CRITICAL_TOTAL = 9;    // matches the summarization agent prompt's scoring rubric
+const SUPPORTING_TOTAL = 32; // includes 1 derived point (business_model_narrative, tied to "description_of_business")
 
 const kycProfile = {};
 let wizardStep = 0;
@@ -800,9 +819,19 @@ const wizardPanel = document.getElementById('wizard-panel');
 const wizardStepsEl = document.getElementById('wizard-steps');
 const wizardFill = document.getElementById('wizard-progress-fill');
 
+const FIELDS_BY_KEY = {};
+KYC_SCHEMA.forEach(section => section.fields.forEach(f => { FIELDS_BY_KEY[f.key] = f; }));
+
+function ensureFieldState(f){
+  if(f.type === 'country_percentage_list' && !kycProfile[f.key]) kycProfile[f.key] = [{ country:'', percentage:'' }];
+  if(f.type === 'percentage_grid' && !kycProfile[f.key]) kycProfile[f.key] = {};
+}
+
 function fieldFilled(f){
   const v = kycProfile[f.key];
   if(f.type === 'multiselect') return Array.isArray(v) && v.length > 0;
+  if(f.type === 'percentage_grid') return v && Object.values(v).some(x => Number(x) > 0);
+  if(f.type === 'country_percentage_list') return Array.isArray(v) && v.some(r => r.country && Number(r.percentage) > 0);
   return typeof v === 'string' && v.trim().length > 0;
 }
 
@@ -811,9 +840,8 @@ function computeCounts(){
   KYC_SCHEMA.forEach(section => section.fields.forEach(f => {
     if(fieldFilled(f)){ if(f.tier === 'critical') critical++; else supporting++; }
   }));
-  // derived: business_model_narrative is generated from what_business_does, not a separate input
-  const wbd = KYC_SCHEMA[1].fields[0];
-  if(fieldFilled(wbd)) supporting++;
+  // derived: business_model_narrative is generated from description_of_business, not a separate input
+  if(fieldFilled(FIELDS_BY_KEY['description_of_business'])) supporting++;
   return { critical, supporting };
 }
 
@@ -834,13 +862,48 @@ function renderStepNav(){
   });
 }
 
+function pctTotal(f){
+  const v = kycProfile[f.key];
+  if(f.type === 'percentage_grid') return Object.values(v || {}).reduce((a, b) => a + (Number(b) || 0), 0);
+  return (v || []).reduce((a, r) => a + (Number(r.percentage) || 0), 0);
+}
+
 function fieldControlHTML(f){
+  ensureFieldState(f);
   const val = kycProfile[f.key];
+
   if(f.type === 'text'){
     return `<input class="field-text" type="text" data-key="${f.key}" placeholder="${f.placeholder || ''}" value="${val || ''}">`;
   }
   if(f.type === 'textarea'){
     return `<textarea class="field-text" data-key="${f.key}" rows="3" placeholder="${f.placeholder || ''}">${val || ''}</textarea>`;
+  }
+  if(f.type === 'percentage_grid'){
+    const total = pctTotal(f);
+    return `<div class="pct-grid">` +
+      f.categories.map(cat => `
+        <div class="pct-grid-row">
+          <label>${cat}</label>
+          <input type="number" min="0" max="100" class="pct-input" data-key="${f.key}" data-cat="${cat}" value="${val[cat] || ''}" placeholder="0">
+        </div>`).join('') +
+      `<div class="pct-total ${total > 0 && total !== 100 ? 'warn' : ''}" data-key="${f.key}">Total: ${total}%</div>
+      </div>`;
+  }
+  if(f.type === 'country_percentage_list'){
+    const total = pctTotal(f);
+    return `<div class="cp-list">` +
+      val.map((row, i) => `
+        <div class="cp-row">
+          <select class="cp-country" data-key="${f.key}" data-index="${i}">
+            <option value="">Select country/region</option>
+            ${f.options.map(c => `<option value="${c}" ${row.country === c ? 'selected' : ''}>${c}</option>`).join('')}
+          </select>
+          <input type="number" min="0" max="100" class="cp-pct" data-key="${f.key}" data-index="${i}" placeholder="%" value="${row.percentage || ''}">
+          <button type="button" class="cp-remove" data-key="${f.key}" data-index="${i}">×</button>
+        </div>`).join('') +
+      `<button type="button" class="cp-add" data-key="${f.key}">+ Add country</button>
+      <div class="pct-total ${total > 0 && total !== 100 ? 'warn' : ''}" data-key="${f.key}">Total: ${total}%</div>
+      </div>`;
   }
   // select / multiselect — rendered as pill rows
   const multi = f.type === 'multiselect';
@@ -862,7 +925,7 @@ function renderPanel(){
           <span>${f.label}</span>
           ${f.ai ? '<span class="ai-badge">AI-assisted</span>' : ''}
         </div>
-        ${fieldControlHTML(f)}
+        <div id="control-${f.key}">${fieldControlHTML(f)}</div>
         ${f.ai ? '<p class="field-note">This response is read by the KYC summarization agent to extract and score your profile.</p>' : ''}
       </div>
     `).join('')}
@@ -871,6 +934,17 @@ function renderPanel(){
   const nextBtn = document.getElementById('wizard-next');
   if(wizardStep === KYC_SCHEMA.length - 1){ nextBtn.textContent = "You're on the last step"; nextBtn.disabled = true; }
   else { nextBtn.textContent = 'Next →'; nextBtn.disabled = false; }
+}
+
+function renderRepeaterField(key){
+  const el = document.getElementById('control-' + key);
+  if(el) el.innerHTML = fieldControlHTML(FIELDS_BY_KEY[key]);
+}
+
+function updatePctTotal(key){
+  const total = pctTotal(FIELDS_BY_KEY[key]);
+  const el = document.querySelector(`.pct-total[data-key="${key}"]`);
+  if(el){ el.textContent = `Total: ${total}%`; el.classList.toggle('warn', total > 0 && total !== 100); }
 }
 
 function updateSidebar(){
@@ -903,26 +977,60 @@ function updateSidebar(){
 
 if(wizardPanel){
   wizardPanel.addEventListener('input', (e) => {
-    if(e.target.matches('.field-text')){
-      kycProfile[e.target.dataset.key] = e.target.value;
+    const t = e.target;
+    if(t.matches('.field-text')){
+      kycProfile[t.dataset.key] = t.value;
+      updateSidebar();
+    } else if(t.matches('.pct-input')){
+      kycProfile[t.dataset.key][t.dataset.cat] = t.value;
+      updatePctTotal(t.dataset.key);
+      updateSidebar();
+    } else if(t.matches('.cp-pct')){
+      kycProfile[t.dataset.key][Number(t.dataset.index)].percentage = t.value;
+      updatePctTotal(t.dataset.key);
+      updateSidebar();
+    }
+  });
+  wizardPanel.addEventListener('change', (e) => {
+    if(e.target.matches('.cp-country')){
+      const t = e.target;
+      kycProfile[t.dataset.key][Number(t.dataset.index)].country = t.value;
       updateSidebar();
     }
   });
   wizardPanel.addEventListener('click', (e) => {
     const pill = e.target.closest('.select-pill');
-    if(!pill) return;
-    const key = pill.dataset.key, value = pill.dataset.value, multi = pill.dataset.multi === '1';
-    if(multi){
-      let arr = kycProfile[key] || [];
-      arr = arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value];
-      kycProfile[key] = arr;
-      pill.classList.toggle('picked');
-    } else {
-      pill.closest('.field-select-row').querySelectorAll('.select-pill').forEach(p => p.classList.remove('picked'));
-      pill.classList.add('picked');
-      kycProfile[key] = value;
+    if(pill){
+      const key = pill.dataset.key, value = pill.dataset.value, multi = pill.dataset.multi === '1';
+      if(multi){
+        let arr = kycProfile[key] || [];
+        arr = arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value];
+        kycProfile[key] = arr;
+        pill.classList.toggle('picked');
+      } else {
+        pill.closest('.field-select-row').querySelectorAll('.select-pill').forEach(p => p.classList.remove('picked'));
+        pill.classList.add('picked');
+        kycProfile[key] = value;
+      }
+      updateSidebar();
+      return;
     }
-    updateSidebar();
+    const addBtn = e.target.closest('.cp-add');
+    if(addBtn){
+      kycProfile[addBtn.dataset.key].push({ country:'', percentage:'' });
+      renderRepeaterField(addBtn.dataset.key);
+      updateSidebar();
+      return;
+    }
+    const removeBtn = e.target.closest('.cp-remove');
+    if(removeBtn){
+      const key = removeBtn.dataset.key, idx = Number(removeBtn.dataset.index);
+      kycProfile[key].splice(idx, 1);
+      if(kycProfile[key].length === 0) kycProfile[key].push({ country:'', percentage:'' });
+      renderRepeaterField(key);
+      updateSidebar();
+      return;
+    }
   });
 
   document.getElementById('wizard-back').addEventListener('click', () => { if(wizardStep > 0){ wizardStep--; renderPanel(); renderStepNav(); } });
@@ -933,6 +1041,7 @@ if(wizardPanel){
   renderPanel();
   updateSidebar();
 }
+
 
 // ---- Mask / consultant option selection ----
 document.querySelectorAll('.mask-option').forEach(opt => {
