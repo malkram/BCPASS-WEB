@@ -770,16 +770,16 @@ const KYC_SCHEMA = [
     {key:'description_of_business', tier:'critical', type:'textarea', ai:true, label:'Describe what your business does', placeholder:"Products/services, who you sell to, how long you've done this..."},
     {key:'location_of_main_suppliers', tier:'critical', type:'country_percentage_list', label:'Location of main suppliers', options: COUNTRY_OPTIONS},
     {key:'location_of_main_buyers_customers', tier:'critical', type:'country_percentage_list', label:'Location of main buyers / customers', options: COUNTRY_OPTIONS},
-    {key:'industry_sector', tier:'supporting', type:'select', label:'Industry / sector', options:['Electronics','Garments','Housewares','Toys','Food','Commodities','Construction & project','Logistics','Consumer goods','Professional services','Technology','Other'], allowOtherText:true},
+    {key:'industry_sector', tier:'supporting', type:'multiselect', label:'Industry / sector', options:['Electronics','Garments','Housewares','Toys','Food','Commodities','Construction & project','Logistics','Consumer goods','Professional services','Technology','Health care','Education','Hotel','Financial','Raw material','Wholesale','Machinery','Energy','Real estate','Other'], allowOtherText:true},
   ]},
   { id:'corporate_structure_ownership', title:'CORPORATE STRUCTURE & OWNERSHIP', sub:'Who owns and runs the company.', fields:[
     {key:'immediate_parent', tier:'supporting', type:'text', label:'Group / sister company', placeholder:'Optional'},
-    {key:'shareholding_chain', tier:'supporting', type:'textarea', label:'Group companies relationship', placeholder:'Optional — highlight different company responsibility, reason to setup new company'},
+    {key:'shareholding_chain', tier:'supporting', type:'textarea', label:'Group company relationship', placeholder:'Optional — highlight different company responsibility, reason to setup new company, different product line...'},
     {key:'ubo', tier:'supporting', type:'textarea', ai:true, label:'Who owns 25% or more of the company?', placeholder:'Name(s) and approximate ownership %'},
     {key:'directors', tier:'supporting', type:'text', label:'Directors', placeholder:'Name(s)'},
   ]},
   { id:'funding_source', title:'FUNDING SOURCE', sub:'Where the money moving through this account comes from, going forward.', fields:[
-    {key:'ongoing_sof', tier:'supporting', type:'textarea', ai:true, label:'What ongoing business activity generates funds for the company?', placeholder:'e.g. sale of goods, service fees...'},
+    {key:'ongoing_sof', tier:'supporting', type:'textarea', ai:true, label:'What ongoing business activity generates funds for the company?', placeholder:'e.g. sale of goods, service fees, investment fund, loan from related company,...'},
     {key:'origin_countries', tier:'supporting', type:'multiselect', label:'Origin locations of funds', options: COUNTRY_OPTIONS, allowOtherText:true},
     {key:'means_of_transactions', tier:'supporting', type:'multiselect', label:'Means of transactions', options:['Cash','TT','LC','Bank transfer','Credit and debit card','Trade credit','Crypto','Ecommerce','Other'], allowOtherText:true},
   ]},
@@ -802,11 +802,12 @@ const KYC_SCHEMA = [
     {key:'areas_of_interest', tier:'critical', type:'multiselect', label:'Areas of interest', options:['Payments','Loans','Payable financing','Receivable financing','LC','Revolving loan','Trade insurance','Hedging','FX','Crypto','POS','Card services','Account services','Investments','Other'], allowOtherText:true},
     {key:'main_banks', tier:'critical', type:'text', label:'Main bank(s) / financial institution(s) you currently use', placeholder:'e.g. HSBC, Standard Chartered'},
     {key:'value_vs_current', tier:'supporting', type:'text', label:"What's prompting you to look beyond your current bank?", placeholder:'Optional — high transaction charge, diversify of portfolio, improve efficiency'},
-    {key:'additional_comments', tier:'none', type:'textarea', label:'Any supplementary or comments', placeholder:'Optional'},
+    {key:'additional_comments', tier:'none', type:'textarea', label:'Any supplementary or comments', placeholder:'Optional — more supplementary or background information will be helpful for bank(s) or financial institution(s) to understand your business'},
+    {key:'future_planning', tier:'supporting', type:'textarea', label:'Future planning or strategic moves', placeholder:'Optional — expand the business in different geographic location, setup a factory, develop a new line of business, going IPO in 2 years...', note:'With your future planning, our AI system will be able to match and suggest providers that can help you achieve your goal (if you agree).'},
   ]},
 ];
 const CRITICAL_TOTAL = 9;    // matches the summarization agent prompt's scoring rubric
-const SUPPORTING_TOTAL = 24; // includes 1 derived point (business_model_narrative, tied to "description_of_business")
+const SUPPORTING_TOTAL = 25; // includes 1 derived point (business_model_narrative, tied to "description_of_business")
 
 const kycProfile = {};
 let wizardStep = 0;
@@ -938,7 +939,7 @@ function renderPanel(){
           ${f.ai ? '<span class="ai-badge">AI-assisted</span>' : ''}
         </div>
         <div id="control-${f.key}">${fieldControlHTML(f)}</div>
-        ${f.ai ? '<p class="field-note">This response is read by the AI agent to extract, score your profile and give you feedback.</p>' : ''}
+        ${f.ai ? '<p class="field-note">This response is read by the AI agent to extract, score your profile and give you feedback.</p>' : (f.note ? `<p class="field-note">${f.note}</p>` : '')}
       </div>
     `).join('')}
   `;
