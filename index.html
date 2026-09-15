@@ -353,7 +353,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
           <p class="kicker">mei.chan@harbourtrade.co</p>
           <h1>Your companies</h1>
         </div>
-        <button class="btn btn-primary">+ Add a company</button>
+        <button class="btn btn-primary" id="add-company-btn-top">+ Add a company</button>
       </header>
 
       <div class="company-list">
@@ -852,21 +852,25 @@ if(loginForm){
 }
 
 // ---- Start a new company profile: calls create-case for real ----
-const newProfileBtn = document.getElementById('new-profile-btn');
-if(newProfileBtn){
-  newProfileBtn.addEventListener('click', async () => {
-    newProfileBtn.disabled = true;
-    try {
-      const result = await callFunction('create-case', {});
-      currentCaseId = result.case_id;
-      goToScreen('build');
-    } catch (err) {
-      alert("Could not start a new profile: " + err.message);
-    } finally {
-      newProfileBtn.disabled = false;
-    }
-  });
+// Two separate buttons trigger this — the prominent "+ Add a company"
+// at the top, and the dashed "Start a new company profile" card below —
+// both should do the same thing.
+async function startNewProfile(triggerBtn){
+  triggerBtn.disabled = true;
+  try {
+    const result = await callFunction('create-case', {});
+    currentCaseId = result.case_id;
+    goToScreen('build');
+  } catch (err) {
+    alert("Could not start a new profile: " + err.message);
+  } finally {
+    triggerBtn.disabled = false;
+  }
 }
+const newProfileBtn = document.getElementById('new-profile-btn');
+if(newProfileBtn) newProfileBtn.addEventListener('click', () => startNewProfile(newProfileBtn));
+const addCompanyBtnTop = document.getElementById('add-company-btn-top');
+if(addCompanyBtnTop) addCompanyBtnTop.addEventListener('click', () => startNewProfile(addCompanyBtnTop));
 
 // ---- Debounced auto-save to save-profile ----
 let saveDebounceTimer = null;
