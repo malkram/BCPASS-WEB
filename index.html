@@ -408,7 +408,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
     <section class="screen" id="screen-build">
       <header class="screen-head">
         <div>
-          <p class="kicker">Meridian Freight Co</p>
+          <p class="kicker" id="build-company-kicker">New company profile</p>
           <h1>Build your KYB profile</h1>
         </div>
         <div class="score-badge" id="score-badge">
@@ -1182,6 +1182,9 @@ function updateSidebar(){
     signoffBtn.disabled = true;
     signoffNote.textContent = `${missingCritical.length} critical field${missingCritical.length > 1 ? 's' : ''} still needed before you can sign off.`;
   }
+
+  const kickerEl = document.getElementById('build-company-kicker');
+  if(kickerEl) kickerEl.textContent = kycProfile.legal_entity_name?.trim() || 'New company profile';
 
   scheduleSave(); // auto-save to the backend, debounced 2s after the last change
 }
