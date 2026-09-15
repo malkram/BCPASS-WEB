@@ -350,13 +350,13 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
     <section class="screen" id="screen-dashboard">
       <header class="screen-head">
         <div>
-          <p class="kicker">mei.chan@harbourtrade.co</p>
+          <p class="kicker" id="dashboard-user-email">mei.chan@harbourtrade.co</p>
           <h1>Your companies</h1>
         </div>
         <button class="btn btn-primary" id="add-company-btn-top">+ Add a company</button>
       </header>
 
-      <div class="company-list">
+      <div class="company-list" id="company-list">
 
         <article class="company-card">
           <div class="company-top">
@@ -808,6 +808,10 @@ const WIZARD_TO_CANDY_PATH = {
   additional_comments: "notes.additional_comments",
 };
 
+function getPath(obj, path){
+  return path.split('.').reduce((acc, key) => (acc == null ? undefined : acc[key]), obj);
+}
+
 function setNestedPath(obj, path, value){
   const keys = path.split(".");
   let target = obj;
@@ -825,6 +829,95 @@ function mapWizardProfileToCandySchema(flatProfile){
     if(path) setNestedPath(nested, path, value);
   }
   return nested;
+}
+
+// Reverse of the above — converts CANDY's nested schema back into the
+// wizard's flat keys. Needed whenever an existing case is loaded back
+// into the Build KYB wizard (e.g. clicking "Continue building" on a
+// real dashboard card) — without this, the wizard would show blank
+// fields even though real data exists, and auto-save would then
+// silently overwrite that real data with blanks the moment the client
+// touches anything.
+function mapCandySchemaToWizardProfile(nestedProfile){
+  const flat = {};
+  if(!nestedProfile) return flat;
+  for(const [flatKey, path] of Object.entries(WIZARD_TO_CANDY_PATH)){
+    const value = getPath(nestedProfile, path);
+    if(value !== undefined && value !== null) flat[flatKey] = value;
+  }
+  return flat;
+}
+
+// Loads a case's saved profile into the wizard and jumps to step 1,
+// refreshing every part of the UI that depends on kycProfile.
+function loadCaseIntoWizard(caseId, nestedProfile){
+  currentCaseId = caseId;
+  for(const key of Object.keys(kycProfile)) delete kycProfile[key];
+  Object.assign(kycProfile, mapCandySchemaToWizardProfile(nestedProfile));
+  wizardStep = 0;
+  goToScreen('build');
+  renderStepNav();
+  renderPanel();
+  updateSidebar();
+}
+
+function formatRelativeTime(isoString){
+  if(!isoString) return 'just now';
+  const diffMs = Date.now() - new Date(isoString).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if(mins < 1) return 'just now';
+  if(mins < 60) return `${mins} minute${mins === 1 ? '' : 's'} ago`;
+  const hours = Math.floor(mins / 60);
+  if(hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days === 1 ? '' : 's'} ago`;
+}
+
+// ---- Load and render the logged-in user's real cases on the Dashboard ----
+async function loadDashboardCases(){
+  if(!supabaseClient) return; // not configured yet — leave the mockup cards as-is
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  const emailEl = document.getElementById('dashboard-user-email');
+  if(emailEl && user) emailEl.textContent = user.email;
+
+  const { data: cases, error } = await supabaseClient
+    .from('kyb_cases')
+    .select('case_id, company_name, status, candy_profile, updated_at')
+    .order('updated_at', { ascending: false });
+
+  if(error){ console.error('Could not load cases:', error.message); return; }
+
+  const listEl = document.getElementById('company-list');
+  if(!listEl) return;
+  listEl.querySelectorAll('.company-card:not(.company-card-add)').forEach(el => el.remove());
+
+  const addBtn = document.getElementById('new-profile-btn');
+  (cases || []).forEach(c => {
+    const feedback = c.candy_profile?.client_feedback;
+    const score = feedback?.completion_score?.score ?? 0;
+    const country = c.candy_profile?.company_overview?.registration_country;
+    const isReady = feedback?.profile_status === 'ready_for_sign_off';
+
+    const card = document.createElement('article');
+    card.className = 'company-card';
+    card.innerHTML = `
+      <div class="company-top">
+        <h2>${c.company_name || 'Untitled profile'}</h2>
+        <span class="tag ${isReady ? 'tag-green' : 'tag-muted'}">${isReady ? 'Ready for sign-off' : 'Draft'}</span>
+      </div>
+      <p class="company-meta">${country ? country + ' · ' : ''}Last updated ${formatRelativeTime(c.updated_at)}</p>
+      <div class="progress-track"><div class="progress-fill" style="width:${score}%"></div></div>
+      <div class="company-foot">
+        <span class="progress-label">${score}% complete</span>
+        <button class="btn btn-ghost">Continue building →</button>
+      </div>
+    `;
+    card.querySelector('.btn-ghost').addEventListener('click', () => {
+      loadCaseIntoWizard(c.case_id, c.candy_profile);
+    });
+    if(addBtn) listEl.insertBefore(card, addBtn);
+    else listEl.appendChild(card);
+  });
 }
 
 // ---- Login form ----
@@ -925,6 +1018,8 @@ function goToScreen(name){
 
   document.querySelectorAll('.rail-btn').forEach(b => b.classList.toggle('active', b.dataset.screen === name));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.screen === name));
+
+  if(name === 'dashboard') loadDashboardCases();
 
   window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
 }
