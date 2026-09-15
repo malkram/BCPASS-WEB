@@ -6,6 +6,7 @@
 <title>BCPASS — Corporate KYB, built with you</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 /* ============ TOKENS ============ */
 :root{
@@ -321,13 +322,14 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
         <form class="auth-form" id="login-form">
           <label class="field">
             <span>Work email</span>
-            <input type="email" placeholder="cfo@yourcompany.com" value="mei.chan@harbourtrade.co">
+            <input type="email" id="login-email" placeholder="cfo@yourcompany.com">
           </label>
           <label class="field">
             <span>Password</span>
-            <input type="password" placeholder="••••••••" value="••••••••••">
+            <input type="password" id="login-password" placeholder="••••••••">
           </label>
           <button type="submit" class="btn btn-primary btn-block">Continue</button>
+          <p class="field-note" id="login-error" style="color:var(--amber); display:none;"></p>
         </form>
         <p class="auth-note">One login can hold profiles for several companies. Each colleague signs in separately — nothing is shared by default.</p>
         <div class="auth-security">
@@ -395,7 +397,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
           </div>
         </article>
 
-        <button class="company-card company-card-add" data-goto="build">
+        <button class="company-card company-card-add" id="new-profile-btn">
           <span class="plus">+</span>
           <span>Start a new company profile</span>
         </button>
@@ -540,13 +542,13 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
         </div>
 
         <aside class="split-side">
-          <p class="side-title">Before you sign off</p>
+          <p class="side-title">Before you generate your pass</p>
           <ul class="prompt-list">
             <li>Resolve the two open flags above</li>
             <li>Review the generated summary for accuracy</li>
             <li>Confirm you're signing on behalf of the company</li>
           </ul>
-          <button class="btn btn-primary btn-block" style="margin-top:20px" data-goto="pass">Sign off &amp; continue →</button>
+          <button class="btn btn-primary btn-block" style="margin-top:20px" data-goto="pass">Generate PASS →</button>
         </aside>
       </div>
     </section>
@@ -721,7 +723,197 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
 </nav>
 
 <script>
-// ---- Screen navigation ----
+// ============================================================
+// BACKEND INTEGRATION — Supabase client, auth, and the three
+// working Edge Functions (create-case, save-profile, run-candy).
+//
+// NOTE ON TESTING: unlike every Edge Function above, this frontend
+// wiring has NOT been tested against a real, live browser session —
+// I don't have a live Supabase environment or real credentials to
+// test with from here. It's written carefully against the same
+// patterns already proven to work (the same auth header shape, the
+// same field mapping used in CANDY's own tested examples), but this
+// is the first piece of this whole build that needs real testing
+// from you before it can be trusted, the same way every Edge
+// Function needed testing before it was trusted.
+// ============================================================
+
+const SUPABASE_URL = "https://mbkcompsyujyucertzet.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ia2NvbXBzeXVqeXVjZXJ0emV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4OTE2NDQsImV4cCI6MjEwNDQ2NzY0NH0.tz3mEk30FaUJHM3Ok3qf01VjLHMaaIGr08QbNT_gVk0"; // paste your real anon key here
+
+const supabaseClient = (typeof supabase !== 'undefined' && SUPABASE_ANON_KEY !== "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ia2NvbXBzeXVqeXVjZXJ0emV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4OTE2NDQsImV4cCI6MjEwNDQ2NzY0NH0.tz3mEk30FaUJHM3Ok3qf01VjLHMaaIGr08QbNT_gVk0")
+  ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+let currentCaseId = null; // set once a case is created or loaded
+
+async function getAccessToken(){
+  if(!supabaseClient) return null;
+  const { data } = await supabaseClient.auth.getSession();
+  return data?.session?.access_token ?? null;
+}
+
+async function callFunction(functionName, body){
+  const token = await getAccessToken();
+  if(!token) throw new Error("Not logged in — no access token available.");
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/${functionName}`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const result = await response.json();
+  if(!response.ok) throw new Error(result?.error || `${functionName} failed`);
+  return result;
+}
+
+// Maps the wizard's flat field keys (e.g. "ubo", "ongoing_sof") to CANDY's
+// actual nested schema paths (e.g. "corporate_structure_ownership.
+// ultimate_beneficial_owners"). Without this, save-profile would store
+// data in a shape run-candy's prompt doesn't expect as existing_profile.
+const WIZARD_TO_CANDY_PATH = {
+  legal_entity_name: "company_overview.legal_entity_name",
+  registration_country: "company_overview.registration_country",
+  contact_phone_number: "company_overview.contact_phone_number",
+  contact_email: "company_overview.contact_email",
+  type_of_business: "company_overview.type_of_business",
+  incorporation_years: "company_overview.incorporation_date_or_years_trading",
+  registered_address: "company_overview.registered_trading_address",
+  website: "company_overview.website",
+  description_of_business: "business_activity.description_of_business",
+  location_of_main_suppliers: "business_activity.location_of_main_suppliers",
+  location_of_main_buyers_customers: "business_activity.location_of_main_buyers_customers",
+  industry_sector: "business_activity.industry_sector",
+  immediate_parent: "corporate_structure_ownership.group_or_sister_company",
+  shareholding_chain: "corporate_structure_ownership.group_companies_relationship",
+  ubo: "corporate_structure_ownership.ultimate_beneficial_owners",
+  directors: "corporate_structure_ownership.directors",
+  ongoing_sof: "funding_source.ongoing_source_of_funds",
+  origin_countries: "funding_source.origin_countries",
+  means_of_transactions: "funding_source.means_of_transactions",
+  wealth_history: "business_history_milestones.wealth_history_narrative",
+  founder_background: "business_history_milestones.founder_or_key_individual_background",
+  supporting_milestones: "business_history_milestones.business_milestones",
+  revenue_band: "current_and_future_planning.revenue_or_turnover",
+  liabilities_band: "current_and_future_planning.bank_loans_or_liabilities",
+  eav_band: "current_and_future_planning.expected_turnover_vs_last_year",
+  currencies_out: "current_and_future_planning.currencies_sending_to_suppliers",
+  currencies_in: "current_and_future_planning.currencies_receiving_from_buyers",
+  payment_size_band: "current_and_future_planning.typical_payment_size",
+  payment_volume_out: "current_and_future_planning.payment_volume_outgoing",
+  payment_volume_in: "current_and_future_planning.payment_volume_incoming",
+  areas_of_interest: "purpose_services_required.areas_of_interest",
+  main_banks: "purpose_services_required.main_banks",
+  value_vs_current: "purpose_services_required.value_vs_current_provider",
+  future_planning: "purpose_services_required.future_planning",
+  additional_comments: "notes.additional_comments",
+};
+
+function setNestedPath(obj, path, value){
+  const keys = path.split(".");
+  let target = obj;
+  for(let i = 0; i < keys.length - 1; i++){
+    if(!target[keys[i]]) target[keys[i]] = {};
+    target = target[keys[i]];
+  }
+  target[keys[keys.length - 1]] = value;
+}
+
+function mapWizardProfileToCandySchema(flatProfile){
+  const nested = {};
+  for(const [flatKey, value] of Object.entries(flatProfile)){
+    const path = WIZARD_TO_CANDY_PATH[flatKey];
+    if(path) setNestedPath(nested, path, value);
+  }
+  return nested;
+}
+
+// ---- Login form ----
+const loginForm = document.getElementById('login-form');
+if(loginForm){
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errorEl = document.getElementById('login-error');
+    errorEl.style.display = 'none';
+    if(!supabaseClient){
+      errorEl.textContent = "Backend not configured yet — add your real anon key in the code.";
+      errorEl.style.display = 'block';
+      return;
+    }
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if(error){
+      errorEl.textContent = error.message;
+      errorEl.style.display = 'block';
+      return;
+    }
+    goToScreen('dashboard');
+  });
+}
+
+// ---- Start a new company profile: calls create-case for real ----
+const newProfileBtn = document.getElementById('new-profile-btn');
+if(newProfileBtn){
+  newProfileBtn.addEventListener('click', async () => {
+    newProfileBtn.disabled = true;
+    try {
+      const result = await callFunction('create-case', {});
+      currentCaseId = result.case_id;
+      goToScreen('build');
+    } catch (err) {
+      alert("Could not start a new profile: " + err.message);
+    } finally {
+      newProfileBtn.disabled = false;
+    }
+  });
+}
+
+// ---- Debounced auto-save to save-profile ----
+let saveDebounceTimer = null;
+function scheduleSave(){
+  if(!currentCaseId) return; // no case yet (e.g. testing the wizard without logging in)
+  clearTimeout(saveDebounceTimer);
+  saveDebounceTimer = setTimeout(async () => {
+    try {
+      const candyShapedProfile = mapWizardProfileToCandySchema(kycProfile);
+      await callFunction('save-profile', {
+        case_id: currentCaseId,
+        candy_profile: candyShapedProfile,
+        company_name: kycProfile.legal_entity_name || undefined,
+      });
+    } catch (err) {
+      console.error("Auto-save failed:", err.message);
+    }
+  }, 2000); // wait 2s after the last change before saving
+}
+
+// ---- run-candy on AI-assisted field blur ----
+async function runCandyOnField(fieldKey, fieldValue){
+  if(!currentCaseId || !fieldValue || !fieldValue.trim()) return;
+  try {
+    const result = await callFunction('run-candy', {
+      case_id: currentCaseId,
+      latest_input: fieldValue,
+    });
+    if(result.client_feedback){
+      renderAIFeedback(result.client_feedback);
+    }
+  } catch (err) {
+    console.error("run-candy failed:", err.message);
+  }
+}
+
+function renderAIFeedback(clientFeedback){
+  // Overlays CANDY's AI-computed score/summary on top of the plain-JS
+  // one already shown by updateSidebar() — this is a visible signal
+  // that the AI has weighed in, distinct from the instant local score.
+  if(clientFeedback.completion_score){
+    document.getElementById('score-num').textContent = clientFeedback.completion_score.score;
+    document.getElementById('score-label').textContent = clientFeedback.completion_score.label + " (AI)";
+  }
+}
+
+
 function goToScreen(name){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const target = document.getElementById('screen-' + name);
@@ -739,15 +931,6 @@ document.querySelectorAll('[data-screen]').forEach(btn => {
 document.querySelectorAll('[data-goto]').forEach(btn => {
   btn.addEventListener('click', (e) => { e.preventDefault(); goToScreen(btn.dataset.goto); });
 });
-
-// ---- Login form just moves to dashboard ----
-const loginForm = document.getElementById('login-form');
-if(loginForm){
-  loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    goToScreen('dashboard');
-  });
-}
 
 // ---- Phase 1: structured KYB wizard (internal variable names still say "KYC_SCHEMA" — see note) ----
 // Schema mirrors the summarization agent prompt's field list & tiers exactly,
@@ -995,9 +1178,21 @@ function updateSidebar(){
     signoffBtn.disabled = true;
     signoffNote.textContent = `${missingCritical.length} critical field${missingCritical.length > 1 ? 's' : ''} still needed before you can sign off.`;
   }
+
+  scheduleSave(); // auto-save to the backend, debounced 2s after the last change
 }
 
 if(wizardPanel){
+  // Blur on an AI-assisted field triggers run-candy — separate from the
+  // 'input' listener below, since we want this on blur (leaving the
+  // field), not on every keystroke.
+  wizardPanel.addEventListener('blur', (e) => {
+    const t = e.target;
+    if(t.matches('.field-text') && FIELDS_BY_KEY[t.dataset.key]?.ai){
+      runCandyOnField(t.dataset.key, t.value);
+    }
+  }, true); // useCapture:true — blur doesn't bubble, so this is required
+
   wizardPanel.addEventListener('input', (e) => {
     const t = e.target;
     if(t.matches('.other-text')){
