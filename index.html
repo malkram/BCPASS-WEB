@@ -448,51 +448,29 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
           <h1>Upload supporting documents</h1>
         </div>
       </header>
-      <p class="lede">We match what's in your documents against what you told us, and flag anything that doesn't line up.</p>
+      <p class="lede">Everything here is optional — we already check your company registration automatically. That said, the more you share, the stronger and faster your KYB pass will be. You don't need to tell us what each document is; we'll work that out automatically once it's uploaded.</p>
 
-      <div class="doc-grid" id="doc-grid">
-        <div class="doc-row" data-category="Certificate of incorporation">
-          <div class="doc-info"><span class="doc-name">Certificate of incorporation</span><span class="doc-sub">—</span></div>
-          <button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>
-        </div>
-        <div class="doc-row" data-category="Financial statements">
-          <div class="doc-info"><span class="doc-name">Financial statements (2 years)</span><span class="doc-sub">—</span></div>
-          <button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>
-        </div>
-        <div class="doc-row" data-category="Bank statements">
-          <div class="doc-info"><span class="doc-name">Bank statements (6 months)</span><span class="doc-sub">—</span></div>
-          <button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>
-        </div>
-        <div class="doc-row" data-category="Director ID & proof of address">
-          <div class="doc-info"><span class="doc-name">Director ID &amp; proof of address</span><span class="doc-sub">Passport or national ID, plus a recent utility bill</span></div>
-          <button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>
-        </div>
-        <div class="doc-row" data-category="Recent invoices">
-          <div class="doc-info"><span class="doc-name">Recent invoices</span><span class="doc-sub">A representative sample, 5–10 documents</span></div>
-          <button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>
-        </div>
-        <div class="doc-row" data-category="Management accounts">
-          <div class="doc-info"><span class="doc-name">Management accounts</span><span class="doc-sub">Most recent quarter, if available</span></div>
-          <button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>
-        </div>
-        <div class="doc-row doc-optional" data-category="Bills of lading / purchase orders">
-          <div class="doc-info"><span class="doc-name">Bills of lading / purchase orders</span><span class="doc-sub">Optional — strengthens a trade finance application</span></div>
-          <button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>
-        </div>
-        <div class="doc-row doc-optional" data-category="Business plan">
-          <div class="doc-info"><span class="doc-name">Business plan</span><span class="doc-sub">Optional</span></div>
-          <button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>
-        </div>
-        <div class="doc-row" data-category="UK Companies House lookup">
-          <div class="doc-info"><span class="doc-name">UK company registry check</span><span class="doc-sub">Automatic — checks your company against UK Companies House, no file needed</span></div>
-          <button class="btn btn-ghost btn-small" id="run-registry-check-btn">Run check</button>
-        </div>
-      </div>
+      <p class="side-title">Documents that help most (all optional)</p>
+      <ul class="prompt-list">
+        <li>Financial statements (latest)</li>
+        <li>Bank statements (last 3 months)</li>
+        <li>Management accounts</li>
+        <li>Invoices (3 examples)</li>
+        <li>Purchase orders (3 examples)</li>
+        <li>Bills of lading</li>
+        <li>Business plan</li>
+        <li>Bank facility letters</li>
+        <li>Director &amp; owner ID and proof of address</li>
+      </ul>
+
+      <button class="btn btn-primary" id="doc-upload-trigger-btn" style="margin-top:16px">+ Upload a document</button>
       <input type="file" id="doc-file-input" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.webp">
+
+      <div class="doc-grid" id="doc-grid" style="margin-top:24px"></div>
 
       <div class="build-actions">
         <button class="btn btn-ghost" data-goto="build">← Back</button>
-        <button class="btn btn-primary" data-goto="summary">Generate KYB summary →</button>
+        <button class="btn btn-primary" id="generate-summary-btn">Generate KYB summary →</button>
       </div>
     </section>
 
@@ -1028,38 +1006,48 @@ function renderAIFeedback(clientFeedback){
 // testing before it can be trusted.
 // ============================================================
 
-let pendingUploadCategory = null; // set right before opening the file picker
+// Documents now render entirely dynamically — there's no fixed set of
+// category rows anymore, since the client no longer picks a category at
+// upload. Each uploaded file gets its own row, created the moment it's
+// selected, showing DEXTER's own determined category once processing
+// finishes (or "Other/Unrecognized" if DEXTER genuinely couldn't place it).
 
-function docRowByCategory(category){
-  return document.querySelector(`#doc-grid .doc-row[data-category="${category}"]`);
+function createDocRow(filename){
+  const row = document.createElement('div');
+  row.className = 'doc-row';
+  row.innerHTML = `
+    <div class="doc-info"><span class="doc-name">${filename}</span><span class="doc-sub doc-category-label">Identifying document type…</span></div>
+    <span class="tag tag-muted doc-status">Uploading…</span>
+  `;
+  document.getElementById('doc-grid')?.appendChild(row);
+  return row;
 }
 
-function setDocRowStatus(category, statusHtml){
-  const row = docRowByCategory(category);
+function setRowStatus(row, statusHtml){
   if(!row) return;
-  const actionArea = row.querySelector('.doc-upload-btn, .doc-status');
-  if(actionArea) actionArea.outerHTML = statusHtml;
+  const statusEl = row.querySelector('.doc-status');
+  if(statusEl) statusEl.outerHTML = statusHtml;
 }
 
-const docUploadButtons = document.querySelectorAll('.doc-upload-btn');
+function setRowCategory(row, category){
+  if(!row) return;
+  const labelEl = row.querySelector('.doc-category-label');
+  if(labelEl) labelEl.textContent = category || 'Unrecognized document type';
+}
+
+const docUploadTriggerBtn = document.getElementById('doc-upload-trigger-btn');
 const docFileInput = document.getElementById('doc-file-input');
 
-docUploadButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const row = btn.closest('.doc-row');
-    pendingUploadCategory = row?.dataset.category ?? null;
-    if(docFileInput) docFileInput.click();
-  });
-});
+if(docUploadTriggerBtn && docFileInput){
+  docUploadTriggerBtn.addEventListener('click', () => docFileInput.click());
 
-if(docFileInput){
   docFileInput.addEventListener('change', async () => {
     const file = docFileInput.files?.[0];
-    const category = pendingUploadCategory;
     docFileInput.value = ''; // reset so selecting the same file again still fires 'change'
-    if(!file || !category || !currentCaseId || !supabaseClient) return;
+    if(!file) return;
+    if(!currentCaseId || !supabaseClient){ alert('Start or open a company profile first.'); return; }
 
-    setDocRowStatus(category, `<span class="tag tag-muted doc-status">Uploading…</span>`);
+    const row = createDocRow(file.name);
     try {
       const { data: { user } } = await supabaseClient.auth.getUser();
       const filePath = `${user.id}/${currentCaseId}/${Date.now()}-${file.name}`;
@@ -1067,69 +1055,90 @@ if(docFileInput){
       const { error: uploadError } = await supabaseClient.storage.from('kyb-documents').upload(filePath, file);
       if(uploadError) throw new Error('Upload failed: ' + uploadError.message);
 
-      setDocRowStatus(category, `<span class="tag tag-muted doc-status">Processing…</span>`);
+      setRowStatus(row, `<span class="tag tag-muted doc-status">Processing…</span>`);
 
+      // category starts null — DEXTER determines it, and the update below
+      // reflects DEXTER's own classification once run-dexter responds.
       const { data: docRow, error: insertError } = await supabaseClient
         .from('kyb_documents')
-        .insert({ case_id: currentCaseId, category, file_reference: filePath })
+        .insert({ case_id: currentCaseId, category: null, file_reference: filePath })
         .select('document_id')
         .single();
       if(insertError) throw new Error('Could not record the upload: ' + insertError.message);
 
-      await callFunction('run-dexter', { case_id: currentCaseId, document_id: docRow.document_id });
+      const result = await callFunction('run-dexter', { case_id: currentCaseId, document_id: docRow.document_id });
 
-      setDocRowStatus(category, `<span class="tag tag-green doc-status">Uploaded</span>`);
+      const classifiedCategory = result?.dexter_output?.document_classification?.category;
+      setRowCategory(row, classifiedCategory);
+      setRowStatus(row, `<span class="tag tag-green doc-status">Uploaded</span>`);
     } catch (err) {
-      setDocRowStatus(category, `<button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>`);
+      setRowStatus(row, `<span class="tag tag-amber doc-status">Failed</span>`);
       alert('Could not process this document: ' + err.message);
-      // Re-wire the replaced button, since outerHTML replacement drops listeners
-      docRowByCategory(category)?.querySelector('.doc-upload-btn')?.addEventListener('click', () => {
-        pendingUploadCategory = category;
-        docFileInput.click();
-      });
     }
   });
 }
 
-const runRegistryCheckBtn = document.getElementById('run-registry-check-btn');
-if(runRegistryCheckBtn){
-  runRegistryCheckBtn.addEventListener('click', async () => {
-    if(!currentCaseId){ alert('Start or open a company profile first.'); return; }
-    runRegistryCheckBtn.disabled = true;
-    runRegistryCheckBtn.textContent = 'Checking…';
-    try {
-      await callFunction('lookup-companies-house', { case_id: currentCaseId });
-      setDocRowStatus('UK Companies House lookup', `<span class="tag tag-green doc-status">Checked</span>`);
-    } catch (err) {
-      alert('Registry check failed: ' + err.message);
-      runRegistryCheckBtn.disabled = false;
-      runRegistryCheckBtn.textContent = 'Run check';
-    }
+// The UK Companies House check no longer has its own client-facing
+// button — it now runs automatically, silently, in the background when
+// the client clicks "Generate KYB summary" (see below), rather than
+// being something the client has to remember to trigger themselves.
+async function runRegistryCheckSilently(){
+  if(!currentCaseId) return;
+  try {
+    await callFunction('lookup-companies-house', { case_id: currentCaseId });
+  } catch (err) {
+    // Deliberately silent — this runs in the background and shouldn't
+    // interrupt the client's flow. Logged for developer visibility only.
+    console.error('Background registry check failed:', err.message);
+  }
+}
+
+const generateSummaryBtn = document.getElementById('generate-summary-btn');
+if(generateSummaryBtn){
+  generateSummaryBtn.addEventListener('click', () => {
+    runRegistryCheckSilently(); // fire-and-forget — don't block navigation on this
+    goToScreen('summary');
   });
 }
 
 // Loads existing kyb_documents rows for the current case so previously
-// uploaded documents show as "Uploaded" instead of resetting to blank
-// every time this screen is opened.
+// uploaded documents show up again instead of the list resetting to
+// empty every time this screen is opened.
 async function loadDocumentsForCase(){
   const kickerEl = document.getElementById('documents-company-kicker');
   if(kickerEl) kickerEl.textContent = kycProfile.legal_entity_name?.trim() || 'New company profile';
 
+  const gridEl = document.getElementById('doc-grid');
+  if(gridEl) gridEl.innerHTML = ''; // rebuild fresh each time, rather than risk duplicating rows
+
   if(!supabaseClient || !currentCaseId) return;
   const { data: docs, error } = await supabaseClient
     .from('kyb_documents')
-    .select('category, processed_at')
-    .eq('case_id', currentCaseId);
+    .select('category, file_reference, processed_at')
+    .eq('case_id', currentCaseId)
+    .order('uploaded_at', { ascending: true });
   if(error){ console.error('Could not load documents:', error.message); return; }
 
   (docs || []).forEach(d => {
-    const label = d.category === 'UK Companies House lookup' ? 'Checked' : 'Uploaded';
-    setDocRowStatus(d.category, `<span class="tag tag-green doc-status">${label}</span>`);
+    const filename = d.file_reference ? d.file_reference.split('/').pop() : 'UK company registry check';
+    const row = createDocRow(filename);
+    if(d.processed_at){
+      setRowCategory(row, d.category);
+      setRowStatus(row, `<span class="tag tag-green doc-status">Uploaded</span>`);
+    } else {
+      setRowStatus(row, `<span class="tag tag-muted doc-status">Processing…</span>`);
+    }
   });
 }
 
 
 function goToScreen(name){
+  // TODO (production, not testing phase): the Documents screen should not be
+  // reachable at all until the client has signed off on their Build KYB
+  // profile. Right now this screen is freely accessible for testing — add
+  // a real guard here (e.g. check kycProfile's sign-off state or the case's
+  // profile_status before allowing name === 'documents') before this goes
+  // live to real clients.
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const target = document.getElementById('screen-' + name);
   if(target) target.classList.add('active');
