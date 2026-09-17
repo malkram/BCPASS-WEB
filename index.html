@@ -444,46 +444,51 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
     <section class="screen" id="screen-documents">
       <header class="screen-head">
         <div>
-          <p class="kicker">Meridian Freight Co · Step 2 of 3</p>
+          <p class="kicker" id="documents-company-kicker">New company profile</p>
           <h1>Upload supporting documents</h1>
         </div>
       </header>
       <p class="lede">We match what's in your documents against what you told us, and flag anything that doesn't line up.</p>
 
-      <div class="doc-grid">
-        <div class="doc-row doc-done">
-          <div class="doc-info"><span class="doc-name">Certificate of incorporation</span><span class="doc-sub">meridian-cert.pdf</span></div>
-          <span class="tag tag-green">Uploaded</span>
+      <div class="doc-grid" id="doc-grid">
+        <div class="doc-row" data-category="Certificate of incorporation">
+          <div class="doc-info"><span class="doc-name">Certificate of incorporation</span><span class="doc-sub">—</span></div>
+          <button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>
         </div>
-        <div class="doc-row doc-done">
-          <div class="doc-info"><span class="doc-name">Financial statements (2 years)</span><span class="doc-sub">meridian-accounts-23-24.pdf</span></div>
-          <span class="tag tag-green">Uploaded</span>
+        <div class="doc-row" data-category="Financial statements">
+          <div class="doc-info"><span class="doc-name">Financial statements (2 years)</span><span class="doc-sub">—</span></div>
+          <button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>
         </div>
-        <div class="doc-row doc-done">
-          <div class="doc-info"><span class="doc-name">Bank statements (6 months)</span><span class="doc-sub">3 files</span></div>
-          <span class="tag tag-green">Uploaded</span>
+        <div class="doc-row" data-category="Bank statements">
+          <div class="doc-info"><span class="doc-name">Bank statements (6 months)</span><span class="doc-sub">—</span></div>
+          <button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>
         </div>
-        <div class="doc-row">
+        <div class="doc-row" data-category="Director ID & proof of address">
           <div class="doc-info"><span class="doc-name">Director ID &amp; proof of address</span><span class="doc-sub">Passport or national ID, plus a recent utility bill</span></div>
-          <button class="btn btn-ghost btn-small">Upload</button>
+          <button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>
         </div>
-        <div class="doc-row">
+        <div class="doc-row" data-category="Recent invoices">
           <div class="doc-info"><span class="doc-name">Recent invoices</span><span class="doc-sub">A representative sample, 5–10 documents</span></div>
-          <button class="btn btn-ghost btn-small">Upload</button>
+          <button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>
         </div>
-        <div class="doc-row">
+        <div class="doc-row" data-category="Management accounts">
           <div class="doc-info"><span class="doc-name">Management accounts</span><span class="doc-sub">Most recent quarter, if available</span></div>
-          <button class="btn btn-ghost btn-small">Upload</button>
+          <button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>
         </div>
-        <div class="doc-row doc-optional">
+        <div class="doc-row doc-optional" data-category="Bills of lading / purchase orders">
           <div class="doc-info"><span class="doc-name">Bills of lading / purchase orders</span><span class="doc-sub">Optional — strengthens a trade finance application</span></div>
-          <button class="btn btn-ghost btn-small">Upload</button>
+          <button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>
         </div>
-        <div class="doc-row doc-optional">
+        <div class="doc-row doc-optional" data-category="Business plan">
           <div class="doc-info"><span class="doc-name">Business plan</span><span class="doc-sub">Optional</span></div>
-          <button class="btn btn-ghost btn-small">Upload</button>
+          <button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>
+        </div>
+        <div class="doc-row" data-category="UK Companies House lookup">
+          <div class="doc-info"><span class="doc-name">UK company registry check</span><span class="doc-sub">Automatic — checks your company against UK Companies House, no file needed</span></div>
+          <button class="btn btn-ghost btn-small" id="run-registry-check-btn">Run check</button>
         </div>
       </div>
+      <input type="file" id="doc-file-input" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.webp">
 
       <div class="build-actions">
         <button class="btn btn-ghost" data-goto="build">← Back</button>
@@ -1010,6 +1015,119 @@ function renderAIFeedback(clientFeedback){
   }
 }
 
+// ============================================================
+// DEXTER integration — document upload/processing and the UK
+// Companies House registry check.
+//
+// NOTE ON TESTING: same as the CANDY frontend wiring before it, this
+// has not been tested against a real live browser session — written
+// carefully against the same patterns already proven to work (direct
+// Storage upload respecting the RLS policies tested earlier, the same
+// callFunction() helper CANDY's wiring already uses), but this is
+// genuinely new frontend territory (file upload) that needs real
+// testing before it can be trusted.
+// ============================================================
+
+let pendingUploadCategory = null; // set right before opening the file picker
+
+function docRowByCategory(category){
+  return document.querySelector(`#doc-grid .doc-row[data-category="${category}"]`);
+}
+
+function setDocRowStatus(category, statusHtml){
+  const row = docRowByCategory(category);
+  if(!row) return;
+  const actionArea = row.querySelector('.doc-upload-btn, .doc-status');
+  if(actionArea) actionArea.outerHTML = statusHtml;
+}
+
+const docUploadButtons = document.querySelectorAll('.doc-upload-btn');
+const docFileInput = document.getElementById('doc-file-input');
+
+docUploadButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const row = btn.closest('.doc-row');
+    pendingUploadCategory = row?.dataset.category ?? null;
+    if(docFileInput) docFileInput.click();
+  });
+});
+
+if(docFileInput){
+  docFileInput.addEventListener('change', async () => {
+    const file = docFileInput.files?.[0];
+    const category = pendingUploadCategory;
+    docFileInput.value = ''; // reset so selecting the same file again still fires 'change'
+    if(!file || !category || !currentCaseId || !supabaseClient) return;
+
+    setDocRowStatus(category, `<span class="tag tag-muted doc-status">Uploading…</span>`);
+    try {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      const filePath = `${user.id}/${currentCaseId}/${Date.now()}-${file.name}`;
+
+      const { error: uploadError } = await supabaseClient.storage.from('kyb-documents').upload(filePath, file);
+      if(uploadError) throw new Error('Upload failed: ' + uploadError.message);
+
+      setDocRowStatus(category, `<span class="tag tag-muted doc-status">Processing…</span>`);
+
+      const { data: docRow, error: insertError } = await supabaseClient
+        .from('kyb_documents')
+        .insert({ case_id: currentCaseId, category, file_reference: filePath })
+        .select('document_id')
+        .single();
+      if(insertError) throw new Error('Could not record the upload: ' + insertError.message);
+
+      await callFunction('run-dexter', { case_id: currentCaseId, document_id: docRow.document_id });
+
+      setDocRowStatus(category, `<span class="tag tag-green doc-status">Uploaded</span>`);
+    } catch (err) {
+      setDocRowStatus(category, `<button class="btn btn-ghost btn-small doc-upload-btn">Upload</button>`);
+      alert('Could not process this document: ' + err.message);
+      // Re-wire the replaced button, since outerHTML replacement drops listeners
+      docRowByCategory(category)?.querySelector('.doc-upload-btn')?.addEventListener('click', () => {
+        pendingUploadCategory = category;
+        docFileInput.click();
+      });
+    }
+  });
+}
+
+const runRegistryCheckBtn = document.getElementById('run-registry-check-btn');
+if(runRegistryCheckBtn){
+  runRegistryCheckBtn.addEventListener('click', async () => {
+    if(!currentCaseId){ alert('Start or open a company profile first.'); return; }
+    runRegistryCheckBtn.disabled = true;
+    runRegistryCheckBtn.textContent = 'Checking…';
+    try {
+      await callFunction('lookup-companies-house', { case_id: currentCaseId });
+      setDocRowStatus('UK Companies House lookup', `<span class="tag tag-green doc-status">Checked</span>`);
+    } catch (err) {
+      alert('Registry check failed: ' + err.message);
+      runRegistryCheckBtn.disabled = false;
+      runRegistryCheckBtn.textContent = 'Run check';
+    }
+  });
+}
+
+// Loads existing kyb_documents rows for the current case so previously
+// uploaded documents show as "Uploaded" instead of resetting to blank
+// every time this screen is opened.
+async function loadDocumentsForCase(){
+  const kickerEl = document.getElementById('documents-company-kicker');
+  if(kickerEl) kickerEl.textContent = kycProfile.legal_entity_name?.trim() || 'New company profile';
+
+  if(!supabaseClient || !currentCaseId) return;
+  const { data: docs, error } = await supabaseClient
+    .from('kyb_documents')
+    .select('category, processed_at')
+    .eq('case_id', currentCaseId);
+  if(error){ console.error('Could not load documents:', error.message); return; }
+
+  (docs || []).forEach(d => {
+    const label = d.category === 'UK Companies House lookup' ? 'Checked' : 'Uploaded';
+    setDocRowStatus(d.category, `<span class="tag tag-green doc-status">${label}</span>`);
+  });
+}
+
 
 function goToScreen(name){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1020,6 +1138,7 @@ function goToScreen(name){
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.screen === name));
 
   if(name === 'dashboard') loadDashboardCases();
+  if(name === 'documents') loadDocumentsForCase();
 
   window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
 }
