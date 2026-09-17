@@ -722,7 +722,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
 // ============================================================
 
 const SUPABASE_URL = "https://mbkcompsyujyucertzet.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR_ANON_KEY_HERE"; // paste your real anon key here
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ia2NvbXBzeXVqeXVjZXJ0emV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4OTE2NDQsImV4cCI6MjEwNDQ2NzY0NH0.tz3mEk30FaUJHM3Ok3qf01VjLHMaaIGr08QbNT_gVk0"; // paste your real anon key here
 
 const supabaseClient = (typeof supabase !== 'undefined' && SUPABASE_ANON_KEY !== "YOUR_ANON_KEY_HERE")
   ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
