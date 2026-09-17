@@ -722,7 +722,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
 // ============================================================
 
 const SUPABASE_URL = "https://mbkcompsyujyucertzet.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ia2NvbXBzeXVqeXVjZXJ0emV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4OTE2NDQsImV4cCI6MjEwNDQ2NzY0NH0.tz3mEk30FaUJHM3Ok3qf01VjLHMaaIGr08QbNT_gVk0"; // paste your real anon key here
+const SUPABASE_ANON_KEY = "YOUR_ANON_KEY_HERE"; // paste your real anon key here
 
 const supabaseClient = (typeof supabase !== 'undefined' && SUPABASE_ANON_KEY !== "YOUR_ANON_KEY_HERE")
   ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -1070,7 +1070,15 @@ if(docUploadTriggerBtn && docFileInput){
 
       const classifiedCategory = result?.dexter_output?.document_classification?.category;
       setRowCategory(row, classifiedCategory);
-      setRowStatus(row, `<span class="tag tag-green doc-status">Uploaded</span>`);
+
+      if(result?.skipped_ai_processing){
+        // Document exceeded the page limit for AI processing — it was
+        // uploaded successfully, but DEXTER never actually read it. Tell
+        // the client plainly that a human will handle this one instead.
+        setRowStatus(row, `<span class="tag tag-amber doc-status">Uploaded — will be reviewed by our team</span>`);
+      } else {
+        setRowStatus(row, `<span class="tag tag-green doc-status">Uploaded</span>`);
+      }
     } catch (err) {
       setRowStatus(row, `<span class="tag tag-amber doc-status">Failed</span>`);
       alert('Could not process this document: ' + err.message);
@@ -1124,7 +1132,11 @@ async function loadDocumentsForCase(){
     const row = createDocRow(filename);
     if(d.processed_at){
       setRowCategory(row, d.category);
-      setRowStatus(row, `<span class="tag tag-green doc-status">Uploaded</span>`);
+      if(d.category === 'Pending manual review'){
+        setRowStatus(row, `<span class="tag tag-amber doc-status">Uploaded — will be reviewed by our team</span>`);
+      } else {
+        setRowStatus(row, `<span class="tag tag-green doc-status">Uploaded</span>`);
+      }
     } else {
       setRowStatus(row, `<span class="tag tag-muted doc-status">Processing…</span>`);
     }
