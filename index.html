@@ -176,6 +176,51 @@ ul{ margin:0; padding:0; list-style:none; }
 .flag-name{ font-weight:600; font-size:0.92rem; }
 .flag-detail{ font-size:0.86rem; color: var(--ink-soft); margin:0; }
 
+/* ---- supplementary response box on a third-party flag ---- */
+.flag-response{ margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }
+.flag-response textarea{ width:100%; min-height:60px; font-family:inherit; font-size:0.86rem; padding:8px 10px; border:1px solid var(--line-strong); border-radius: var(--radius); background:#fff; resize:vertical; }
+.flag-response-actions{ display:flex; justify-content:flex-end; margin-top:8px; }
+.flag-response-given{ font-size:0.84rem; color: var(--ink-soft); background: var(--accent-soft); border-radius: var(--radius); padding:10px 12px; }
+.flag-response-given b{ display:block; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.03em; color: var(--accent); margin-bottom:4px; }
+
+/* ============ BUSINESS DIAGRAM ============ */
+.biz-diagram{ display:grid; grid-template-columns: 1.1fr 2fr 1.1fr; grid-template-areas: "shareholders shareholders directors" "suppliers company customers"; gap: 10px 22px; margin-bottom: 28px; }
+.biz-zone{ display:flex; flex-direction:column; gap:8px; }
+.biz-zone-label{ font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color: var(--muted); margin-bottom:2px; }
+.biz-shareholders-zone{ grid-area: shareholders; align-items:stretch; }
+.biz-shareholders-row{ display:flex; flex-wrap:wrap; gap:10px; }
+.biz-directors-zone{ grid-area: directors; }
+.biz-suppliers-zone{ grid-area: suppliers; }
+.biz-company-zone{ grid-area: company; align-items:center; }
+.biz-customers-zone{ grid-area: customers; }
+.biz-connector{ text-align:center; font-size:0.76rem; color: var(--muted); margin:2px 0; }
+
+.biz-node{ border:1px solid var(--line); border-radius: var(--radius); background: var(--paper-raise); padding:10px 12px; font-size:0.85rem; flex:1; min-width:150px; }
+.biz-node-name{ font-weight:600; color: var(--ink); margin-bottom:2px; }
+.biz-node-meta{ display:flex; gap:6px; flex-wrap:wrap; margin:4px 0; }
+.biz-node-desc{ font-size:0.8rem; color: var(--ink-soft); margin-top:2px; }
+.biz-node.verified{ border-left:3px solid var(--accent); }
+.biz-node.unverified{ border-left:3px solid var(--amber); border-style:dashed; }
+.biz-arrow-in::after{ content:"→"; color: var(--accent); font-weight:700; margin-left:6px; }
+.biz-arrow-out::before{ content:"→"; color: var(--accent); font-weight:700; margin-right:6px; }
+
+.biz-company-card{ border:2px solid var(--ink); border-radius: var(--radius); background: var(--paper-raise); padding:18px 20px; text-align:center; width:100%; }
+.biz-company-name{ font-family: var(--font-display); font-size:1.2rem; color: var(--ink); margin-bottom:6px; }
+.biz-company-desc{ font-size:0.88rem; color: var(--ink-soft); margin-bottom:10px; }
+.biz-company-fields{ display:flex; flex-direction:column; gap:4px; text-align:left; border-top:1px solid var(--line); padding-top:10px; }
+.biz-company-field{ display:flex; justify-content:space-between; gap:10px; font-size:0.82rem; }
+.biz-company-field span{ color: var(--muted); }
+
+.biz-directors-list{ border:1px solid var(--line); border-radius: var(--radius); background: var(--paper-raise); padding:10px 12px; font-size:0.85rem; }
+.biz-directors-list ol{ margin:4px 0 0; padding-left:18px; list-style:decimal; }
+.biz-directors-list li{ padding:2px 0; }
+.biz-directors-list li small{ display:block; color: var(--muted); font-size:0.76rem; }
+.biz-empty{ font-size:0.82rem; color: var(--muted); font-style:italic; }
+
+@media (max-width: 880px){
+  .biz-diagram{ grid-template-columns: 1fr; grid-template-areas: "shareholders" "directors" "company" "suppliers" "customers"; }
+}
+
 /* ============ PASS / MASKING ============ */
 .mask-options, .consult-options{ display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
 .mask-option{ display:flex; gap:12px; align-items:flex-start; border:1px solid var(--line); border-radius: var(--radius); padding:14px 16px; background: var(--paper-raise); cursor:pointer; }
@@ -478,61 +523,40 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
     <section class="screen" id="screen-summary">
       <header class="screen-head">
         <div>
-          <p class="kicker">Harbour Trade Ltd</p>
+          <p class="kicker" id="summary-company-kicker">Company profile</p>
           <h1>KYB summary</h1>
         </div>
-        <span class="tag tag-amber">2 flags to resolve</span>
+        <span class="tag tag-amber" id="summary-flag-tag" style="display:none"></span>
       </header>
 
-      <div class="split">
-        <div class="split-main">
-          <div class="summary-card">
-            <p class="summary-title">Generated summary</p>
-            <p class="summary-text">Harbour Trade Ltd is a UK-registered trading and logistics company, incorporated in 2016, generating approximately £4.2M in annual revenue across 60+ clients in the manufacturing and retail sectors. The company is wholly owned by its two founding directors. Harbour Trade is seeking an FX and payments facility to manage supplier payments across seven currencies.</p>
+      <div id="summary-loading" class="side-note" style="margin:8px 0 20px">Generating your KYB summary — this can take a minute…</div>
+      <div id="summary-error" class="side-note" style="margin:8px 0 20px; color:#B5622A; display:none"></div>
+
+      <div id="summary-content" style="display:none">
+        <p class="side-title">Business profile</p>
+        <div class="biz-diagram" id="biz-diagram"></div>
+
+        <div class="split">
+          <div class="split-main">
+            <div class="summary-card">
+              <p class="summary-title">Generated summary</p>
+              <p class="summary-text" id="summary-text"></p>
+            </div>
+
+            <p class="side-title">Discrepancies &amp; checks</p>
+            <div class="flag-list" id="flag-list"></div>
           </div>
 
-          <p class="side-title">Discrepancies &amp; checks</p>
-          <div class="flag-list">
-            <div class="flag-item flag-amber">
-              <div class="flag-head">
-                <span class="flag-name">Revenue mismatch</span>
-                <span class="tag tag-amber">Needs input</span>
-              </div>
-              <p class="flag-detail">You described revenue of "around £4M" — the uploaded financial statements show £3.46M for FY2024. Please confirm which figure is current.</p>
-            </div>
-            <div class="flag-item flag-amber">
-              <div class="flag-head">
-                <span class="flag-name">Name search hit</span>
-                <span class="tag tag-amber">Needs input</span>
-              </div>
-              <p class="flag-detail">A director name partially matches a public record from an unrelated dissolved company. Likely a false positive — a short note will clear this.</p>
-            </div>
-            <div class="flag-item flag-green">
-              <div class="flag-head">
-                <span class="flag-name">Negative news search</span>
-                <span class="tag tag-green">Clear</span>
-              </div>
-              <p class="flag-detail">No adverse media found for the company or named directors.</p>
-            </div>
-            <div class="flag-item flag-green">
-              <div class="flag-head">
-                <span class="flag-name">Document ↔ description match</span>
-                <span class="tag tag-green">98% aligned</span>
-              </div>
-              <p class="flag-detail">Ownership structure, incorporation date and trading history all match submitted documents.</p>
-            </div>
-          </div>
+          <aside class="split-side">
+            <p class="side-title">Before you generate your pass</p>
+            <ul class="prompt-list">
+              <li>Review any open flags above — you can add more information, but you don't have to resolve them to continue</li>
+              <li>Review the generated summary for accuracy</li>
+              <li>Confirm you're signing on behalf of the company</li>
+            </ul>
+            <button class="btn btn-primary btn-block" style="margin-top:20px" data-goto="pass">Generate PASS →</button>
+          </aside>
         </div>
-
-        <aside class="split-side">
-          <p class="side-title">Before you generate your pass</p>
-          <ul class="prompt-list">
-            <li>Resolve the two open flags above</li>
-            <li>Review the generated summary for accuracy</li>
-            <li>Confirm you're signing on behalf of the company</li>
-          </ul>
-          <button class="btn btn-primary btn-block" style="margin-top:20px" data-goto="pass">Generate PASS →</button>
-        </aside>
       </div>
     </section>
 
@@ -1103,10 +1127,286 @@ async function runRegistryCheckSilently(){
 
 const generateSummaryBtn = document.getElementById('generate-summary-btn');
 if(generateSummaryBtn){
-  generateSummaryBtn.addEventListener('click', () => {
+  generateSummaryBtn.addEventListener('click', async () => {
     runRegistryCheckSilently(); // fire-and-forget — don't block navigation on this
     goToScreen('summary');
+    await runFullSummaryPipeline();
   });
+}
+
+// Runs the three agents that turn uploaded documents + the CANDY profile
+// into a client-facing KYB summary: RILEY (third-party research) feeds
+// BETTY (consolidation), which feeds MAX (the only agent whose output the
+// client ever sees). Each step is awaited in order because each one reads
+// the previous agent's saved output from the database rather than being
+// passed it directly.
+// True while runFullSummaryPipeline is in flight. goToScreen('summary') also
+// fires a fire-and-forget loadSummaryForCase() on navigation, which would
+// otherwise race this pipeline: it can find no row yet and stomp the
+// "Researching…" / "Generating…" progress text with a stale "click generate"
+// message. loadSummaryForCase checks this flag before doing that.
+let summaryPipelineActive = false;
+
+async function runFullSummaryPipeline(){
+  if(!currentCaseId) return;
+  summaryPipelineActive = true;
+  const loadingEl = document.getElementById('summary-loading');
+  const errorEl = document.getElementById('summary-error');
+  const contentEl = document.getElementById('summary-content');
+  if(contentEl) contentEl.style.display = 'none';
+  if(errorEl){ errorEl.style.display = 'none'; errorEl.textContent = ''; }
+  if(loadingEl){ loadingEl.style.display = 'block'; loadingEl.textContent = 'Researching your company profile…'; }
+
+  try {
+    await callFunction('run-riley', { case_id: currentCaseId });
+    if(loadingEl) loadingEl.textContent = 'Consolidating findings…';
+    await callFunction('run-betty', { case_id: currentCaseId });
+    if(loadingEl) loadingEl.textContent = 'Generating your KYB summary…';
+    await callFunction('run-max', { case_id: currentCaseId });
+    summaryPipelineActive = false;
+    await loadSummaryForCase();
+  } catch (err) {
+    summaryPipelineActive = false;
+    if(loadingEl) loadingEl.style.display = 'none';
+    if(errorEl){ errorEl.style.display = 'block'; errorEl.textContent = 'Could not generate your KYB summary: ' + err.message; }
+    console.error('Summary pipeline failed:', err);
+  }
+}
+
+function escapeHtml(str){
+  if(str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ---- Business profile diagram (MAX's structured five-zone output) ----
+// Fixed layout, dynamic content: the zones (company/shareholders/directors/
+// suppliers/customers) never move, but what MAX puts inside each one — and
+// how much relationship context it adds to a supplier/customer's
+// "description" — varies per case. "verified" (DEXTER-confirmed) vs.
+// client-stated-only is shown as a solid green vs. dashed amber left border,
+// carrying forward the same distinction the old solid/dashed diagram arrows
+// used to convey.
+function renderBusinessDiagram(diagram){
+  const el = document.getElementById('biz-diagram');
+  if(!el) return;
+  if(!diagram){ el.innerHTML = '<p class="biz-empty">No business profile generated yet.</p>'; return; }
+
+  const company = diagram.company || {};
+  const shareholders = Array.isArray(diagram.shareholders) ? diagram.shareholders : [];
+  const directors = Array.isArray(diagram.directors) ? diagram.directors : [];
+  const suppliers = Array.isArray(diagram.suppliers) ? diagram.suppliers : [];
+  const customers = Array.isArray(diagram.customers) ? diagram.customers : [];
+
+  const pctSuffix = (n) => (n === null || n === undefined || n === '') ? '' : ` <span style="color:var(--muted);font-weight:400">(${escapeHtml(n)}%)</span>`;
+
+  const shareholderNodes = shareholders.length
+    ? shareholders.map(s => `
+        <div class="biz-node ${s.verified ? 'verified' : 'unverified'}">
+          <div class="biz-node-name">${escapeHtml(s.name)}${pctSuffix(s.percentage)}</div>
+          <div class="biz-node-meta">
+            <span class="tag ${s.verified ? 'tag-green' : 'tag-amber'}" style="font-size:0.68rem">${s.verified ? 'Verified' : 'Client-stated'}</span>
+            <span class="tag" style="font-size:0.68rem">${s.type === 'corporate' ? 'Corporate' : 'Individual'}</span>
+          </div>
+          ${s.note ? `<div class="biz-node-desc">${escapeHtml(s.note)}</div>` : ''}
+        </div>`).join('')
+    : '<p class="biz-empty">No shareholder information available.</p>';
+
+  const directorsList = directors.length
+    ? `<ol>${directors.map(d => `<li>${escapeHtml(d.name)}${d.note ? `<small>${escapeHtml(d.note)}</small>` : ''}</li>`).join('')}</ol>`
+    : '<p class="biz-empty">No director information available.</p>';
+
+  const supplierNodes = suppliers.length
+    ? suppliers.map(s => `
+        <div class="biz-node biz-arrow-in">
+          <div class="biz-node-name">${escapeHtml(s.name)}${pctSuffix(s.percentage)}</div>
+          ${s.description ? `<div class="biz-node-desc">${escapeHtml(s.description)}</div>` : ''}
+        </div>`).join('')
+    : '<p class="biz-empty">No supplier information available.</p>';
+
+  const customerNodes = customers.length
+    ? customers.map(c => `
+        <div class="biz-node biz-arrow-out">
+          <div class="biz-node-name">${escapeHtml(c.name)}${pctSuffix(c.percentage)}</div>
+          ${c.description ? `<div class="biz-node-desc">${escapeHtml(c.description)}</div>` : ''}
+        </div>`).join('')
+    : '<p class="biz-empty">No customer information available.</p>';
+
+  el.innerHTML = `
+    <div class="biz-zone biz-shareholders-zone">
+      <p class="biz-zone-label">Shareholders</p>
+      <div class="biz-shareholders-row">${shareholderNodes}</div>
+    </div>
+    <div class="biz-zone biz-directors-zone">
+      <p class="biz-zone-label">Directors</p>
+      <div class="biz-directors-list">${directorsList}</div>
+    </div>
+    <div class="biz-zone biz-suppliers-zone">
+      <p class="biz-zone-label">Suppliers</p>
+      ${supplierNodes}
+    </div>
+    <div class="biz-zone biz-company-zone">
+      <div class="biz-company-card">
+        <div class="biz-company-name">${escapeHtml(company.name) || 'Company name unavailable'}</div>
+        ${company.business_description ? `<div class="biz-company-desc">${escapeHtml(company.business_description)}</div>` : ''}
+        <div class="biz-company-fields">
+          ${company.location ? `<div class="biz-company-field"><span>Location</span><span>${escapeHtml(company.location)}</span></div>` : ''}
+          ${company.website ? `<div class="biz-company-field"><span>Website</span><span>${escapeHtml(company.website)}</span></div>` : ''}
+          ${company.product ? `<div class="biz-company-field"><span>Product</span><span>${escapeHtml(company.product)}</span></div>` : ''}
+        </div>
+      </div>
+    </div>
+    <div class="biz-zone biz-customers-zone">
+      <p class="biz-zone-label">Customers</p>
+      ${customerNodes}
+    </div>
+  `;
+}
+
+// ---- Discrepancies + third-party flags (with the supplementary-response box) ----
+// Discrepancies (CANDY vs DEXTER) are shown plainly, read-only, per the
+// product decision that these can be shown in detail since they only
+// compare what the client themselves said against a basic company search.
+// Third-party flags (RILEY's findings, filtered by MAX) never show their
+// internal_basis/reviewer_assessment — kyb_max_client_view's whitelist
+// already stripped those server-side — and offer a free-text supplementary
+// response box. Per the confirmed product flow, resolving a flag is never
+// required to generate the pass; it's an optional way to add more context.
+function renderFlagList(discrepancies, flags){
+  const el = document.getElementById('flag-list');
+  if(!el) return;
+
+  const fieldLabel = (field) => (field || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+  const discrepancyItems = discrepancies.map(d => `
+    <div class="flag-item flag-amber">
+      <div class="flag-head">
+        <span class="flag-name">${escapeHtml(fieldLabel(d.field)) || 'Discrepancy'}</span>
+        <span class="tag tag-amber">Please confirm</span>
+      </div>
+      <p class="flag-detail">${escapeHtml(d.client_facing_note || '')}</p>
+    </div>`).join('');
+
+  const flagItems = flags.map(f => {
+    const given = !!f.client_supplementary_response;
+    return `
+    <div class="flag-item ${given ? 'flag-green' : 'flag-amber'}" data-flag-id="${escapeHtml(f.flag_id)}">
+      <div class="flag-head">
+        <span class="flag-name">Additional check</span>
+        <span class="tag ${given ? 'tag-green' : 'tag-amber'}">${given ? 'You responded' : 'No action needed — optional'}</span>
+      </div>
+      <p class="flag-detail">${escapeHtml(f.client_facing_message || '')}</p>
+      ${f.requires_supplementary_input ? renderFlagResponseBlock(f) : ''}
+    </div>`;
+  }).join('');
+
+  const allItems = discrepancyItems + flagItems;
+  el.innerHTML = allItems || '<p class="biz-empty">No discrepancies or flags — everything lines up.</p>';
+
+  el.querySelectorAll('.flag-response-submit').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const wrap = btn.closest('.flag-item');
+      const flagId = wrap?.dataset.flagId;
+      const textarea = wrap?.querySelector('textarea');
+      const text = textarea?.value?.trim();
+      if(!flagId || !text) return;
+      submitSupplementaryResponse(flagId, text);
+    });
+  });
+}
+
+function renderFlagResponseBlock(f){
+  if(f.client_supplementary_response){
+    return `<div class="flag-response"><div class="flag-response-given"><b>Your response</b>${escapeHtml(f.client_supplementary_response)}</div></div>`;
+  }
+  return `<div class="flag-response">
+    <textarea placeholder="Add any information that helps clarify this — optional, you can generate your pass without it."></textarea>
+    <div class="flag-response-actions"><button type="button" class="btn btn-primary flag-response-submit">Submit</button></div>
+  </div>`;
+}
+
+// Re-runs MAX with the client's answer merged in, then reloads the summary
+// screen from the freshly-written kyb_max_client_view row. MAX itself (not
+// this function) is what re-computes case_status and matches the response
+// back to the right flag_id.
+async function submitSupplementaryResponse(flagId, responseText){
+  if(!currentCaseId) return;
+  const wrap = document.querySelector(`.flag-item[data-flag-id="${CSS.escape(flagId)}"]`);
+  const btn = wrap?.querySelector('.flag-response-submit');
+  if(btn){ btn.disabled = true; btn.textContent = 'Saving…'; }
+  try {
+    await callFunction('run-max', {
+      case_id: currentCaseId,
+      client_supplementary_responses: [ { flag_id: flagId, response: responseText } ],
+    });
+    await loadSummaryForCase();
+  } catch (err) {
+    alert('Could not save your response: ' + err.message);
+    if(btn){ btn.disabled = false; btn.textContent = 'Submit'; }
+  }
+}
+
+// Loads MAX's client-safe output for the current case. kyb_max_client_view
+// is what this queries directly (RLS-gated to the owner) rather than going
+// through an edge function, since there's nothing left to compute — MAX
+// already did the work and wrote the client-safe row.
+async function loadSummaryForCase(){
+  const kickerEl = document.getElementById('summary-company-kicker');
+  if(kickerEl) kickerEl.textContent = kycProfile.legal_entity_name?.trim() || 'Company profile';
+
+  const loadingEl = document.getElementById('summary-loading');
+  const errorEl = document.getElementById('summary-error');
+  const contentEl = document.getElementById('summary-content');
+
+  if(!supabaseClient || !currentCaseId) return;
+
+  const { data, error } = await supabaseClient
+    .from('kyb_max_client_view')
+    .select('*')
+    .eq('case_id', currentCaseId)
+    .maybeSingle();
+
+  if(error){
+    if(loadingEl) loadingEl.style.display = 'none';
+    if(errorEl){ errorEl.style.display = 'block'; errorEl.textContent = 'Could not load your KYB summary: ' + error.message; }
+    return;
+  }
+
+  if(!data){
+    // Nothing written yet for this case. If the pipeline is actively running
+    // (triggered by the Generate KYB summary button), leave its progress
+    // text alone rather than stomping it with the message below.
+    if(!summaryPipelineActive){
+      if(loadingEl){ loadingEl.style.display = 'block'; loadingEl.textContent = 'Click "Generate KYB summary" from the documents screen to produce your summary.'; }
+      if(contentEl) contentEl.style.display = 'none';
+    }
+    return;
+  }
+
+  if(loadingEl) loadingEl.style.display = 'none';
+  if(errorEl){ errorEl.style.display = 'none'; errorEl.textContent = ''; }
+  if(contentEl) contentEl.style.display = 'block';
+
+  const discrepancies = Array.isArray(data.discrepancies) ? data.discrepancies : [];
+  const flags = Array.isArray(data.third_party_flags_client) ? data.third_party_flags_client : [];
+  const openCount = discrepancies.length + flags.filter(f => f.requires_supplementary_input && !f.client_supplementary_response).length;
+
+  const tagEl = document.getElementById('summary-flag-tag');
+  if(tagEl){
+    tagEl.style.display = 'inline-block';
+    if(openCount > 0){
+      tagEl.className = 'tag tag-amber';
+      tagEl.textContent = `${openCount} flag${openCount === 1 ? '' : 's'} to review`;
+    } else {
+      tagEl.className = 'tag tag-green';
+      tagEl.textContent = 'All clear';
+    }
+  }
+
+  const textEl = document.getElementById('summary-text');
+  if(textEl) textEl.textContent = data.kyb_summary_plain_text || 'Summary not yet available.';
+
+  renderBusinessDiagram(data.business_diagram);
+  renderFlagList(discrepancies, flags);
 }
 
 // Loads existing kyb_documents rows for the current case so previously
@@ -1160,6 +1460,7 @@ function goToScreen(name){
 
   if(name === 'dashboard') loadDashboardCases();
   if(name === 'documents') loadDocumentsForCase();
+  if(name === 'summary') loadSummaryForCase();
 
   window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
 }
