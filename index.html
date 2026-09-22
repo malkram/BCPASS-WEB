@@ -787,6 +787,7 @@ const WIZARD_TO_CANDY_PATH = {
   registered_address: "company_overview.registered_trading_address",
   website: "company_overview.website",
   description_of_business: "business_activity.description_of_business",
+  products_sold: "business_activity.products_sold",
   location_of_main_suppliers: "business_activity.location_of_main_suppliers",
   location_of_main_buyers_customers: "business_activity.location_of_main_buyers_customers",
   industry_sector: "business_activity.industry_sector",
@@ -1492,6 +1493,7 @@ const KYC_SCHEMA = [
   ]},
   { id:'business_activity', title:'BUSINESS ACTIVITY', sub:'What you actually do, day to day.', fields:[
     {key:'description_of_business', tier:'critical', type:'textarea', ai:true, label:'Describe what your business does', placeholder:"Products/services, who you sell to, how long you've done this..."},
+    {key:'products_sold', tier:'supporting', type:'textarea', label:'Products / services you sell', placeholder:'e.g. LED light fittings and components, commercial and residential — the specific items, product lines or brands, not just the general category'},
     {key:'location_of_main_suppliers', tier:'critical', type:'country_percentage_list', label:'Location of main suppliers', options: COUNTRY_OPTIONS},
     {key:'location_of_main_buyers_customers', tier:'critical', type:'country_percentage_list', label:'Location of main buyers / customers', options: COUNTRY_OPTIONS},
     {key:'industry_sector', tier:'supporting', type:'multiselect', label:'Industry / sector', options:['Electronics','Garments','Housewares','Toys','Food','Commodities','Construction & project','Logistics','Consumer goods','Professional services','Technology','Health care','Education','Hotel','Financial','Raw material','Wholesale','Machinery','Energy','Real estate','Other'], allowOtherText:true},
@@ -1531,7 +1533,7 @@ const KYC_SCHEMA = [
   ]},
 ];
 const CRITICAL_TOTAL = 10;   // matches the summarization agent prompt's scoring rubric
-const SUPPORTING_TOTAL = 25; // includes 1 derived point (business_model_narrative, tied to "description_of_business")
+const SUPPORTING_TOTAL = 26; // 25 fields + "products_sold" (added 22 Sept) + 1 derived point (business_model_narrative, tied to "description_of_business")
 
 const kycProfile = {};
 let wizardStep = 0;
