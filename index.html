@@ -1995,7 +1995,27 @@ function ensureFieldState(f){
     } else {
       // Guard each row too — a non-object row (null, a string) would throw
       // the moment the template reads row.country/row.percentage.
-      kycProfile[f.key] = v.map(r => (r && typeof r === 'object') ? r : { country:'', percentage:'' });
+      kycProfile[f.key] = v.map(r => {
+        const row = (r && typeof r === 'object') ? r : { country:'', percentage:'' };
+        // A row whose "country" is a real, non-empty value but doesn't match
+        // any of this field's fixed dropdown options (f.options) happens
+        // whenever an "Other" row's free text was canonicalized into a
+        // plain country string at save time (resolveOtherCountryRows(),
+        // e.g. "Vietnam") and the case is then reloaded into the wizard —
+        // mapCandySchemaToWizardProfile() just copies CANDY's stored value
+        // straight across, with no field-type awareness to reconstruct
+        // "Other" + free text from it. The data itself is intact (the
+        // percentage was never at risk), but the <select> has no matching
+        // <option> for "Vietnam", so it silently rendered as unselected —
+        // looking exactly like the country had been lost. Reconstruct the
+        // "Other" + free-text shape here, right before render, the same
+        // "coerce the stored shape, don't trust it" pattern already used
+        // for the malformed-array/object cases above.
+        if(row.country && row.country !== 'Other' && Array.isArray(f.options) && !f.options.includes(row.country)){
+          return { country: 'Other', other_text: row.country, percentage: row.percentage };
+        }
+        return row;
+      });
     }
   }
   if(f.type === 'percentage_grid'){
