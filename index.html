@@ -21,6 +21,12 @@
   --amber: #B5622A;
   --amber-soft: #F6E7DA;
   --muted: #6B776E;
+  --zone-supplier: #F7EFC7;
+  --zone-supplier-line: #E3D48C;
+  --zone-client: #E1EFE7;
+  --zone-client-line: #BFDACB;
+  --zone-customer: #F6DEDA;
+  --zone-customer-line: #E6B9B2;
   --text: #16211C;
   --font-display: "Fraunces", serif;
   --font-body: "IBM Plex Sans", sans-serif;
@@ -213,19 +219,27 @@ ul{ margin:0; padding:0; list-style:none; }
 .biz-line{ fill:none; stroke: var(--accent); stroke-width:1.5; opacity:0.65; }
 .biz-line-label{ font-size:10.5px; font-family: var(--font-body, inherit); fill: var(--ink-soft); paint-order: stroke; stroke: var(--paper); stroke-width:3px; }
 
-.biz-diagram-grid{ display:grid; grid-template-columns: minmax(120px,148px) 1fr minmax(120px,148px); grid-template-areas: "suppliers shareholders directors" "suppliers company customers"; gap: 14px 28px; align-items:start; }
-.biz-col-label{ font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color: var(--muted); margin:0 0 8px; text-align:center; }
+/* Three color-coded zones, per the client's own reference diagram: yellow
+   (suppliers) on the left, green (the client's own structure — shareholders,
+   directors, company) in the middle, red (customers) on the right. Each zone
+   is a single colored panel so the grouping reads at a glance, rather than
+   the earlier plain-white uniform boxes. */
+.biz-diagram-grid{ display:grid; grid-template-columns: minmax(150px,200px) 1fr minmax(150px,200px); grid-template-areas: "suppliers middle customers"; gap: 16px; align-items:stretch; }
+.biz-col-label{ font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color: var(--ink-soft); margin:0 0 8px; text-align:center; }
 
-.biz-suppliers-col{ grid-area: suppliers; display:flex; flex-direction:column; }
-.biz-customers-col{ grid-area: customers; display:flex; flex-direction:column; }
-.biz-suppliers-list, .biz-customers-list{ display:flex; flex-direction:column; gap:10px; max-height:280px; overflow-y:auto; padding:2px; }
+.biz-zone{ border-radius:10px; padding:14px 12px; }
+.biz-zone-suppliers{ grid-area: suppliers; background: var(--zone-supplier); border:1px solid var(--zone-supplier-line); display:flex; flex-direction:column; }
+.biz-zone-customers{ grid-area: customers; background: var(--zone-customer); border:1px solid var(--zone-customer-line); display:flex; flex-direction:column; }
+.biz-suppliers-list, .biz-customers-list{ display:flex; flex-direction:column; gap:10px; max-height:320px; overflow-y:auto; padding:2px; }
 
-.biz-shareholders-zone{ grid-area: shareholders; }
+.biz-zone-middle{ grid-area: middle; background: var(--zone-client); border:1px solid var(--zone-client-line); display:flex; flex-direction:column; gap:14px; align-items:center; }
+.biz-middle-top{ display:flex; flex-wrap:wrap; gap:14px; justify-content:center; width:100%; }
+.biz-shareholders-zone{ flex:1 1 auto; min-width:150px; }
 .biz-shareholders-row{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; max-height:180px; overflow-y:auto; padding:2px; }
 
-.biz-directors-zone{ grid-area: directors; }
+.biz-directors-zone{ flex:0 0 auto; }
 
-.biz-company-zone{ grid-area: company; display:flex; justify-content:center; padding-top:4px; }
+.biz-company-zone{ display:flex; justify-content:center; width:100%; }
 
 .biz2-node{ border:1px solid var(--line); border-radius: var(--radius); background: var(--paper-raise); padding:9px 11px; font-size:0.82rem; width:148px; cursor:pointer; transition: box-shadow .15s ease; }
 .biz2-node:hover, .biz2-node:focus-visible{ box-shadow: 0 2px 10px rgba(16,40,33,0.12); }
@@ -253,8 +267,8 @@ ul{ margin:0; padding:0; list-style:none; }
 .biz-empty{ font-size:0.82rem; color: var(--muted); font-style:italic; }
 
 @media (max-width: 880px){
-  .biz-diagram-grid{ grid-template-columns: 1fr; grid-template-areas: "shareholders" "directors" "company" "suppliers" "customers"; }
-  .biz-suppliers-col, .biz-customers-col, .biz-shareholders-row{ align-items:center; }
+  .biz-diagram-grid{ grid-template-columns: 1fr; grid-template-areas: "middle" "suppliers" "customers"; }
+  .biz-shareholders-row{ align-items:center; }
   .biz2-node, .biz-directors-list{ width:100%; max-width:280px; margin:0 auto; }
   .biz-lines{ display:none; } /* stacked single-column layout on mobile — connecting lines would be meaningless */
 }
@@ -551,29 +565,36 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
           <h1>Upload supporting documents</h1>
         </div>
       </header>
-      <p class="lede">Everything here is optional — we already check your company registration automatically. That said, the more you share, the stronger and faster your KYB pass will be. You don't need to tell us what each document is; we'll work that out automatically once it's uploaded.</p>
+      <p class="lede">Optional — we already verify your company registration automatically. The more you share, the stronger and faster your KYB pass will be. You don't need to tell us what each document is; we'll work that out once it's uploaded.</p>
 
-      <p class="side-title">Documents that help most (all optional)</p>
-      <ul class="prompt-list">
-        <li>Financial statements (latest)</li>
-        <li>Bank statements (last 3 months)</li>
-        <li>Management accounts</li>
-        <li>Invoices (3 examples)</li>
-        <li>Purchase orders (3 examples)</li>
-        <li>Bills of lading</li>
-        <li>Business plan</li>
-        <li>Bank facility letters</li>
-        <li>Director &amp; owner ID and proof of address</li>
-      </ul>
+      <div class="split">
+        <div class="split-main">
+          <button class="btn btn-primary" id="doc-upload-trigger-btn">+ Upload a document</button>
+          <input type="file" id="doc-file-input" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.webp">
 
-      <button class="btn btn-primary" id="doc-upload-trigger-btn" style="margin-top:16px">+ Upload a document</button>
-      <input type="file" id="doc-file-input" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.webp">
+          <div class="doc-grid" id="doc-grid" style="margin-top:24px"></div>
 
-      <div class="doc-grid" id="doc-grid" style="margin-top:24px"></div>
+          <div class="build-actions">
+            <button class="btn btn-ghost" data-goto="build">← Back</button>
+            <button class="btn btn-primary" id="generate-summary-btn">Generate KYB summary →</button>
+          </div>
+        </div>
 
-      <div class="build-actions">
-        <button class="btn btn-ghost" data-goto="build">← Back</button>
-        <button class="btn btn-primary" id="generate-summary-btn">Generate KYB summary →</button>
+        <aside class="split-side">
+          <p class="side-title">Documents that help most (all optional)</p>
+          <ul class="prompt-list">
+            <li>Financial statements</li>
+            <li>Bank statements (3 months)</li>
+            <li>Management accounts</li>
+            <li>Invoices &amp; purchase orders</li>
+            <li>Bills of lading</li>
+            <li>Supplier / buyer list</li>
+            <li>Aging debtor / creditor report</li>
+            <li>Business plan</li>
+            <li>Bank facility letters</li>
+            <li>Director &amp; owner ID and proof of address</li>
+          </ul>
+        </aside>
       </div>
     </section>
 
@@ -1348,30 +1369,34 @@ function renderBusinessDiagram(diagram){
   el.innerHTML = `
     <svg class="biz-lines" id="biz-lines"></svg>
     <div class="biz-diagram-grid" id="biz-diagram-grid">
-      <div class="biz-suppliers-col">
+      <div class="biz-zone biz-zone-suppliers">
         <p class="biz-col-label">Suppliers</p>
         <div class="biz-suppliers-list" id="biz-suppliers-list">${supplierNodes}</div>
       </div>
-      <div class="biz-shareholders-zone">
-        <p class="biz-col-label">Shareholders</p>
-        <div class="biz-shareholders-row" id="biz-shareholders-row">${shareholderNodes}</div>
-      </div>
-      <div class="biz-directors-zone">
-        <p class="biz-col-label">Directors</p>
-        <div class="biz-directors-list">${directorsList}</div>
-      </div>
-      <div class="biz-company-zone">
-        <div class="biz-company-card" ${clickAttrs('company', 0)}>
-          <div class="biz-company-name">${escapeHtml(company.name) || 'Company name unavailable'}</div>
-          ${company.business_description ? `<div class="biz-company-desc">${escapeHtml(company.business_description)}</div>` : ''}
-          <div class="biz-company-fields">
-            ${company.location ? `<div class="biz-company-field"><span>Location</span><span>${escapeHtml(company.location)}</span></div>` : ''}
-            ${company.website ? `<div class="biz-company-field"><span>Website</span><span>${escapeHtml(company.website)}</span></div>` : ''}
-            ${company.product ? `<div class="biz-company-field"><span>Product</span><span>${escapeHtml(company.product)}</span></div>` : ''}
+      <div class="biz-zone biz-zone-middle">
+        <div class="biz-middle-top">
+          <div class="biz-shareholders-zone">
+            <p class="biz-col-label">Shareholders</p>
+            <div class="biz-shareholders-row" id="biz-shareholders-row">${shareholderNodes}</div>
+          </div>
+          <div class="biz-directors-zone">
+            <p class="biz-col-label">Directors</p>
+            <div class="biz-directors-list">${directorsList}</div>
+          </div>
+        </div>
+        <div class="biz-company-zone">
+          <div class="biz-company-card" ${clickAttrs('company', 0)}>
+            <div class="biz-company-name">${escapeHtml(company.name) || 'Company name unavailable'}</div>
+            ${company.business_description ? `<div class="biz-company-desc">${escapeHtml(company.business_description)}</div>` : ''}
+            <div class="biz-company-fields">
+              ${company.location ? `<div class="biz-company-field"><span>Location</span><span>${escapeHtml(company.location)}</span></div>` : ''}
+              ${company.website ? `<div class="biz-company-field"><span>Website</span><span>${escapeHtml(company.website)}</span></div>` : ''}
+              ${company.product ? `<div class="biz-company-field"><span>Product</span><span>${escapeHtml(company.product)}</span></div>` : ''}
+            </div>
           </div>
         </div>
       </div>
-      <div class="biz-customers-col">
+      <div class="biz-zone biz-zone-customers">
         <p class="biz-col-label">Customers</p>
         <div class="biz-customers-list" id="biz-customers-list">${customerNodes}</div>
       </div>
