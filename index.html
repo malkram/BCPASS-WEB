@@ -612,8 +612,8 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
             <div class="point-list" id="checks-list"></div>
 
             <p class="side-title" style="margin-top:18px">Supplementary comments</p>
-            <p class="biz-hint" style="font-size:0.8rem;color:var(--muted);margin:-4px 0 10px">Optional — add anything that helps explain the discrepancies or checks above. You don't need to resolve them individually to continue.</p>
-            <textarea class="field-text" id="summary-comments-box" rows="3" placeholder="Add any supplementary information for the reviewer..."></textarea>
+            <p class="biz-hint" style="font-size:0.8rem;color:var(--muted);margin:-4px 0 10px">Optional — add anything that helps explain the discrepancies or checks above. Shown to financial institutions exactly as written, with your consent — not summarized or edited. You don't need to resolve them individually to continue.</p>
+            <textarea class="field-text" id="summary-comments-box" rows="3" placeholder="Add anything you'd like the financial institution to see, word for word..."></textarea>
           </div>
 
           <aside class="split-side">
@@ -883,6 +883,9 @@ const WIZARD_TO_CANDY_PATH = {
   value_vs_current: "purpose_services_required.value_vs_current_provider",
   future_planning: "purpose_services_required.future_planning",
   additional_comments: "notes.additional_comments",
+  // Separate from "additional_comments" above — see wireSummaryCommentsBox()'s
+  // comment for why these two must never share a field.
+  discrepancy_supplementary_comments: "notes.discrepancy_supplementary_comments",
 };
 
 function getPath(obj, path){
@@ -1676,17 +1679,26 @@ function openPointDetail(kind, index){
 });
 
 // Single free-text box covering all discrepancies/checks (replaces the old
-// per-flag response mechanism). Backed directly by CANDY's own
-// "notes.additional_comments" field via the normal debounced save
-// (updateSidebar() → scheduleSave()) — same field the Build KYB wizard
-// already exposes under "Any supplementary or comments", so a comment
-// added from either screen shows up on both.
+// per-flag response mechanism). Backed by "notes.discrepancy_supplementary_
+// comments" — a DIFFERENT field from Build KYB's "Any supplementary or
+// comments" (notes.additional_comments), even though both are free text
+// and both save through the same debounced mechanism (updateSidebar() →
+// scheduleSave()). The two were wrongly sharing one field until 22 Sept
+// (client caught it): additional_comments is genuinely part of CANDY's
+// job — ordinary profile content CANDY reads like anything else the
+// client says when it writes the summary. This one is not — it's the
+// client's response to discrepancies/checks MAX has already raised, and
+// its whole point is to reach a future financial-institution view exactly
+// as written, with no AI summarization or interpretation at any stage
+// (run-candy-index.ts now enforces this in code, not just by prompt
+// instruction — see its own comment on this field). A comment added here
+// never shows up in the Build KYB wizard's box, or vice versa.
 function wireSummaryCommentsBox(){
   const box = document.getElementById('summary-comments-box');
   if(!box || box.dataset.wired) return;
   box.dataset.wired = '1';
   box.addEventListener('input', () => {
-    kycProfile.additional_comments = box.value;
+    kycProfile.discrepancy_supplementary_comments = box.value;
     updateSidebar();
   });
 }
@@ -1714,7 +1726,7 @@ async function loadSummaryForCase(){
   // without the scheduleSave() data-loss bug this session already fixed
   // once (silently dropping client_feedback) reappearing for a case that
   // was only ever opened via Summary.
-  if(!('additional_comments' in kycProfile)){
+  if(!('discrepancy_supplementary_comments' in kycProfile)){
     const { data: caseRow } = await supabaseClient
       .from('kyb_cases')
       .select('candy_profile')
@@ -1722,8 +1734,8 @@ async function loadSummaryForCase(){
       .maybeSingle();
     const candyProfile = caseRow?.candy_profile ?? null;
     if(candyProfile){
-      if(!('additional_comments' in kycProfile)){
-        kycProfile.additional_comments = candyProfile.notes?.additional_comments ?? '';
+      if(!('discrepancy_supplementary_comments' in kycProfile)){
+        kycProfile.discrepancy_supplementary_comments = candyProfile.notes?.discrepancy_supplementary_comments ?? '';
       }
       if(lastKnownClientFeedback === null && candyProfile.client_feedback){
         lastKnownClientFeedback = candyProfile.client_feedback;
@@ -1732,7 +1744,7 @@ async function loadSummaryForCase(){
   }
   const commentsBox = document.getElementById('summary-comments-box');
   if(commentsBox && document.activeElement !== commentsBox){
-    commentsBox.value = kycProfile.additional_comments || '';
+    commentsBox.value = kycProfile.discrepancy_supplementary_comments || '';
   }
   wireSummaryCommentsBox();
 
