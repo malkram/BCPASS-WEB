@@ -195,7 +195,9 @@ ul{ margin:0; padding:0; list-style:none; }
 .biz-customers-zone{ grid-area: customers; }
 .biz-connector{ text-align:center; font-size:0.76rem; color: var(--muted); margin:2px 0; }
 
-.biz-node{ border:1px solid var(--line); border-radius: var(--radius); background: var(--paper-raise); padding:10px 12px; font-size:0.85rem; flex:1; min-width:150px; }
+.biz-node{ border:1px solid var(--line); border-radius: var(--radius); background: var(--paper-raise); padding:10px 12px; font-size:0.85rem; flex:1; min-width:150px; cursor:pointer; transition: box-shadow .15s ease; }
+.biz-node:hover, .biz-node:focus-visible{ box-shadow: 0 2px 10px rgba(16,40,33,0.12); }
+.biz-node:focus-visible{ outline: 2px solid var(--accent); outline-offset:2px; }
 .biz-node-name{ font-weight:600; color: var(--ink); margin-bottom:2px; }
 .biz-node-meta{ display:flex; gap:6px; flex-wrap:wrap; margin:4px 0; }
 .biz-node-desc{ font-size:0.8rem; color: var(--ink-soft); margin-top:2px; }
@@ -204,7 +206,9 @@ ul{ margin:0; padding:0; list-style:none; }
 .biz-arrow-in::after{ content:"→"; color: var(--accent); font-weight:700; margin-left:6px; }
 .biz-arrow-out::before{ content:"→"; color: var(--accent); font-weight:700; margin-right:6px; }
 
-.biz-company-card{ border:2px solid var(--ink); border-radius: var(--radius); background: var(--paper-raise); padding:18px 20px; text-align:center; width:100%; }
+.biz-company-card{ border:2px solid var(--ink); border-radius: var(--radius); background: var(--paper-raise); padding:18px 20px; text-align:center; width:100%; cursor:pointer; transition: box-shadow .15s ease; }
+.biz-company-card:hover, .biz-company-card:focus-visible{ box-shadow: 0 2px 10px rgba(16,40,33,0.12); }
+.biz-company-card:focus-visible{ outline: 2px solid var(--accent); outline-offset:2px; }
 .biz-company-name{ font-family: var(--font-display); font-size:1.2rem; color: var(--ink); margin-bottom:6px; }
 .biz-company-desc{ font-size:0.88rem; color: var(--ink-soft); margin-bottom:10px; }
 .biz-company-fields{ display:flex; flex-direction:column; gap:4px; text-align:left; border-top:1px solid var(--line); padding-top:10px; }
@@ -213,13 +217,29 @@ ul{ margin:0; padding:0; list-style:none; }
 
 .biz-directors-list{ border:1px solid var(--line); border-radius: var(--radius); background: var(--paper-raise); padding:10px 12px; font-size:0.85rem; }
 .biz-directors-list ol{ margin:4px 0 0; padding-left:18px; list-style:decimal; }
-.biz-directors-list li{ padding:2px 0; }
+.biz-directors-list li{ padding:2px 0; cursor:pointer; border-radius:4px; }
+.biz-directors-list li:hover, .biz-directors-list li:focus-visible{ background: var(--accent-soft); outline:none; }
 .biz-directors-list li small{ display:block; color: var(--muted); font-size:0.76rem; }
 .biz-empty{ font-size:0.82rem; color: var(--muted); font-style:italic; }
 
 @media (max-width: 880px){
   .biz-diagram{ grid-template-columns: 1fr; grid-template-areas: "shareholders" "directors" "company" "suppliers" "customers"; }
 }
+
+/* ---- business diagram detail panel (Phase 1: click a node for more) ---- */
+.biz-detail-overlay{ position:fixed; inset:0; background: rgba(16,40,33,0.4); display:flex; align-items:center; justify-content:center; padding:20px; z-index:1000; }
+.biz-detail-overlay[hidden]{ display:none; }
+.biz-detail-panel{ background: var(--paper); border-radius: var(--radius); max-width:480px; width:100%; max-height:82vh; overflow-y:auto; padding:22px 24px; box-shadow: 0 16px 48px rgba(16,40,33,0.28); }
+.biz-detail-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:10px; }
+.biz-detail-title{ font-family: var(--font-display); font-size:1.2rem; color: var(--ink); }
+.biz-detail-close{ background:none; border:none; font-size:1.4rem; line-height:1; cursor:pointer; color: var(--muted); padding:2px 6px; border-radius:4px; }
+.biz-detail-close:hover{ color: var(--ink); background: var(--paper-raise); }
+.biz-detail-tags{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.biz-detail-row{ display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-top:1px solid var(--line); font-size:0.86rem; }
+.biz-detail-row:first-of-type{ border-top:none; }
+.biz-detail-row span:first-child{ color: var(--muted); flex-shrink:0; }
+.biz-detail-row span:last-child{ text-align:right; }
+.biz-detail-desc{ font-size:0.88rem; color: var(--ink-soft); line-height:1.5; margin-top:12px; white-space:pre-wrap; }
 
 /* ============ PASS / MASKING ============ */
 .mask-options, .consult-options{ display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
@@ -534,7 +554,11 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
 
       <div id="summary-content" style="display:none">
         <p class="side-title">Business profile</p>
+        <p class="biz-hint" style="font-size:0.8rem;color:var(--muted);margin:-4px 0 10px">Click any box for more detail.</p>
         <div class="biz-diagram" id="biz-diagram"></div>
+        <div class="biz-detail-overlay" id="biz-detail-overlay" hidden>
+          <div class="biz-detail-panel" role="dialog" aria-modal="true" aria-labelledby="biz-detail-title" tabindex="-1" id="biz-detail-panel"></div>
+        </div>
 
         <div class="split">
           <div class="split-main">
@@ -1187,9 +1211,20 @@ function escapeHtml(str){
 // client-stated-only is shown as a solid green vs. dashed amber left border,
 // carrying forward the same distinction the old solid/dashed diagram arrows
 // used to convey.
+//
+// Phase 1 (22 Sept): every node is clickable, opening a detail panel with
+// the same data MAX already produced — nothing new fetched, no new agent
+// work. currentBusinessDiagram holds the last-rendered diagram so the click
+// handler can look an entity up by zone + index without re-parsing the DOM.
+// Note: kyb_max_client_view never carries a "citation" field (run-max strips
+// it before writing the client's row), so there is nothing to accidentally
+// over-share here even if this detail panel is later reused elsewhere.
+let currentBusinessDiagram = null;
+
 function renderBusinessDiagram(diagram){
   const el = document.getElementById('biz-diagram');
   if(!el) return;
+  currentBusinessDiagram = diagram || null;
   if(!diagram){ el.innerHTML = '<p class="biz-empty">No business profile generated yet.</p>'; return; }
 
   const company = diagram.company || {};
@@ -1199,10 +1234,11 @@ function renderBusinessDiagram(diagram){
   const customers = Array.isArray(diagram.customers) ? diagram.customers : [];
 
   const pctSuffix = (n) => (n === null || n === undefined || n === '') ? '' : ` <span style="color:var(--muted);font-weight:400">(${escapeHtml(n)}%)</span>`;
+  const clickAttrs = (zone, i) => `data-zone="${zone}" data-index="${i}" tabindex="0" role="button" aria-haspopup="dialog"`;
 
   const shareholderNodes = shareholders.length
-    ? shareholders.map(s => `
-        <div class="biz-node ${s.verified ? 'verified' : 'unverified'}">
+    ? shareholders.map((s, i) => `
+        <div class="biz-node ${s.verified ? 'verified' : 'unverified'}" ${clickAttrs('shareholders', i)}>
           <div class="biz-node-name">${escapeHtml(s.name)}${pctSuffix(s.percentage)}</div>
           <div class="biz-node-meta">
             <span class="tag ${s.verified ? 'tag-green' : 'tag-amber'}" style="font-size:0.68rem">${s.verified ? 'Verified' : 'Client-stated'}</span>
@@ -1213,20 +1249,20 @@ function renderBusinessDiagram(diagram){
     : '<p class="biz-empty">No shareholder information available.</p>';
 
   const directorsList = directors.length
-    ? `<ol>${directors.map(d => `<li>${escapeHtml(d.name)}${d.note ? `<small>${escapeHtml(d.note)}</small>` : ''}</li>`).join('')}</ol>`
+    ? `<ol>${directors.map((d, i) => `<li ${clickAttrs('directors', i)}>${escapeHtml(d.name)}${d.note ? `<small>${escapeHtml(d.note)}</small>` : ''}</li>`).join('')}</ol>`
     : '<p class="biz-empty">No director information available.</p>';
 
   const supplierNodes = suppliers.length
-    ? suppliers.map(s => `
-        <div class="biz-node biz-arrow-in">
+    ? suppliers.map((s, i) => `
+        <div class="biz-node biz-arrow-in" ${clickAttrs('suppliers', i)}>
           <div class="biz-node-name">${escapeHtml(s.name)}${pctSuffix(s.percentage)}</div>
           ${s.description ? `<div class="biz-node-desc">${escapeHtml(s.description)}</div>` : ''}
         </div>`).join('')
     : '<p class="biz-empty">No supplier information available.</p>';
 
   const customerNodes = customers.length
-    ? customers.map(c => `
-        <div class="biz-node biz-arrow-out">
+    ? customers.map((c, i) => `
+        <div class="biz-node biz-arrow-out" ${clickAttrs('customers', i)}>
           <div class="biz-node-name">${escapeHtml(c.name)}${pctSuffix(c.percentage)}</div>
           ${c.description ? `<div class="biz-node-desc">${escapeHtml(c.description)}</div>` : ''}
         </div>`).join('')
@@ -1246,7 +1282,7 @@ function renderBusinessDiagram(diagram){
       ${supplierNodes}
     </div>
     <div class="biz-zone biz-company-zone">
-      <div class="biz-company-card">
+      <div class="biz-company-card" ${clickAttrs('company', 0)}>
         <div class="biz-company-name">${escapeHtml(company.name) || 'Company name unavailable'}</div>
         ${company.business_description ? `<div class="biz-company-desc">${escapeHtml(company.business_description)}</div>` : ''}
         <div class="biz-company-fields">
@@ -1262,6 +1298,95 @@ function renderBusinessDiagram(diagram){
     </div>
   `;
 }
+
+// ---- Detail panel: opened by clicking any node in the diagram above ----
+// Shows the same fields already in kyb_max_client_view — nothing beyond
+// what's already on the node, just laid out with more room. Deliberately
+// does not (and structurally cannot) show a "citation" field: run-max never
+// writes one into the client's row in the first place.
+function bizDetailFieldLabel(zone){
+  return { shareholders:'Shareholder', directors:'Director', suppliers:'Supplier', customers:'Customer', company:'Company' }[zone] || 'Detail';
+}
+
+function openBizDetail(zone, index){
+  if(!currentBusinessDiagram) return;
+  const entity = zone === 'company'
+    ? (currentBusinessDiagram.company || {})
+    : (Array.isArray(currentBusinessDiagram[zone]) ? currentBusinessDiagram[zone][index] : null);
+  if(!entity) return;
+
+  const overlay = document.getElementById('biz-detail-overlay');
+  const panel = document.getElementById('biz-detail-panel');
+  if(!overlay || !panel) return;
+
+  const rows = [];
+  const tags = [];
+  let title = entity.name || bizDetailFieldLabel(zone);
+  let desc = '';
+
+  if(zone === 'shareholders'){
+    tags.push(`<span class="tag ${entity.verified ? 'tag-green' : 'tag-amber'}">${entity.verified ? 'Verified' : 'Client-stated'}</span>`);
+    tags.push(`<span class="tag">${entity.type === 'corporate' ? 'Corporate' : 'Individual'}</span>`);
+    if(entity.percentage !== null && entity.percentage !== undefined) rows.push(['Ownership', `${escapeHtml(entity.percentage)}%`]);
+    desc = entity.note || (entity.verified ? 'Confirmed against UK company records.' : 'As stated by the client — not independently verified.');
+  } else if(zone === 'directors'){
+    desc = entity.note || '';
+  } else if(zone === 'suppliers' || zone === 'customers'){
+    tags.push(`<span class="tag">${zone === 'suppliers' ? 'Supplier' : 'Customer'}</span>`);
+    if(entity.country) rows.push(['Country', escapeHtml(entity.country)]);
+    if(entity.percentage !== null && entity.percentage !== undefined){
+      rows.push([zone === 'suppliers' ? 'Share of supply' : 'Share of sales', `${escapeHtml(entity.percentage)}%`]);
+    }
+    desc = entity.description || '';
+  } else if(zone === 'company'){
+    if(entity.location) rows.push(['Location', escapeHtml(entity.location)]);
+    if(entity.website) rows.push(['Website', escapeHtml(entity.website)]);
+    if(entity.product) rows.push(['Product', escapeHtml(entity.product)]);
+    desc = entity.business_description || '';
+  }
+
+  panel.innerHTML = `
+    <div class="biz-detail-head">
+      <h3 class="biz-detail-title" id="biz-detail-title">${escapeHtml(title)}</h3>
+      <button type="button" class="biz-detail-close" id="biz-detail-close" aria-label="Close">&times;</button>
+    </div>
+    ${tags.length ? `<div class="biz-detail-tags">${tags.join('')}</div>` : ''}
+    ${rows.map(([label, value]) => `<div class="biz-detail-row"><span>${label}</span><span>${value}</span></div>`).join('')}
+    ${desc ? `<div class="biz-detail-desc">${escapeHtml(desc)}</div>` : ''}
+  `;
+
+  overlay.hidden = false;
+  document.getElementById('biz-detail-close')?.addEventListener('click', closeBizDetail);
+  panel.focus?.();
+}
+
+function closeBizDetail(){
+  const overlay = document.getElementById('biz-detail-overlay');
+  if(overlay) overlay.hidden = true;
+}
+
+// Delegated listeners set up once — the diagram's own content is rebuilt
+// on every renderBusinessDiagram() call, so binding to the static
+// container (rather than to each node) means new nodes are clickable
+// immediately without re-wiring anything.
+document.getElementById('biz-diagram')?.addEventListener('click', (e) => {
+  const target = e.target.closest('[data-zone]');
+  if(!target) return;
+  openBizDetail(target.dataset.zone, Number(target.dataset.index));
+});
+document.getElementById('biz-diagram')?.addEventListener('keydown', (e) => {
+  if(e.key !== 'Enter' && e.key !== ' ') return;
+  const target = e.target.closest('[data-zone]');
+  if(!target) return;
+  e.preventDefault();
+  openBizDetail(target.dataset.zone, Number(target.dataset.index));
+});
+document.getElementById('biz-detail-overlay')?.addEventListener('click', (e) => {
+  if(e.target.id === 'biz-detail-overlay') closeBizDetail();
+});
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape') closeBizDetail();
+});
 
 // ---- Discrepancies + third-party flags (with the supplementary-response box) ----
 // Discrepancies (CANDY vs DEXTER) are shown plainly, read-only, per the
