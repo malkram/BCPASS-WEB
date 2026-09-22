@@ -859,7 +859,19 @@ async function callFunction(functionName, body){
     body: JSON.stringify(body),
   });
   const result = await response.json();
-  if(!response.ok) throw new Error(result?.error || `${functionName} failed`);
+  if(!response.ok){
+    // 22 Sept fix: several edge functions (run-riley among them) return a generic top-level
+    // "error" string plus a much more specific "detail" (the actual caught exception's
+    // message, or raw model output) — this used to be thrown away entirely, so a real error
+    // like "fields is not iterable" never reached the screen or the browser console, only
+    // ever visible by hunting through Supabase's function logs. Surface it now, truncated so
+    // a very long "detail" (e.g. a raw model response) doesn't make the error banner unusable.
+    const message = result?.error || `${functionName} failed`;
+    const detailRaw = result?.detail;
+    const detail = detailRaw ? (typeof detailRaw === 'string' ? detailRaw : JSON.stringify(detailRaw)) : '';
+    const detailShown = detail.length > 300 ? detail.slice(0, 300) + '…' : detail;
+    throw new Error(detailShown ? `${message} (${detailShown})` : message);
+  }
   return result;
 }
 
