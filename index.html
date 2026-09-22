@@ -167,7 +167,7 @@ ul{ margin:0; padding:0; list-style:none; }
 /* ============ SUMMARY / FLAGS ============ */
 .summary-card{ background: var(--paper-raise); border:1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
 .summary-title{ font-size:0.75rem; font-weight:600; color: var(--muted); margin-bottom:8px; }
-.summary-text{ font-size:0.96rem; color: var(--ink-soft); margin:0; }
+.summary-text{ font-size:0.96rem; color: var(--ink-soft); margin:0; max-height:220px; overflow-y:auto; padding-right:6px; }
 .flag-list{ display:flex; flex-direction:column; gap:10px; }
 .flag-item{ border:1px solid var(--line); border-left:3px solid var(--line-strong); border-radius: var(--radius); padding:14px 16px; background: var(--paper-raise); }
 .flag-item.flag-amber{ border-left-color: var(--amber); }
@@ -175,6 +175,17 @@ ul{ margin:0; padding:0; list-style:none; }
 .flag-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:10px; }
 .flag-name{ font-weight:600; font-size:0.92rem; }
 .flag-detail{ font-size:0.86rem; color: var(--ink-soft); margin:0; }
+
+/* ---- discrepancies / checks: fixed-size scrollable point-form lists ---- */
+.point-list{ border:1px solid var(--line); border-radius: var(--radius); background: var(--paper-raise); max-height:220px; overflow-y:auto; }
+.point-item{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:11px 14px; border-bottom:1px solid var(--line); cursor:pointer; font-size:0.88rem; }
+.point-item:last-child{ border-bottom:none; }
+.point-item:hover, .point-item:focus-visible{ background: var(--accent-soft); outline:none; }
+.point-item-name{ font-weight:500; color: var(--ink); }
+.point-item-name::before{ content:"•"; color: var(--muted); margin-right:8px; }
+.point-item-name.point-item-amber::before{ color: var(--amber); }
+.point-item-name.point-item-green::before{ color: var(--accent); }
+.point-empty{ padding:14px; font-size:0.84rem; color: var(--muted); font-style:italic; }
 
 /* ---- supplementary response box on a third-party flag ---- */
 .flag-response{ margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }
@@ -184,46 +195,68 @@ ul{ margin:0; padding:0; list-style:none; }
 .flag-response-given b{ display:block; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.03em; color: var(--accent); margin-bottom:4px; }
 
 /* ============ BUSINESS DIAGRAM ============ */
-.biz-diagram{ display:grid; grid-template-columns: 1.1fr 2fr 1.1fr; grid-template-areas: "shareholders shareholders directors" "suppliers company customers"; gap: 10px 22px; margin-bottom: 28px; }
-.biz-zone{ display:flex; flex-direction:column; gap:8px; }
-.biz-zone-label{ font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color: var(--muted); margin-bottom:2px; }
-.biz-shareholders-zone{ grid-area: shareholders; align-items:stretch; }
-.biz-shareholders-row{ display:flex; flex-wrap:wrap; gap:10px; }
+/* Phase 1.5 (22 Sept, real connected diagram): shareholders converge down
+   into the company box with % lines, suppliers feed in from the left,
+   customers receive out to the right — modelled on the client's own
+   reference pptx. #biz-diagram is a position:relative outer shell holding
+   two overlapping children: #biz-lines (an absolutely-positioned SVG that
+   draws the connecting arrows + % labels between actual box positions,
+   computed in JS since node counts vary per case) and #biz-diagram-grid
+   (the actual boxes, laid out with CSS grid). Boxes stay a uniform,
+   compact size — like the pptx — with description text clamped; anything
+   that overflows is reached through the existing click-to-detail modal,
+   and any zone with many entries scrolls in place rather than growing the
+   page, per the client's explicit spec ("scrollable or clickable for more
+   information"). */
+.biz-diagram{ position:relative; margin-bottom:28px; }
+.biz-lines{ position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:visible; }
+.biz-line{ fill:none; stroke: var(--accent); stroke-width:1.5; opacity:0.65; }
+.biz-line-label{ font-size:10.5px; font-family: var(--font-body, inherit); fill: var(--ink-soft); paint-order: stroke; stroke: var(--paper); stroke-width:3px; }
+
+.biz-diagram-grid{ display:grid; grid-template-columns: minmax(120px,148px) 1fr minmax(120px,148px); grid-template-areas: "suppliers shareholders directors" "suppliers company customers"; gap: 14px 28px; align-items:start; }
+.biz-col-label{ font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color: var(--muted); margin:0 0 8px; text-align:center; }
+
+.biz-suppliers-col{ grid-area: suppliers; display:flex; flex-direction:column; }
+.biz-customers-col{ grid-area: customers; display:flex; flex-direction:column; }
+.biz-suppliers-list, .biz-customers-list{ display:flex; flex-direction:column; gap:10px; max-height:280px; overflow-y:auto; padding:2px; }
+
+.biz-shareholders-zone{ grid-area: shareholders; }
+.biz-shareholders-row{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; max-height:180px; overflow-y:auto; padding:2px; }
+
 .biz-directors-zone{ grid-area: directors; }
-.biz-suppliers-zone{ grid-area: suppliers; }
-.biz-company-zone{ grid-area: company; align-items:center; }
-.biz-customers-zone{ grid-area: customers; }
-.biz-connector{ text-align:center; font-size:0.76rem; color: var(--muted); margin:2px 0; }
 
-.biz-node{ border:1px solid var(--line); border-radius: var(--radius); background: var(--paper-raise); padding:10px 12px; font-size:0.85rem; flex:1; min-width:150px; cursor:pointer; transition: box-shadow .15s ease; }
-.biz-node:hover, .biz-node:focus-visible{ box-shadow: 0 2px 10px rgba(16,40,33,0.12); }
-.biz-node:focus-visible{ outline: 2px solid var(--accent); outline-offset:2px; }
-.biz-node-name{ font-weight:600; color: var(--ink); margin-bottom:2px; }
-.biz-node-meta{ display:flex; gap:6px; flex-wrap:wrap; margin:4px 0; }
-.biz-node-desc{ font-size:0.8rem; color: var(--ink-soft); margin-top:2px; }
-.biz-node.verified{ border-left:3px solid var(--accent); }
-.biz-node.unverified{ border-left:3px solid var(--amber); border-style:dashed; }
-.biz-arrow-in::after{ content:"→"; color: var(--accent); font-weight:700; margin-left:6px; }
-.biz-arrow-out::before{ content:"→"; color: var(--accent); font-weight:700; margin-right:6px; }
+.biz-company-zone{ grid-area: company; display:flex; justify-content:center; padding-top:4px; }
 
-.biz-company-card{ border:2px solid var(--ink); border-radius: var(--radius); background: var(--paper-raise); padding:18px 20px; text-align:center; width:100%; cursor:pointer; transition: box-shadow .15s ease; }
+.biz2-node{ border:1px solid var(--line); border-radius: var(--radius); background: var(--paper-raise); padding:9px 11px; font-size:0.82rem; width:148px; cursor:pointer; transition: box-shadow .15s ease; }
+.biz2-node:hover, .biz2-node:focus-visible{ box-shadow: 0 2px 10px rgba(16,40,33,0.12); }
+.biz2-node:focus-visible{ outline: 2px solid var(--accent); outline-offset:2px; }
+.biz2-node-name{ font-weight:600; color: var(--ink); margin-bottom:2px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.biz2-node-meta{ display:flex; gap:4px; flex-wrap:wrap; margin:4px 0; }
+.biz2-node-desc{ font-size:0.76rem; color: var(--ink-soft); margin-top:2px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.biz2-node.verified{ border-left:3px solid var(--accent); }
+.biz2-node.unverified{ border-left:3px solid var(--amber); border-style:dashed; }
+
+.biz-company-card{ border:2px solid var(--ink); border-radius: var(--radius); background: var(--paper-raise); padding:16px 18px; text-align:center; width:230px; cursor:pointer; transition: box-shadow .15s ease; }
 .biz-company-card:hover, .biz-company-card:focus-visible{ box-shadow: 0 2px 10px rgba(16,40,33,0.12); }
 .biz-company-card:focus-visible{ outline: 2px solid var(--accent); outline-offset:2px; }
-.biz-company-name{ font-family: var(--font-display); font-size:1.2rem; color: var(--ink); margin-bottom:6px; }
-.biz-company-desc{ font-size:0.88rem; color: var(--ink-soft); margin-bottom:10px; }
+.biz-company-name{ font-family: var(--font-display); font-size:1.1rem; color: var(--ink); margin-bottom:6px; }
+.biz-company-desc{ font-size:0.82rem; color: var(--ink-soft); margin-bottom:10px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
 .biz-company-fields{ display:flex; flex-direction:column; gap:4px; text-align:left; border-top:1px solid var(--line); padding-top:10px; }
-.biz-company-field{ display:flex; justify-content:space-between; gap:10px; font-size:0.82rem; }
+.biz-company-field{ display:flex; justify-content:space-between; gap:10px; font-size:0.8rem; }
 .biz-company-field span{ color: var(--muted); }
 
-.biz-directors-list{ border:1px solid var(--line); border-radius: var(--radius); background: var(--paper-raise); padding:10px 12px; font-size:0.85rem; }
-.biz-directors-list ol{ margin:4px 0 0; padding-left:18px; list-style:decimal; }
+.biz-directors-list{ border:1px solid var(--line); border-radius: var(--radius); background: var(--paper-raise); padding:9px 11px; font-size:0.82rem; max-height:180px; overflow-y:auto; width:148px; }
+.biz-directors-list ol{ margin:4px 0 0; padding-left:16px; list-style:decimal; }
 .biz-directors-list li{ padding:2px 0; cursor:pointer; border-radius:4px; }
 .biz-directors-list li:hover, .biz-directors-list li:focus-visible{ background: var(--accent-soft); outline:none; }
-.biz-directors-list li small{ display:block; color: var(--muted); font-size:0.76rem; }
+.biz-directors-list li small{ display:block; color: var(--muted); font-size:0.74rem; }
 .biz-empty{ font-size:0.82rem; color: var(--muted); font-style:italic; }
 
 @media (max-width: 880px){
-  .biz-diagram{ grid-template-columns: 1fr; grid-template-areas: "shareholders" "directors" "company" "suppliers" "customers"; }
+  .biz-diagram-grid{ grid-template-columns: 1fr; grid-template-areas: "shareholders" "directors" "company" "suppliers" "customers"; }
+  .biz-suppliers-col, .biz-customers-col, .biz-shareholders-row{ align-items:center; }
+  .biz2-node, .biz-directors-list{ width:100%; max-width:280px; margin:0 auto; }
+  .biz-lines{ display:none; } /* stacked single-column layout on mobile — connecting lines would be meaningless */
 }
 
 /* ---- business diagram detail panel (Phase 1: click a node for more) ---- */
@@ -567,8 +600,11 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
               <p class="summary-text" id="summary-text"></p>
             </div>
 
-            <p class="side-title">Discrepancies &amp; checks</p>
-            <div class="flag-list" id="flag-list"></div>
+            <p class="side-title">Discrepancies</p>
+            <div class="point-list" id="discrepancy-list"></div>
+
+            <p class="side-title" style="margin-top:18px">Checks</p>
+            <div class="point-list" id="checks-list"></div>
           </div>
 
           <aside class="split-side">
@@ -886,6 +922,7 @@ function loadCaseIntoWizard(caseId, nestedProfile){
   currentCaseId = caseId;
   for(const key of Object.keys(kycProfile)) delete kycProfile[key];
   Object.assign(kycProfile, mapCandySchemaToWizardProfile(nestedProfile));
+  lastKnownClientFeedback = nestedProfile?.client_feedback ?? null;
   wizardStep = 0;
   goToScreen('build');
   renderStepNav();
@@ -925,10 +962,8 @@ async function loadDashboardCases(){
 
   const addBtn = document.getElementById('new-profile-btn');
   (cases || []).forEach(c => {
-    const feedback = c.candy_profile?.client_feedback;
-    const score = feedback?.completion_score?.score ?? 0;
+    const { score, isReady } = computeCandyProfileScore(c.candy_profile);
     const country = c.candy_profile?.company_overview?.registration_country;
-    const isReady = feedback?.profile_status === 'ready_for_sign_off';
 
     const card = document.createElement('article');
     card.className = 'company-card';
@@ -1005,6 +1040,10 @@ function scheduleSave(){
   saveDebounceTimer = setTimeout(async () => {
     try {
       const candyShapedProfile = mapWizardProfileToCandySchema(kycProfile);
+      // Re-attach the last CANDY-generated feedback (summary/score/follow-up
+      // questions) so a plain field's auto-save never wipes it — see the
+      // note on lastKnownClientFeedback above.
+      if(lastKnownClientFeedback) candyShapedProfile.client_feedback = lastKnownClientFeedback;
       await callFunction('save-profile', {
         case_id: currentCaseId,
         candy_profile: candyShapedProfile,
@@ -1033,6 +1072,7 @@ async function runCandyOnField(fieldKey, fieldValue){
 }
 
 function renderAIFeedback(clientFeedback){
+  lastKnownClientFeedback = clientFeedback;
   // Overlays CANDY's AI-computed score/summary on top of the plain-JS
   // one already shown by updateSidebar() — this is a visible signal
   // that the AI has weighed in, distinct from the instant local score.
@@ -1235,16 +1275,19 @@ function renderBusinessDiagram(diagram){
 
   const pctSuffix = (n) => (n === null || n === undefined || n === '') ? '' : ` <span style="color:var(--muted);font-weight:400">(${escapeHtml(n)}%)</span>`;
   const clickAttrs = (zone, i) => `data-zone="${zone}" data-index="${i}" tabindex="0" role="button" aria-haspopup="dialog"`;
+  // "data-pct" is read back by drawBizLines() to label the connecting line —
+  // kept as a plain attribute (rather than re-deriving from
+  // currentBusinessDiagram) so the line-drawing pass never has to guess
+  // which array entry a DOM node corresponds to.
+  const pctAttr = (n) => (n === null || n === undefined || n === '') ? '' : ` data-pct="${escapeHtml(n)}"`;
 
   const shareholderNodes = shareholders.length
     ? shareholders.map((s, i) => `
-        <div class="biz-node ${s.verified ? 'verified' : 'unverified'}" ${clickAttrs('shareholders', i)}>
-          <div class="biz-node-name">${escapeHtml(s.name)}${pctSuffix(s.percentage)}</div>
-          <div class="biz-node-meta">
-            <span class="tag ${s.verified ? 'tag-green' : 'tag-amber'}" style="font-size:0.68rem">${s.verified ? 'Verified' : 'Client-stated'}</span>
-            <span class="tag" style="font-size:0.68rem">${s.type === 'corporate' ? 'Corporate' : 'Individual'}</span>
+        <div class="biz2-node ${s.verified ? 'verified' : 'unverified'}" ${clickAttrs('shareholders', i)}${pctAttr(s.percentage)}>
+          <div class="biz2-node-name">${escapeHtml(s.name)}${pctSuffix(s.percentage)}</div>
+          <div class="biz2-node-meta">
+            <span class="tag ${s.verified ? 'tag-green' : 'tag-amber'}" style="font-size:0.66rem">${s.verified ? 'Verified' : 'Client-stated'}</span>
           </div>
-          ${s.note ? `<div class="biz-node-desc">${escapeHtml(s.note)}</div>` : ''}
         </div>`).join('')
     : '<p class="biz-empty">No shareholder information available.</p>';
 
@@ -1254,50 +1297,144 @@ function renderBusinessDiagram(diagram){
 
   const supplierNodes = suppliers.length
     ? suppliers.map((s, i) => `
-        <div class="biz-node biz-arrow-in" ${clickAttrs('suppliers', i)}>
-          <div class="biz-node-name">${escapeHtml(s.name)}${pctSuffix(s.percentage)}</div>
-          ${s.description ? `<div class="biz-node-desc">${escapeHtml(s.description)}</div>` : ''}
+        <div class="biz2-node" ${clickAttrs('suppliers', i)}${pctAttr(s.percentage)}>
+          <div class="biz2-node-name">${escapeHtml(s.name)}${pctSuffix(s.percentage)}</div>
+          ${s.description ? `<div class="biz2-node-desc">${escapeHtml(s.description)}</div>` : ''}
         </div>`).join('')
     : '<p class="biz-empty">No supplier information available.</p>';
 
   const customerNodes = customers.length
     ? customers.map((c, i) => `
-        <div class="biz-node biz-arrow-out" ${clickAttrs('customers', i)}>
-          <div class="biz-node-name">${escapeHtml(c.name)}${pctSuffix(c.percentage)}</div>
-          ${c.description ? `<div class="biz-node-desc">${escapeHtml(c.description)}</div>` : ''}
+        <div class="biz2-node" ${clickAttrs('customers', i)}${pctAttr(c.percentage)}>
+          <div class="biz2-node-name">${escapeHtml(c.name)}${pctSuffix(c.percentage)}</div>
+          ${c.description ? `<div class="biz2-node-desc">${escapeHtml(c.description)}</div>` : ''}
         </div>`).join('')
     : '<p class="biz-empty">No customer information available.</p>';
 
   el.innerHTML = `
-    <div class="biz-zone biz-shareholders-zone">
-      <p class="biz-zone-label">Shareholders</p>
-      <div class="biz-shareholders-row">${shareholderNodes}</div>
-    </div>
-    <div class="biz-zone biz-directors-zone">
-      <p class="biz-zone-label">Directors</p>
-      <div class="biz-directors-list">${directorsList}</div>
-    </div>
-    <div class="biz-zone biz-suppliers-zone">
-      <p class="biz-zone-label">Suppliers</p>
-      ${supplierNodes}
-    </div>
-    <div class="biz-zone biz-company-zone">
-      <div class="biz-company-card" ${clickAttrs('company', 0)}>
-        <div class="biz-company-name">${escapeHtml(company.name) || 'Company name unavailable'}</div>
-        ${company.business_description ? `<div class="biz-company-desc">${escapeHtml(company.business_description)}</div>` : ''}
-        <div class="biz-company-fields">
-          ${company.location ? `<div class="biz-company-field"><span>Location</span><span>${escapeHtml(company.location)}</span></div>` : ''}
-          ${company.website ? `<div class="biz-company-field"><span>Website</span><span>${escapeHtml(company.website)}</span></div>` : ''}
-          ${company.product ? `<div class="biz-company-field"><span>Product</span><span>${escapeHtml(company.product)}</span></div>` : ''}
+    <svg class="biz-lines" id="biz-lines"></svg>
+    <div class="biz-diagram-grid" id="biz-diagram-grid">
+      <div class="biz-suppliers-col">
+        <p class="biz-col-label">Suppliers</p>
+        <div class="biz-suppliers-list" id="biz-suppliers-list">${supplierNodes}</div>
+      </div>
+      <div class="biz-shareholders-zone">
+        <p class="biz-col-label">Shareholders</p>
+        <div class="biz-shareholders-row" id="biz-shareholders-row">${shareholderNodes}</div>
+      </div>
+      <div class="biz-directors-zone">
+        <p class="biz-col-label">Directors</p>
+        <div class="biz-directors-list">${directorsList}</div>
+      </div>
+      <div class="biz-company-zone">
+        <div class="biz-company-card" ${clickAttrs('company', 0)}>
+          <div class="biz-company-name">${escapeHtml(company.name) || 'Company name unavailable'}</div>
+          ${company.business_description ? `<div class="biz-company-desc">${escapeHtml(company.business_description)}</div>` : ''}
+          <div class="biz-company-fields">
+            ${company.location ? `<div class="biz-company-field"><span>Location</span><span>${escapeHtml(company.location)}</span></div>` : ''}
+            ${company.website ? `<div class="biz-company-field"><span>Website</span><span>${escapeHtml(company.website)}</span></div>` : ''}
+            ${company.product ? `<div class="biz-company-field"><span>Product</span><span>${escapeHtml(company.product)}</span></div>` : ''}
+          </div>
         </div>
       </div>
-    </div>
-    <div class="biz-zone biz-customers-zone">
-      <p class="biz-zone-label">Customers</p>
-      ${customerNodes}
+      <div class="biz-customers-col">
+        <p class="biz-col-label">Customers</p>
+        <div class="biz-customers-list" id="biz-customers-list">${customerNodes}</div>
+      </div>
     </div>
   `;
+
+  // Connecting lines depend on the boxes' actual on-screen positions, so
+  // they're drawn only once the browser has laid the grid out — rAF, not
+  // immediately after setting innerHTML. Also redrawn on window resize and
+  // whenever a scrollable zone (shareholders row, suppliers/customers
+  // columns) scrolls, since those move box positions without a re-render.
+  requestAnimationFrame(drawBizLines);
+  ['biz-shareholders-row', 'biz-suppliers-list', 'biz-customers-list'].forEach((id) => {
+    document.getElementById(id)?.addEventListener('scroll', drawBizLines);
+  });
 }
+
+// ---- Connecting lines: shareholders converge down into the company,
+// suppliers feed in from the left, customers receive out to the right —
+// drawn as an SVG overlay sized to #biz-diagram, with each line's anchor
+// point read directly off the real box positions (getBoundingClientRect)
+// rather than assumed, since the number of shareholders/suppliers/
+// customers varies per case and CSS alone can't route a line between two
+// arbitrary boxes.
+function bizAnchorPoint(elem, side, containerRect){
+  const r = elem.getBoundingClientRect();
+  const x = side === 'left' ? r.left : side === 'right' ? r.right : (r.left + r.right) / 2;
+  const y = side === 'top' ? r.top : side === 'bottom' ? r.bottom : (r.top + r.bottom) / 2;
+  return { x: x - containerRect.left, y: y - containerRect.top };
+}
+
+function drawBizLines(){
+  const container = document.getElementById('biz-diagram');
+  const svg = document.getElementById('biz-lines');
+  if(!container || !svg) return;
+  const companyEl = container.querySelector('[data-zone="company"]');
+  if(!companyEl){ svg.innerHTML = ''; return; }
+
+  const containerRect = container.getBoundingClientRect();
+  if(containerRect.width === 0){ return; } // not laid out / not visible yet — nothing to draw
+  svg.setAttribute('width', containerRect.width);
+  svg.setAttribute('height', containerRect.height);
+  svg.setAttribute('viewBox', `0 0 ${containerRect.width} ${containerRect.height}`);
+
+  const companyTop = bizAnchorPoint(companyEl, 'top', containerRect);
+  const companyLeft = bizAnchorPoint(companyEl, 'left', containerRect);
+  const companyRight = bizAnchorPoint(companyEl, 'right', containerRect);
+
+  const parts = [`
+    <defs>
+      <marker id="biz-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"></path>
+      </marker>
+    </defs>`];
+
+  const label = (x, y, pct) => pct
+    ? `<text x="${x}" y="${y}" class="biz-line-label" text-anchor="middle">${escapeHtml(pct)}%</text>`
+    : '';
+
+  // Shareholders → company: converge down into the company's top edge.
+  container.querySelectorAll('[data-zone="shareholders"]').forEach((elem) => {
+    const from = bizAnchorPoint(elem, 'bottom', containerRect);
+    const to = companyTop;
+    const midY = (from.y + to.y) / 2;
+    parts.push(`<path d="M${from.x},${from.y} C${from.x},${midY} ${to.x},${midY} ${to.x},${to.y}" class="biz-line" marker-end="url(#biz-arrow)"></path>`);
+    parts.push(label((from.x + to.x) / 2, midY - 4, elem.dataset.pct));
+  });
+
+  // Suppliers → company: feed in from the left edge.
+  container.querySelectorAll('[data-zone="suppliers"]').forEach((elem) => {
+    const from = bizAnchorPoint(elem, 'right', containerRect);
+    const to = companyLeft;
+    const midX = (from.x + to.x) / 2;
+    parts.push(`<path d="M${from.x},${from.y} C${midX},${from.y} ${midX},${to.y} ${to.x},${to.y}" class="biz-line" marker-end="url(#biz-arrow)"></path>`);
+    parts.push(label(midX, (from.y + to.y) / 2 - 4, elem.dataset.pct));
+  });
+
+  // Company → customers: out through the right edge.
+  container.querySelectorAll('[data-zone="customers"]').forEach((elem) => {
+    const from = companyRight;
+    const to = bizAnchorPoint(elem, 'left', containerRect);
+    const midX = (from.x + to.x) / 2;
+    parts.push(`<path d="M${from.x},${from.y} C${midX},${from.y} ${midX},${to.y} ${to.x},${to.y}" class="biz-line" marker-end="url(#biz-arrow)"></path>`);
+    parts.push(label(midX, (from.y + to.y) / 2 - 4, elem.dataset.pct));
+  });
+
+  svg.innerHTML = parts.join('');
+}
+
+// Window resize moves every box, so the whole overlay needs a fresh pass —
+// debounced since resize fires rapidly, and harmless to call when no
+// diagram is currently rendered (drawBizLines() no-ops without a company node).
+let bizResizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(bizResizeTimer);
+  bizResizeTimer = setTimeout(drawBizLines, 120);
+});
 
 // ---- Detail panel: opened by clicking any node in the diagram above ----
 // Shows the same fields already in kyb_max_client_view — nothing beyond
@@ -1388,56 +1525,53 @@ document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') closeBizDetail();
 });
 
-// ---- Discrepancies + third-party flags (with the supplementary-response box) ----
-// Discrepancies (CANDY vs DEXTER) are shown plainly, read-only, per the
-// product decision that these can be shown in detail since they only
-// compare what the client themselves said against a basic company search.
-// Third-party flags (RILEY's findings, filtered by MAX) never show their
-// internal_basis/reviewer_assessment — kyb_max_client_view's whitelist
-// already stripped those server-side — and offer a free-text supplementary
-// response box. Per the confirmed product flow, resolving a flag is never
-// required to generate the pass; it's an optional way to add more context.
-function renderFlagList(discrepancies, flags){
-  const el = document.getElementById('flag-list');
+// ---- Discrepancies + third-party flags: two compact, fixed-size, scrollable
+// point-form lists (Phase 1, 22 Sept redesign). Each row shows only a title;
+// clicking it opens the same detail modal already used by the business
+// diagram above ("similar to the clickable box up there"), which is where
+// a discrepancy's full note, or a check's full message plus its single
+// free-text supplementary-response box, actually lives. Discrepancies
+// (CANDY vs DEXTER) are read-only. Third-party flags (RILEY's findings,
+// filtered by MAX) never show internal_basis/reviewer_assessment —
+// kyb_max_client_view's whitelist already stripped those server-side.
+// Per the confirmed product flow, resolving a flag is never required to
+// generate the pass; it's an optional way to add more context.
+// currentDiscrepancies/currentChecksFlags hold the last-loaded data so the
+// click handler can look a row up by index, mirroring currentBusinessDiagram.
+let currentDiscrepancies = [];
+let currentChecksFlags = [];
+
+function fieldLabel(field){
+  return (field || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function renderDiscrepancyList(discrepancies){
+  const el = document.getElementById('discrepancy-list');
   if(!el) return;
+  currentDiscrepancies = Array.isArray(discrepancies) ? discrepancies : [];
+  el.innerHTML = currentDiscrepancies.length
+    ? currentDiscrepancies.map((d, i) => `
+        <div class="point-item" data-kind="discrepancy" data-index="${i}" tabindex="0" role="button" aria-haspopup="dialog">
+          <span class="point-item-name point-item-amber">${escapeHtml(fieldLabel(d.field)) || 'Discrepancy'}</span>
+          <span class="tag tag-amber" style="font-size:0.68rem">Please confirm</span>
+        </div>`).join('')
+    : '<p class="point-empty">No discrepancies — everything you told us matches the public record.</p>';
+}
 
-  const fieldLabel = (field) => (field || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-
-  const discrepancyItems = discrepancies.map(d => `
-    <div class="flag-item flag-amber">
-      <div class="flag-head">
-        <span class="flag-name">${escapeHtml(fieldLabel(d.field)) || 'Discrepancy'}</span>
-        <span class="tag tag-amber">Please confirm</span>
-      </div>
-      <p class="flag-detail">${escapeHtml(d.client_facing_note || '')}</p>
-    </div>`).join('');
-
-  const flagItems = flags.map(f => {
-    const given = !!f.client_supplementary_response;
-    return `
-    <div class="flag-item ${given ? 'flag-green' : 'flag-amber'}" data-flag-id="${escapeHtml(f.flag_id)}">
-      <div class="flag-head">
-        <span class="flag-name">Additional check</span>
-        <span class="tag ${given ? 'tag-green' : 'tag-amber'}">${given ? 'You responded' : 'No action needed — optional'}</span>
-      </div>
-      <p class="flag-detail">${escapeHtml(f.client_facing_message || '')}</p>
-      ${f.requires_supplementary_input ? renderFlagResponseBlock(f) : ''}
-    </div>`;
-  }).join('');
-
-  const allItems = discrepancyItems + flagItems;
-  el.innerHTML = allItems || '<p class="biz-empty">No discrepancies or flags — everything lines up.</p>';
-
-  el.querySelectorAll('.flag-response-submit').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const wrap = btn.closest('.flag-item');
-      const flagId = wrap?.dataset.flagId;
-      const textarea = wrap?.querySelector('textarea');
-      const text = textarea?.value?.trim();
-      if(!flagId || !text) return;
-      submitSupplementaryResponse(flagId, text);
-    });
-  });
+function renderChecksList(flags){
+  const el = document.getElementById('checks-list');
+  if(!el) return;
+  currentChecksFlags = Array.isArray(flags) ? flags : [];
+  el.innerHTML = currentChecksFlags.length
+    ? currentChecksFlags.map((f, i) => {
+        const given = !!f.client_supplementary_response;
+        return `
+        <div class="point-item" data-kind="check" data-index="${i}" tabindex="0" role="button" aria-haspopup="dialog">
+          <span class="point-item-name ${given ? 'point-item-green' : 'point-item-amber'}">Additional check ${i + 1}</span>
+          <span class="tag ${given ? 'tag-green' : 'tag-amber'}" style="font-size:0.68rem">${given ? 'You responded' : 'Optional'}</span>
+        </div>`;
+      }).join('')
+    : '<p class="point-empty">No additional checks — nothing needs your attention.</p>';
 }
 
 function renderFlagResponseBlock(f){
@@ -1450,20 +1584,92 @@ function renderFlagResponseBlock(f){
   </div>`;
 }
 
+// Opens the shared detail modal for a discrepancy or check row. Kept
+// separate from openBizDetail (diagram entities) since the underlying data
+// shapes differ, but reuses the same #biz-detail-overlay/#biz-detail-panel
+// markup and close/Escape/click-outside wiring already set up above.
+function openPointDetail(kind, index){
+  const overlay = document.getElementById('biz-detail-overlay');
+  const panel = document.getElementById('biz-detail-panel');
+  if(!overlay || !panel) return;
+
+  if(kind === 'discrepancy'){
+    const d = currentDiscrepancies[index];
+    if(!d) return;
+    panel.innerHTML = `
+      <div class="biz-detail-head">
+        <h3 class="biz-detail-title" id="biz-detail-title">${escapeHtml(fieldLabel(d.field)) || 'Discrepancy'}</h3>
+        <button type="button" class="biz-detail-close" id="biz-detail-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="biz-detail-tags"><span class="tag tag-amber">Please confirm</span></div>
+      <div class="biz-detail-desc">${escapeHtml(d.client_facing_note || '')}</div>
+    `;
+  } else if(kind === 'check'){
+    const f = currentChecksFlags[index];
+    if(!f) return;
+    const given = !!f.client_supplementary_response;
+    panel.innerHTML = `
+      <div class="biz-detail-head">
+        <h3 class="biz-detail-title" id="biz-detail-title">Additional check</h3>
+        <button type="button" class="biz-detail-close" id="biz-detail-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="biz-detail-tags"><span class="tag ${given ? 'tag-green' : 'tag-amber'}">${given ? 'You responded' : 'No action needed — optional'}</span></div>
+      <div class="biz-detail-desc">${escapeHtml(f.client_facing_message || '')}</div>
+      ${f.requires_supplementary_input ? renderFlagResponseBlock(f) : ''}
+    `;
+    if(f.requires_supplementary_input && !given){
+      panel.querySelector('.flag-response-submit')?.addEventListener('click', () => {
+        const textarea = panel.querySelector('.flag-response textarea');
+        const text = textarea?.value?.trim();
+        if(!text) return;
+        submitSupplementaryResponse(f.flag_id, text);
+      });
+    }
+  } else {
+    return;
+  }
+
+  overlay.hidden = false;
+  document.getElementById('biz-detail-close')?.addEventListener('click', closeBizDetail);
+  panel.focus?.();
+}
+
+// Delegated listeners for both point-form lists, mirroring the #biz-diagram
+// wiring above — bound to the static containers so rows added on every
+// re-render are clickable immediately.
+[['discrepancy-list', 'discrepancy'], ['checks-list', 'check']].forEach(([id, kind]) => {
+  const container = document.getElementById(id);
+  if(!container) return;
+  container.addEventListener('click', (e) => {
+    const target = e.target.closest('[data-kind]');
+    if(!target) return;
+    openPointDetail(kind, Number(target.dataset.index));
+  });
+  container.addEventListener('keydown', (e) => {
+    if(e.key !== 'Enter' && e.key !== ' ') return;
+    const target = e.target.closest('[data-kind]');
+    if(!target) return;
+    e.preventDefault();
+    openPointDetail(kind, Number(target.dataset.index));
+  });
+});
+
 // Re-runs MAX with the client's answer merged in, then reloads the summary
-// screen from the freshly-written kyb_max_client_view row. MAX itself (not
-// this function) is what re-computes case_status and matches the response
-// back to the right flag_id.
+// screen from the freshly-written kyb_max_client_view row (and closes the
+// modal — the refreshed list re-opens it as "You responded" if reclicked).
+// MAX itself (not this function) is what re-computes case_status and
+// matches the response back to the right flag_id.
 async function submitSupplementaryResponse(flagId, responseText){
   if(!currentCaseId) return;
-  const wrap = document.querySelector(`.flag-item[data-flag-id="${CSS.escape(flagId)}"]`);
-  const btn = wrap?.querySelector('.flag-response-submit');
+  const panel = document.getElementById('biz-detail-panel');
+  const btn = panel?.querySelector('.flag-response-submit');
   if(btn){ btn.disabled = true; btn.textContent = 'Saving…'; }
   try {
     await callFunction('run-max', {
       case_id: currentCaseId,
       client_supplementary_responses: [ { flag_id: flagId, response: responseText } ],
     });
+    closeBizDetail();
     await loadSummaryForCase();
   } catch (err) {
     alert('Could not save your response: ' + err.message);
@@ -1532,7 +1738,8 @@ async function loadSummaryForCase(){
   if(textEl) textEl.textContent = data.kyb_summary_plain_text || 'Summary not yet available.';
 
   renderBusinessDiagram(data.business_diagram);
-  renderFlagList(discrepancies, flags);
+  renderDiscrepancyList(discrepancies);
+  renderChecksList(flags);
 }
 
 // Loads existing kyb_documents rows for the current case so previously
@@ -1661,6 +1868,15 @@ const CRITICAL_TOTAL = 10;   // matches the summarization agent prompt's scoring
 const SUPPORTING_TOTAL = 26; // 25 fields + "products_sold" (added 22 Sept) + 1 derived point (business_model_narrative, tied to "description_of_business")
 
 const kycProfile = {};
+// Last-known client_feedback (summary/score/follow-up questions) for the
+// case currently open in the wizard — CANDY only regenerates this when an
+// AI-assisted field triggers run-candy, but scheduleSave() below fires on
+// EVERY field, plain or AI-assisted. Without re-attaching this before each
+// plain save, the next debounced save-profile call would silently wipe
+// client_feedback from the database (it builds candy_profile purely from
+// kycProfile, which never mirrors client_feedback) — exactly what produced
+// a real case showing 94% in the wizard but 0% on the Dashboard.
+let lastKnownClientFeedback = null;
 let wizardStep = 0;
 
 const wizardPanel = document.getElementById('wizard-panel');
@@ -1699,6 +1915,82 @@ function scoreLabel(score){
   if(score >= 65) return 'Mostly complete';
   if(score >= 40) return 'Good start';
   return 'Early draft';
+}
+
+// Same dotted paths + formula as run-candy's own deterministic scoring
+// (CRITICAL_FIELDS/SUPPORTING_FIELDS in run-candy/index.ts) — kept in sync
+// by hand, same as CRITICAL_TOTAL/SUPPORTING_TOTAL already are. Computed
+// directly from a case's saved candy_profile rather than trusted from
+// candy_profile.client_feedback, which only gets written when an
+// AI-assisted field triggers run-candy and can otherwise go stale or
+// missing entirely for a case that's only ever had plain fields edited —
+// exactly the "0% complete" the Dashboard showed for a profile that was
+// actually 94% done. Same "verify, don't trust the stored self-report"
+// pattern used everywhere else in this project.
+const CANDY_CRITICAL_PATHS = [
+  'company_overview.legal_entity_name',
+  'company_overview.registration_country',
+  'company_overview.contact_phone_number',
+  'company_overview.contact_email',
+  'company_overview.type_of_business',
+  'business_activity.description_of_business',
+  'business_activity.location_of_main_suppliers',
+  'business_activity.location_of_main_buyers_customers',
+  'purpose_services_required.areas_of_interest',
+  'purpose_services_required.main_banks',
+];
+const CANDY_SUPPORTING_PATHS = [
+  'company_overview.incorporation_date_or_years_trading',
+  'company_overview.registered_trading_address',
+  'company_overview.website',
+  'business_activity.industry_sector',
+  'business_activity.products_sold',
+  'corporate_structure_ownership.group_or_sister_company',
+  'corporate_structure_ownership.group_companies_relationship',
+  'corporate_structure_ownership.ultimate_beneficial_owners',
+  'corporate_structure_ownership.directors',
+  'funding_source.ongoing_source_of_funds',
+  'funding_source.origin_countries',
+  'funding_source.means_of_transactions',
+  'business_history_milestones.wealth_history_narrative',
+  'business_history_milestones.founder_or_key_individual_background',
+  'business_history_milestones.business_milestones',
+  'current_and_future_planning.revenue_or_turnover',
+  'current_and_future_planning.bank_loans_or_liabilities',
+  'current_and_future_planning.expected_turnover_vs_last_year',
+  'current_and_future_planning.currencies_sending_to_suppliers',
+  'current_and_future_planning.currencies_receiving_from_buyers',
+  'current_and_future_planning.typical_payment_size',
+  'current_and_future_planning.payment_volume_outgoing',
+  'current_and_future_planning.payment_volume_incoming',
+  'purpose_services_required.value_vs_current_provider',
+  'purpose_services_required.future_planning',
+];
+
+function candyValueFilled(value){
+  if(value === null || value === undefined) return false;
+  if(typeof value === 'string') return value.trim() !== '';
+  if(Array.isArray(value)) return value.length > 0;
+  if(typeof value === 'object') return Object.keys(value).length > 0;
+  return true;
+}
+
+// Mirrors CANDY's own rule: a declined critical/supporting field counts as
+// resolved for completion purposes, same as a filled one — "Never re-ask a
+// declined field," per run-candy's prompt.
+function computeCandyProfileScore(nestedProfile){
+  if(!nestedProfile) return { score: 0, label: scoreLabel(0), isReady: false, missingCriticalPaths: CANDY_CRITICAL_PATHS.slice() };
+  const declined = new Set(
+    (Array.isArray(nestedProfile.declined_fields) ? nestedProfile.declined_fields : [])
+      .map(d => d && d.field).filter(Boolean)
+  );
+  const resolved = (path) => candyValueFilled(getPath(nestedProfile, path)) || declined.has(path);
+  const missingCriticalPaths = CANDY_CRITICAL_PATHS.filter(p => !resolved(p));
+  const criticalFilled = CANDY_CRITICAL_PATHS.length - missingCriticalPaths.length;
+  let supportingFilled = CANDY_SUPPORTING_PATHS.filter(resolved).length;
+  if(resolved('business_activity.description_of_business')) supportingFilled++;
+  const score = Math.round(70 * (criticalFilled / CRITICAL_TOTAL) + 30 * (supportingFilled / SUPPORTING_TOTAL));
+  return { score, label: scoreLabel(score), isReady: missingCriticalPaths.length === 0, missingCriticalPaths };
 }
 
 function renderStepNav(){
@@ -1796,8 +2088,31 @@ function renderPanel(){
   `;
   document.getElementById('wizard-back').disabled = wizardStep === 0;
   const nextBtn = document.getElementById('wizard-next');
-  if(wizardStep === KYC_SCHEMA.length - 1){ nextBtn.textContent = "You're on the last step"; nextBtn.disabled = true; }
-  else { nextBtn.textContent = 'Next →'; nextBtn.disabled = false; }
+  if(wizardStep === KYC_SCHEMA.length - 1){
+    const missingStep = findFirstIncompleteStep();
+    if(missingStep === -1){
+      nextBtn.textContent = 'Sign off & continue →';
+      nextBtn.dataset.action = 'signoff';
+    } else {
+      nextBtn.textContent = 'Must fill in mandatory fields';
+      nextBtn.dataset.action = 'jump-to-missing';
+    }
+    nextBtn.disabled = false; // stays clickable either way — see the click handler
+  } else {
+    nextBtn.textContent = 'Next →';
+    nextBtn.dataset.action = 'next';
+    nextBtn.disabled = false;
+  }
+}
+
+// Finds the first wizard step (in order) that still has an unfilled
+// CRITICAL field, so the last-step button can jump the client straight to
+// it instead of leaving them stuck on a disabled dead end.
+function findFirstIncompleteStep(){
+  for(let i = 0; i < KYC_SCHEMA.length; i++){
+    if(KYC_SCHEMA[i].fields.some(f => f.tier === 'critical' && !fieldFilled(f))) return i;
+  }
+  return -1;
 }
 
 function renderRepeaterField(key){
@@ -1921,7 +2236,16 @@ if(wizardPanel){
   });
 
   document.getElementById('wizard-back').addEventListener('click', () => { if(wizardStep > 0){ wizardStep--; renderPanel(); renderStepNav(); } });
-  document.getElementById('wizard-next').addEventListener('click', () => { if(wizardStep < KYC_SCHEMA.length - 1){ wizardStep++; renderPanel(); renderStepNav(); } });
+  document.getElementById('wizard-next').addEventListener('click', () => {
+    const action = document.getElementById('wizard-next').dataset.action;
+    if(action === 'signoff'){ goToScreen('documents'); return; }
+    if(action === 'jump-to-missing'){
+      const missingStep = findFirstIncompleteStep();
+      if(missingStep !== -1){ wizardStep = missingStep; renderPanel(); renderStepNav(); }
+      return;
+    }
+    if(wizardStep < KYC_SCHEMA.length - 1){ wizardStep++; renderPanel(); renderStepNav(); }
+  });
   document.getElementById('signoff-btn').addEventListener('click', () => goToScreen('documents'));
 
   renderStepNav();
