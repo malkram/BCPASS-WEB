@@ -1931,9 +1931,40 @@ const wizardFill = document.getElementById('wizard-progress-fill');
 const FIELDS_BY_KEY = {};
 KYC_SCHEMA.forEach(section => section.fields.forEach(f => { FIELDS_BY_KEY[f.key] = f; }));
 
+// country_percentage_list/percentage_grid fields must always be, respectively,
+// an array of {country, percentage} rows and a plain {category: percentage}
+// object for fieldControlHTML()/pctTotal() to render safely. A case's saved
+// profile isn't guaranteed to already be in that shape — legacy data from
+// before this session's canonicalization fix, or any other malformed save —
+// and without this, a single malformed value throws while renderPanel()
+// builds its HTML string, BEFORE the panel's innerHTML is ever assigned. The
+// step then silently fails to update on every click into it (reads as "this
+// page is skipped and not functioning" — a real bug report this exact
+// scenario produced) and stays broken forever, since the bad data never gets
+// a chance to be corrected through the UI that would fix it. Coerces rather
+// than just resetting to blank, to preserve whatever real data is there —
+// mirrors the same "coerce, don't trust the stored shape" fix already
+// applied server-side (canonicalizeLocationList() in run-candy-index.ts).
 function ensureFieldState(f){
-  if(f.type === 'country_percentage_list' && !kycProfile[f.key]) kycProfile[f.key] = [{ country:'', percentage:'' }];
-  if(f.type === 'percentage_grid' && !kycProfile[f.key]) kycProfile[f.key] = {};
+  if(f.type === 'country_percentage_list'){
+    const v = kycProfile[f.key];
+    if(!v){
+      kycProfile[f.key] = [{ country:'', percentage:'' }];
+    } else if(!Array.isArray(v)){
+      // A bare {country, percentage} object saved instead of an array of
+      // them — wrap it rather than discard it. Anything else unrecognizable
+      // (a string, a number) falls back to one blank row.
+      kycProfile[f.key] = (typeof v === 'object') ? [v] : [{ country:'', percentage:'' }];
+    } else {
+      // Guard each row too — a non-object row (null, a string) would throw
+      // the moment the template reads row.country/row.percentage.
+      kycProfile[f.key] = v.map(r => (r && typeof r === 'object') ? r : { country:'', percentage:'' });
+    }
+  }
+  if(f.type === 'percentage_grid'){
+    const v = kycProfile[f.key];
+    if(!v || typeof v !== 'object' || Array.isArray(v)) kycProfile[f.key] = {};
+  }
 }
 
 function fieldFilled(f){
