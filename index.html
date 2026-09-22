@@ -2168,7 +2168,7 @@ function fieldControlHTML(f){
           </div>
           <button type="button" class="cp-remove" data-key="${f.key}" data-index="${i}">×</button>
         </div>
-        ${row.country === 'Other' ? `<input type="text" class="field-text cp-other-text" data-key="${f.key}" data-index="${i}" placeholder="Which country/countries? (only needed if you haven't already uploaded a supplier/buyer list)" value="${escapeHtml(row.other_text || '')}">` : ''}`).join('') +
+        ${row.country === 'Other' ? `<input type="text" class="field-text cp-other-text" data-key="${f.key}" data-index="${i}" placeholder="Which country/countries?" value="${escapeHtml(row.other_text || '')}">` : ''}`).join('') +
       `<button type="button" class="cp-add" data-key="${f.key}">+ Add country</button>
       <div class="pct-total ${total > 0 && total !== 100 ? 'warn' : ''}" data-key="${f.key}">Total: ${total}%</div>
       </div>`;
@@ -2320,12 +2320,22 @@ if(wizardPanel){
 
   wizardPanel.addEventListener('input', (e) => {
     const t = e.target;
-    if(t.matches('.other-text')){
-      kycProfile[t.dataset.key] = t.value;
-    } else if(t.matches('.field-text')){
-      kycProfile[t.dataset.key] = t.value;
-      updateSidebar();
-    } else if(t.matches('.pct-input')){
+    // Order matters here: "Other"-row free-text input for a
+    // country_percentage_list carries BOTH "field-text" (shared styling)
+    // AND "cp-other-text" — so the generic ".field-text" branch below would
+    // otherwise match it FIRST and run `kycProfile[key] = t.value`,
+    // overwriting the entire country/percentage ARRAY with the plain typed
+    // string (e.g. typing "Vietnam" replaced the whole
+    // location_of_main_suppliers array with the string "Vietnam"). This was
+    // the actual cause of "I key in the supplier countries multiple times,
+    // it has no effect" — every row's country + percentage was being wiped
+    // the moment the client typed into that one free-text box. The
+    // narrower/more specific selectors (".pct-input", ".cp-pct",
+    // ".cp-other-text") are checked BEFORE the generic ones
+    // (".other-text", ".field-text") for exactly this reason — a shared
+    // class for styling should never let a generic handler run instead of
+    // a more specific one that also matches.
+    if(t.matches('.pct-input')){
       kycProfile[t.dataset.key][t.dataset.cat] = t.value;
       updatePctTotal(t.dataset.key);
       updateSidebar();
@@ -2335,6 +2345,11 @@ if(wizardPanel){
       updateSidebar();
     } else if(t.matches('.cp-other-text')){
       kycProfile[t.dataset.key][Number(t.dataset.index)].other_text = t.value;
+      updateSidebar();
+    } else if(t.matches('.other-text')){
+      kycProfile[t.dataset.key] = t.value;
+    } else if(t.matches('.field-text')){
+      kycProfile[t.dataset.key] = t.value;
       updateSidebar();
     }
   });
