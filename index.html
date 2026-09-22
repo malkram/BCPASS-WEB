@@ -605,6 +605,10 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
 
             <p class="side-title" style="margin-top:18px">Checks</p>
             <div class="point-list" id="checks-list"></div>
+
+            <p class="side-title" style="margin-top:18px">Supplementary comments</p>
+            <p class="biz-hint" style="font-size:0.8rem;color:var(--muted);margin:-4px 0 10px">Optional — add anything that helps explain the discrepancies or checks above. You don't need to resolve them individually to continue.</p>
+            <textarea class="field-text" id="summary-comments-box" rows="3" placeholder="Add any supplementary information for the reviewer..."></textarea>
           </div>
 
           <aside class="split-side">
@@ -890,11 +894,33 @@ function setNestedPath(obj, path, value){
   target[keys[keys.length - 1]] = value;
 }
 
+// "Other" rows in a country_percentage_list carry both the sentinel
+// "Other" (so the dropdown still shows it selected) and whatever the
+// client typed in the free-text sub-field. Everything downstream (CANDY's
+// prompt, run-max's country matching) expects a plain { country,
+// percentage } shape with a real country name — never the literal word
+// "Other" — so this substitutes the free text in at save time and drops
+// empty/incomplete rows, rather than pushing that translation onto CANDY's
+// model or run-max's merge code.
+function resolveOtherCountryRows(rows){
+  if(!Array.isArray(rows)) return rows;
+  return rows
+    .filter((r) => r && r.country && Number(r.percentage) > 0)
+    .map((r) => ({
+      country: (r.country === 'Other' && r.other_text && r.other_text.trim()) ? r.other_text.trim() : r.country,
+      percentage: Number(r.percentage),
+    }));
+}
+
+const COUNTRY_PERCENTAGE_LIST_KEYS = new Set(['location_of_main_suppliers', 'location_of_main_buyers_customers']);
+
 function mapWizardProfileToCandySchema(flatProfile){
   const nested = {};
   for(const [flatKey, value] of Object.entries(flatProfile)){
     const path = WIZARD_TO_CANDY_PATH[flatKey];
-    if(path) setNestedPath(nested, path, value);
+    if(!path) continue;
+    const finalValue = COUNTRY_PERCENTAGE_LIST_KEYS.has(flatKey) ? resolveOtherCountryRows(value) : value;
+    setNestedPath(nested, path, finalValue);
   }
   return nested;
 }
@@ -1526,16 +1552,18 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ---- Discrepancies + third-party flags: two compact, fixed-size, scrollable
-// point-form lists (Phase 1, 22 Sept redesign). Each row shows only a title;
-// clicking it opens the same detail modal already used by the business
-// diagram above ("similar to the clickable box up there"), which is where
-// a discrepancy's full note, or a check's full message plus its single
-// free-text supplementary-response box, actually lives. Discrepancies
-// (CANDY vs DEXTER) are read-only. Third-party flags (RILEY's findings,
-// filtered by MAX) never show internal_basis/reviewer_assessment —
-// kyb_max_client_view's whitelist already stripped those server-side.
-// Per the confirmed product flow, resolving a flag is never required to
-// generate the pass; it's an optional way to add more context.
+// point-form lists. Each row shows only a title; clicking it opens the same
+// detail modal already used by the business diagram above ("similar to the
+// clickable box up there"), read-only — both are informational, nothing to
+// resolve per-item. Discrepancies (CANDY vs DEXTER) and third-party flags
+// (RILEY's findings, filtered by MAX — internal_basis/reviewer_assessment
+// already stripped server-side by kyb_max_client_view's whitelist) share one
+// free-text "Supplementary comments" box below both lists instead of a
+// response per flag (22 Sept redesign, per the client: no need to ask for
+// input per check — one general comment box covers all of it). That box
+// writes straight to CANDY's existing "notes.additional_comments" field —
+// the same free-text catch-all already offered in the Build KYB wizard —
+// via the normal debounced save, not a separate backend call.
 // currentDiscrepancies/currentChecksFlags hold the last-loaded data so the
 // click handler can look a row up by index, mirroring currentBusinessDiagram.
 let currentDiscrepancies = [];
@@ -1563,31 +1591,18 @@ function renderChecksList(flags){
   if(!el) return;
   currentChecksFlags = Array.isArray(flags) ? flags : [];
   el.innerHTML = currentChecksFlags.length
-    ? currentChecksFlags.map((f, i) => {
-        const given = !!f.client_supplementary_response;
-        return `
+    ? currentChecksFlags.map((f, i) => `
         <div class="point-item" data-kind="check" data-index="${i}" tabindex="0" role="button" aria-haspopup="dialog">
-          <span class="point-item-name ${given ? 'point-item-green' : 'point-item-amber'}">Additional check ${i + 1}</span>
-          <span class="tag ${given ? 'tag-green' : 'tag-amber'}" style="font-size:0.68rem">${given ? 'You responded' : 'Optional'}</span>
-        </div>`;
-      }).join('')
+          <span class="point-item-name">Additional check ${i + 1}</span>
+        </div>`).join('')
     : '<p class="point-empty">No additional checks — nothing needs your attention.</p>';
 }
 
-function renderFlagResponseBlock(f){
-  if(f.client_supplementary_response){
-    return `<div class="flag-response"><div class="flag-response-given"><b>Your response</b>${escapeHtml(f.client_supplementary_response)}</div></div>`;
-  }
-  return `<div class="flag-response">
-    <textarea placeholder="Add any information that helps clarify this — optional, you can generate your pass without it."></textarea>
-    <div class="flag-response-actions"><button type="button" class="btn btn-primary flag-response-submit">Submit</button></div>
-  </div>`;
-}
-
-// Opens the shared detail modal for a discrepancy or check row. Kept
-// separate from openBizDetail (diagram entities) since the underlying data
-// shapes differ, but reuses the same #biz-detail-overlay/#biz-detail-panel
-// markup and close/Escape/click-outside wiring already set up above.
+// Opens the shared detail modal for a discrepancy or check row — read-only
+// in both cases. Kept separate from openBizDetail (diagram entities) since
+// the underlying data shapes differ, but reuses the same
+// #biz-detail-overlay/#biz-detail-panel markup and close/Escape/
+// click-outside wiring already set up above.
 function openPointDetail(kind, index){
   const overlay = document.getElementById('biz-detail-overlay');
   const panel = document.getElementById('biz-detail-panel');
@@ -1607,24 +1622,14 @@ function openPointDetail(kind, index){
   } else if(kind === 'check'){
     const f = currentChecksFlags[index];
     if(!f) return;
-    const given = !!f.client_supplementary_response;
     panel.innerHTML = `
       <div class="biz-detail-head">
         <h3 class="biz-detail-title" id="biz-detail-title">Additional check</h3>
         <button type="button" class="biz-detail-close" id="biz-detail-close" aria-label="Close">&times;</button>
       </div>
-      <div class="biz-detail-tags"><span class="tag ${given ? 'tag-green' : 'tag-amber'}">${given ? 'You responded' : 'No action needed — optional'}</span></div>
       <div class="biz-detail-desc">${escapeHtml(f.client_facing_message || '')}</div>
-      ${f.requires_supplementary_input ? renderFlagResponseBlock(f) : ''}
+      <p class="field-note" style="margin-top:10px">No action needed here — use the supplementary comments box on the summary page if you'd like to add anything.</p>
     `;
-    if(f.requires_supplementary_input && !given){
-      panel.querySelector('.flag-response-submit')?.addEventListener('click', () => {
-        const textarea = panel.querySelector('.flag-response textarea');
-        const text = textarea?.value?.trim();
-        if(!text) return;
-        submitSupplementaryResponse(f.flag_id, text);
-      });
-    }
   } else {
     return;
   }
@@ -1654,27 +1659,20 @@ function openPointDetail(kind, index){
   });
 });
 
-// Re-runs MAX with the client's answer merged in, then reloads the summary
-// screen from the freshly-written kyb_max_client_view row (and closes the
-// modal — the refreshed list re-opens it as "You responded" if reclicked).
-// MAX itself (not this function) is what re-computes case_status and
-// matches the response back to the right flag_id.
-async function submitSupplementaryResponse(flagId, responseText){
-  if(!currentCaseId) return;
-  const panel = document.getElementById('biz-detail-panel');
-  const btn = panel?.querySelector('.flag-response-submit');
-  if(btn){ btn.disabled = true; btn.textContent = 'Saving…'; }
-  try {
-    await callFunction('run-max', {
-      case_id: currentCaseId,
-      client_supplementary_responses: [ { flag_id: flagId, response: responseText } ],
-    });
-    closeBizDetail();
-    await loadSummaryForCase();
-  } catch (err) {
-    alert('Could not save your response: ' + err.message);
-    if(btn){ btn.disabled = false; btn.textContent = 'Submit'; }
-  }
+// Single free-text box covering all discrepancies/checks (replaces the old
+// per-flag response mechanism). Backed directly by CANDY's own
+// "notes.additional_comments" field via the normal debounced save
+// (updateSidebar() → scheduleSave()) — same field the Build KYB wizard
+// already exposes under "Any supplementary or comments", so a comment
+// added from either screen shows up on both.
+function wireSummaryCommentsBox(){
+  const box = document.getElementById('summary-comments-box');
+  if(!box || box.dataset.wired) return;
+  box.dataset.wired = '1';
+  box.addEventListener('input', () => {
+    kycProfile.additional_comments = box.value;
+    updateSidebar();
+  });
 }
 
 // Loads MAX's client-safe output for the current case. kyb_max_client_view
@@ -1690,6 +1688,37 @@ async function loadSummaryForCase(){
   const contentEl = document.getElementById('summary-content');
 
   if(!supabaseClient || !currentCaseId) return;
+
+  // The Summary screen can be the first screen opened for a case in this
+  // session (e.g. a rail-nav visit that never went through Build KYB), in
+  // which case kycProfile/lastKnownClientFeedback were never populated by
+  // loadCaseIntoWizard(). Backfill both from candy_profile directly so the
+  // supplementary-comments box below shows the client's real saved comment
+  // (not blank) and so it can be safely edited/saved from this screen
+  // without the scheduleSave() data-loss bug this session already fixed
+  // once (silently dropping client_feedback) reappearing for a case that
+  // was only ever opened via Summary.
+  if(!('additional_comments' in kycProfile)){
+    const { data: caseRow } = await supabaseClient
+      .from('kyb_cases')
+      .select('candy_profile')
+      .eq('case_id', currentCaseId)
+      .maybeSingle();
+    const candyProfile = caseRow?.candy_profile ?? null;
+    if(candyProfile){
+      if(!('additional_comments' in kycProfile)){
+        kycProfile.additional_comments = candyProfile.notes?.additional_comments ?? '';
+      }
+      if(lastKnownClientFeedback === null && candyProfile.client_feedback){
+        lastKnownClientFeedback = candyProfile.client_feedback;
+      }
+    }
+  }
+  const commentsBox = document.getElementById('summary-comments-box');
+  if(commentsBox && document.activeElement !== commentsBox){
+    commentsBox.value = kycProfile.additional_comments || '';
+  }
+  wireSummaryCommentsBox();
 
   const { data, error } = await supabaseClient
     .from('kyb_max_client_view')
@@ -1720,14 +1749,14 @@ async function loadSummaryForCase(){
 
   const discrepancies = Array.isArray(data.discrepancies) ? data.discrepancies : [];
   const flags = Array.isArray(data.third_party_flags_client) ? data.third_party_flags_client : [];
-  const openCount = discrepancies.length + flags.filter(f => f.requires_supplementary_input && !f.client_supplementary_response).length;
+  const openCount = discrepancies.length + flags.length;
 
   const tagEl = document.getElementById('summary-flag-tag');
   if(tagEl){
     tagEl.style.display = 'inline-block';
     if(openCount > 0){
       tagEl.className = 'tag tag-amber';
-      tagEl.textContent = `${openCount} flag${openCount === 1 ? '' : 's'} to review`;
+      tagEl.textContent = `${openCount} item${openCount === 1 ? '' : 's'} to review`;
     } else {
       tagEl.className = 'tag tag-green';
       tagEl.textContent = 'All clear';
@@ -2043,6 +2072,14 @@ function fieldControlHTML(f){
   }
   if(f.type === 'country_percentage_list'){
     const total = pctTotal(f);
+    // "Other" gets its own free-text row so the client can say which
+    // country/countries they mean (e.g. "Vietnam and Thailand") instead of
+    // the diagram just showing the literal word "Other" — that free text
+    // becomes the actual country value saved for this row (see
+    // resolveOtherCountryRows()), so nothing downstream needs to know
+    // "Other" was ever selected. Only shown when this row is "Other";
+    // otherwise a plain country pick needs nothing further — CANDY/MAX
+    // never require a named supplier/buyer entity, only country + %.
     return `<div class="cp-list">` +
       val.map((row, i) => `
         <div class="cp-row">
@@ -2055,7 +2092,8 @@ function fieldControlHTML(f){
             <span class="pct-suffix">%</span>
           </div>
           <button type="button" class="cp-remove" data-key="${f.key}" data-index="${i}">×</button>
-        </div>`).join('') +
+        </div>
+        ${row.country === 'Other' ? `<input type="text" class="field-text cp-other-text" data-key="${f.key}" data-index="${i}" placeholder="Which country/countries? (only needed if you haven't already uploaded a supplier/buyer list)" value="${escapeHtml(row.other_text || '')}">` : ''}`).join('') +
       `<button type="button" class="cp-add" data-key="${f.key}">+ Add country</button>
       <div class="pct-total ${total > 0 && total !== 100 ? 'warn' : ''}" data-key="${f.key}">Total: ${total}%</div>
       </div>`;
@@ -2193,12 +2231,19 @@ if(wizardPanel){
       kycProfile[t.dataset.key][Number(t.dataset.index)].percentage = t.value;
       updatePctTotal(t.dataset.key);
       updateSidebar();
+    } else if(t.matches('.cp-other-text')){
+      kycProfile[t.dataset.key][Number(t.dataset.index)].other_text = t.value;
+      updateSidebar();
     }
   });
   wizardPanel.addEventListener('change', (e) => {
     if(e.target.matches('.cp-country')){
       const t = e.target;
       kycProfile[t.dataset.key][Number(t.dataset.index)].country = t.value;
+      // Re-render this field's rows so the "Other" free-text input appears
+      // or disappears immediately, rather than only on the next full panel
+      // render — same pattern as the add/remove buttons below.
+      renderRepeaterField(t.dataset.key);
       updateSidebar();
     }
   });
