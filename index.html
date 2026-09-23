@@ -1301,6 +1301,16 @@ async function runRegistryCheckSilently(){
 const generateSummaryBtn = document.getElementById('generate-summary-btn');
 if(generateSummaryBtn){
   generateSummaryBtn.addEventListener('click', async () => {
+    // Same staleness class as the wizard nav buttons: RILEY/BETTY/MAX all
+    // read the case's candy_profile straight from the database, so any
+    // edit still sitting in the 2-second auto-save debounce (e.g. a
+    // percentage tweaked on the wizard's last step just before clicking
+    // this button) would otherwise be silently missing from the summary
+    // the pipeline builds. Flush it first so the pipeline always reads
+    // exactly what's on screen, not a stale prior save.
+    generateSummaryBtn.disabled = true;
+    await flushSave();
+    generateSummaryBtn.disabled = false;
     runRegistryCheckSilently(); // fire-and-forget — don't block navigation on this
     goToScreen('summary');
     await runFullSummaryPipeline();
