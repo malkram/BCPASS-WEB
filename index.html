@@ -723,7 +723,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
             <button class="btn btn-ghost btn-small" id="pass-preview-link">Open as institution ↗</button>
           </div>
 
-          <div class="pass-qr-wrap"><canvas id="pass-qr-canvas"></canvas></div>
+          <div class="pass-qr-wrap" id="pass-qr-wrap"><canvas id="pass-qr-canvas"></canvas></div>
 
           <label class="pass-toggle-row">
             <input type="checkbox" id="pass-enabled-toggle">
@@ -2109,11 +2109,28 @@ function renderPassLinkBox(){
   const expiryInput = document.getElementById('pass-expiry-input');
   if(expiryInput) expiryInput.value = currentPassLink.expires_at ? currentPassLink.expires_at.slice(0, 10) : '';
 
+  // 23 SEPT FIX: this used to silently do nothing if the QRCode library
+  // hadn't loaded (e.g. the cdn.jsdelivr.net script blocked or slow) —
+  // which meant a blank QR box produced NO console error at all, making
+  // it look like nothing had gone wrong when something clearly had. Now
+  // both failure paths (library never loaded / library loaded but the
+  // draw call itself errored) log clearly AND show a visible fallback
+  // message right in the box, not just in the console, so the actual
+  // failure is obvious without opening dev tools first.
+  const qrWrap = document.getElementById('pass-qr-wrap');
   const canvas = document.getElementById('pass-qr-canvas');
-  if(canvas && typeof QRCode !== 'undefined'){
-    QRCode.toCanvas(canvas, shareUrl, { width: 180, margin: 1 }, (err) => {
-      if(err) console.error('QR code render failed:', err);
-    });
+  if(canvas){
+    if(typeof QRCode === 'undefined'){
+      console.error('QR code library (QRCode) is not loaded — check that the <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"> tag in <head> loaded successfully (Network tab, filter for "qrcode").');
+      if(qrWrap) qrWrap.innerHTML = '<p class="side-note" style="margin:0">QR code library failed to load — check your internet connection or browser extensions, then reload this page.</p>';
+    } else {
+      QRCode.toCanvas(canvas, shareUrl, { width: 180, margin: 1 }, (err) => {
+        if(err){
+          console.error('QR code render failed:', err);
+          if(qrWrap) qrWrap.innerHTML = `<p class="side-note" style="margin:0">Could not generate the QR code: ${escapeHtml(err.message || String(err))}</p>`;
+        }
+      });
+    }
   }
 }
 
