@@ -2002,7 +2002,13 @@ async function loadDocumentsForCase(){
 // actually hosted before sharing any real link, e.g.
 // "https://pass.yourdomain.com/view.html". Left as a placeholder so a
 // generated link is obviously wrong (not silently broken) until it's set.
-const PASS_VIEWER_BASE_URL = "https://mbkcompsyujyucertzet.supabase.co/storage/v1/object/public/site/pass-viewer.html";
+// 24 Sept: hosted on Netlify instead of Supabase (Storage and Edge
+// Functions both force Content-Type: text/plain on HTML for any project
+// not on Supabase's Pro-tier custom domain — confirmed as a platform-
+// wide restriction, not something fixable from our side; see roadmap.md
+// for the full story). Revisit moving this back under the Supabase/BCPASS
+// domain once a custom domain is set up (phase 2/3, per the client).
+const PASS_VIEWER_BASE_URL = "https://unique-horse-36f2e5.netlify.app/";
 
 const PASS_TIERS = [
   { key: 'introduction', name: 'Introduction Pass', desc: "Company name, what you do, and your product — for a business card or marketing material." },
