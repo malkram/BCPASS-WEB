@@ -7,7 +7,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<!-- 23 Sept: the qrcode.min.js CDN script that used to load here was removed —
+     it was being blocked outright in testing (Chrome DevTools showed
+     ERR_BLOCKED_BY_ORB on cdn.jsdelivr.net specifically, while every call to
+     our own Supabase project loaded fine), almost certainly a corporate
+     security tool or browser extension blocking generic third-party CDN
+     domains. The QR code is now generated server-side by the generate-qr
+     edge function instead — see renderPassLinkBox() below — so nothing
+     QR-related depends on a third-party script in the client's browser
+     anymore. -->
 <style>
 /* ============ TOKENS ============ */
 :root{
@@ -331,7 +339,7 @@ ul{ margin:0; padding:0; list-style:none; }
 .pass-link-row input{ flex:1; min-width:0; }
 .pass-link-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
 .pass-qr-wrap{ display:flex; justify-content:center; padding:16px; background: var(--paper-raise); border:1px solid var(--line); border-radius: var(--radius); margin-bottom:18px; }
-.pass-qr-wrap canvas{ display:block; }
+.pass-qr-wrap canvas, .pass-qr-wrap img{ display:block; }
 .pass-toggle-row{ display:flex; gap:10px; align-items:flex-start; font-size:0.86rem; color: var(--ink-soft); cursor:pointer; margin-bottom:14px; }
 .pass-toggle-row input{ margin-top:3px; accent-color: var(--accent); }
 .pass-expiry-row{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
@@ -723,7 +731,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
             <button class="btn btn-ghost btn-small" id="pass-preview-link">Open as institution ↗</button>
           </div>
 
-          <div class="pass-qr-wrap" id="pass-qr-wrap"><canvas id="pass-qr-canvas"></canvas></div>
+          <div class="pass-qr-wrap" id="pass-qr-wrap"><p class="side-note" style="margin:0">Generating QR code…</p></div>
 
           <label class="pass-toggle-row">
             <input type="checkbox" id="pass-enabled-toggle">
@@ -2109,28 +2117,28 @@ function renderPassLinkBox(){
   const expiryInput = document.getElementById('pass-expiry-input');
   if(expiryInput) expiryInput.value = currentPassLink.expires_at ? currentPassLink.expires_at.slice(0, 10) : '';
 
-  // 23 SEPT FIX: this used to silently do nothing if the QRCode library
-  // hadn't loaded (e.g. the cdn.jsdelivr.net script blocked or slow) —
-  // which meant a blank QR box produced NO console error at all, making
-  // it look like nothing had gone wrong when something clearly had. Now
-  // both failure paths (library never loaded / library loaded but the
-  // draw call itself errored) log clearly AND show a visible fallback
-  // message right in the box, not just in the console, so the actual
-  // failure is obvious without opening dev tools first.
+  // 23 SEPT FIX #2: the client-side QRCode library (loaded from
+  // cdn.jsdelivr.net) was confirmed via Chrome DevTools to be blocked
+  // outright (ERR_BLOCKED_BY_ORB) in testing — almost certainly a
+  // corporate security tool or browser extension blocking generic
+  // third-party CDN domains, since every call to our own Supabase
+  // project loads fine in the same browser. Rather than depend on any
+  // third-party script running in the client's browser at all, the QR
+  // image is now generated server-side by the generate-qr edge function
+  // (same trusted Supabase domain every other call in this app already
+  // uses) and returned as a ready-to-display PNG data URL. Fire-and-forget
+  // (renderPassLinkBox isn't awaited by its caller) — both success and
+  // failure update the box directly once the call resolves.
   const qrWrap = document.getElementById('pass-qr-wrap');
-  const canvas = document.getElementById('pass-qr-canvas');
-  if(canvas){
-    if(typeof QRCode === 'undefined'){
-      console.error('QR code library (QRCode) is not loaded — check that the <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"> tag in <head> loaded successfully (Network tab, filter for "qrcode").');
-      if(qrWrap) qrWrap.innerHTML = '<p class="side-note" style="margin:0">QR code library failed to load — check your internet connection or browser extensions, then reload this page.</p>';
-    } else {
-      QRCode.toCanvas(canvas, shareUrl, { width: 180, margin: 1 }, (err) => {
-        if(err){
-          console.error('QR code render failed:', err);
-          if(qrWrap) qrWrap.innerHTML = `<p class="side-note" style="margin:0">Could not generate the QR code: ${escapeHtml(err.message || String(err))}</p>`;
-        }
-      });
-    }
+  if(qrWrap){
+    qrWrap.innerHTML = '<p class="side-note" style="margin:0">Generating QR code…</p>';
+    callFunction('generate-qr', { text: shareUrl }).then(({ data_url }) => {
+      if(!data_url) throw new Error('No QR image returned.');
+      qrWrap.innerHTML = `<img src="${data_url}" width="180" height="180" alt="QR code for this pass link">`;
+    }).catch((err) => {
+      console.error('QR code generation failed:', err);
+      qrWrap.innerHTML = `<p class="side-note" style="margin:0">Could not generate the QR code: ${escapeHtml(err.message || String(err))}</p>`;
+    });
   }
 }
 
