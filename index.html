@@ -1117,26 +1117,50 @@ const addCompanyBtnTop = document.getElementById('add-company-btn-top');
 if(addCompanyBtnTop) addCompanyBtnTop.addEventListener('click', () => startNewProfile(addCompanyBtnTop));
 
 // ---- Debounced auto-save to save-profile ----
+// 22 SEPT FIX: client reported that reloading the page (or navigating
+// Back/Next) shortly after typing could lose the edit — "it looks like the
+// input information cannot really be 'saved' and proceed to next step."
+// Root cause: scheduleSave() only ever queued a save 2 seconds out; nothing
+// ever flushed that pending save when the client navigated away sooner than
+// that. performSave() below is the actual save operation, now shared by
+// both the debounced path (scheduleSave) and an immediate path (flushSave)
+// — Back/Next/Sign-off all call flushSave() before navigating, so a
+// pending edit is never left stranded behind a timer a navigation could
+// outrun.
 let saveDebounceTimer = null;
-function scheduleSave(){
+
+async function performSave(){
   if(!currentCaseId) return; // no case yet (e.g. testing the wizard without logging in)
+  try {
+    const candyShapedProfile = mapWizardProfileToCandySchema(kycProfile);
+    // Re-attach the last CANDY-generated feedback (summary/score/follow-up
+    // questions) so a plain field's auto-save never wipes it — see the
+    // note on lastKnownClientFeedback above.
+    if(lastKnownClientFeedback) candyShapedProfile.client_feedback = lastKnownClientFeedback;
+    await callFunction('save-profile', {
+      case_id: currentCaseId,
+      candy_profile: candyShapedProfile,
+      company_name: kycProfile.legal_entity_name || undefined,
+    });
+  } catch (err) {
+    console.error("Auto-save failed:", err.message);
+  }
+}
+
+function scheduleSave(){
+  if(!currentCaseId) return;
   clearTimeout(saveDebounceTimer);
-  saveDebounceTimer = setTimeout(async () => {
-    try {
-      const candyShapedProfile = mapWizardProfileToCandySchema(kycProfile);
-      // Re-attach the last CANDY-generated feedback (summary/score/follow-up
-      // questions) so a plain field's auto-save never wipes it — see the
-      // note on lastKnownClientFeedback above.
-      if(lastKnownClientFeedback) candyShapedProfile.client_feedback = lastKnownClientFeedback;
-      await callFunction('save-profile', {
-        case_id: currentCaseId,
-        candy_profile: candyShapedProfile,
-        company_name: kycProfile.legal_entity_name || undefined,
-      });
-    } catch (err) {
-      console.error("Auto-save failed:", err.message);
-    }
-  }, 2000); // wait 2s after the last change before saving
+  saveDebounceTimer = setTimeout(performSave, 2000); // wait 2s after the last change before saving
+}
+
+// Cancels any pending debounced save and performs it immediately instead —
+// called before every wizard navigation (Back/Next/Sign-off) so a change
+// made just before clicking one of those can never be left behind an
+// outrun 2-second timer. Awaited by callers so navigation genuinely happens
+// after the save completes, not just after it starts.
+async function flushSave(){
+  clearTimeout(saveDebounceTimer);
+  await performSave();
 }
 
 // ---- run-candy on AI-assisted field blur ----
@@ -2333,7 +2357,24 @@ function renderPanel(){
     `).join('')}
   `;
   document.getElementById('wizard-back').disabled = wizardStep === 0;
+  updateWizardNextButton();
+}
+
+// 22 SEPT FIX: this used to be inlined at the end of renderPanel(), which
+// only runs on step navigation — so editing a field while already sitting
+// on the LAST step (e.g. deleting mandatory bank info, or filling it back
+// in) never updated the button's label/action, leaving it showing
+// "Sign off & continue" after deleting a mandatory field, or stuck on
+// "Must fill in mandatory fields" after re-filling it, until the client
+// navigated away and back. The sidebar's separate #signoff-btn didn't have
+// this problem — updateSidebar() already recomputes its state on every
+// field edit — so the fix is the same idea applied here: pull this out
+// into its own function and call it from BOTH renderPanel() (on
+// navigation) and updateSidebar() (on every field edit), so the two
+// buttons never drift out of sync with each other again.
+function updateWizardNextButton(){
   const nextBtn = document.getElementById('wizard-next');
+  if(!nextBtn) return;
   if(wizardStep === KYC_SCHEMA.length - 1){
     const missingStep = findFirstIncompleteStep();
     if(missingStep === -1){
@@ -2343,12 +2384,11 @@ function renderPanel(){
       nextBtn.textContent = 'Must fill in mandatory fields';
       nextBtn.dataset.action = 'jump-to-missing';
     }
-    nextBtn.disabled = false; // stays clickable either way — see the click handler
   } else {
     nextBtn.textContent = 'Next →';
     nextBtn.dataset.action = 'next';
-    nextBtn.disabled = false;
   }
+  nextBtn.disabled = false; // stays clickable either way — see the click handler
 }
 
 // Finds the first wizard step (in order) that still has an unfilled
@@ -2436,6 +2476,10 @@ function updateSidebar(){
 
   const kickerEl = document.getElementById('build-company-kicker');
   if(kickerEl) kickerEl.textContent = kycProfile.legal_entity_name?.trim() || 'New company profile';
+
+  // 22 SEPT FIX: keeps the last-step wizard-next button's label in sync
+  // with every edit, not just step navigation — see updateWizardNextButton().
+  updateWizardNextButton();
 
   scheduleSave(); // auto-save to the backend, debounced 2s after the last change
 }
@@ -2530,9 +2574,29 @@ if(wizardPanel){
     }
   });
 
-  document.getElementById('wizard-back').addEventListener('click', () => { if(wizardStep > 0){ wizardStep--; renderPanel(); renderStepNav(); } });
-  document.getElementById('wizard-next').addEventListener('click', () => {
-    const action = document.getElementById('wizard-next').dataset.action;
+  // 22 SEPT FIX: every navigation away from the current step now flushes
+  // the pending debounced save FIRST and waits for it to finish — see
+  // flushSave() above. Buttons are disabled for that brief moment so a
+  // second click can't race a save still in flight. Without this, clicking
+  // Back/Next/Sign off within the 2-second auto-save window could move the
+  // client on before the edit they just made was actually persisted —
+  // exactly what the client reported ("input information cannot really be
+  // saved and proceed to next step").
+  document.getElementById('wizard-back').addEventListener('click', async () => {
+    if(wizardStep === 0) return;
+    const btn = document.getElementById('wizard-back');
+    btn.disabled = true;
+    await flushSave();
+    wizardStep--;
+    renderPanel();
+    renderStepNav();
+    btn.disabled = wizardStep === 0;
+  });
+  document.getElementById('wizard-next').addEventListener('click', async () => {
+    const nextBtn = document.getElementById('wizard-next');
+    const action = nextBtn.dataset.action;
+    nextBtn.disabled = true;
+    await flushSave();
     if(action === 'signoff'){ goToScreen('documents'); return; }
     if(action === 'jump-to-missing'){
       const missing = findFirstIncompleteCriticalField();
@@ -2545,8 +2609,14 @@ if(wizardPanel){
       return;
     }
     if(wizardStep < KYC_SCHEMA.length - 1){ wizardStep++; renderPanel(); renderStepNav(); }
+    else nextBtn.disabled = false; // renderPanel() re-enables it on every other path; this is the only one that doesn't call renderPanel()
   });
-  document.getElementById('signoff-btn').addEventListener('click', () => goToScreen('documents'));
+  document.getElementById('signoff-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('signoff-btn');
+    btn.disabled = true;
+    await flushSave();
+    goToScreen('documents');
+  });
 
   renderStepNav();
   renderPanel();
