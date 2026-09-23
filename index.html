@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
 /* ============ TOKENS ============ */
 :root{
@@ -324,6 +325,23 @@ ul{ margin:0; padding:0; list-style:none; }
 
 .match-list{ display:flex; flex-direction:column; gap:8px; }
 .match-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); font-size:0.87rem; }
+
+/* ---- Pass share link / QR (23 Sept) ---- */
+.pass-link-row{ display:flex; gap:8px; margin-bottom:10px; }
+.pass-link-row input{ flex:1; min-width:0; }
+.pass-link-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+.pass-qr-wrap{ display:flex; justify-content:center; padding:16px; background: var(--paper-raise); border:1px solid var(--line); border-radius: var(--radius); margin-bottom:18px; }
+.pass-qr-wrap canvas{ display:block; }
+.pass-toggle-row{ display:flex; gap:10px; align-items:flex-start; font-size:0.86rem; color: var(--ink-soft); cursor:pointer; margin-bottom:14px; }
+.pass-toggle-row input{ margin-top:3px; accent-color: var(--accent); }
+.pass-expiry-row{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+.pass-expiry-row label{ font-size:0.82rem; color: var(--ink-soft); white-space:nowrap; }
+.pass-expiry-row input[type="date"]{ flex:1; }
+.pass-status-banner{ font-size:0.82rem; padding:8px 12px; border-radius: var(--radius); margin-bottom:14px; }
+.pass-status-banner.pass-status-off{ background:#FDECEC; color:#9B2C2C; }
+.pass-status-banner.pass-status-expired{ background:#FDECEC; color:#9B2C2C; }
+.pass-live-preview{ margin-top:14px; }
+.pass-live-preview .pass-field span{ color:#9FB2A6; }
 
 /* ============ APPOINTMENTS ============ */
 .slot-grid{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:10px; max-width: 420px; }
@@ -671,67 +689,54 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
     <section class="screen" id="screen-pass">
       <header class="screen-head">
         <div>
-          <p class="kicker">Harbour Trade HK</p>
-          <h1>Build your KYB pass</h1>
+          <p class="kicker" id="pass-company-kicker">Company profile</p>
+          <h1>Your KYB pass</h1>
         </div>
       </header>
-      <p class="lede">Choose how much a financial institution sees before you've spoken to them. You can raise the level any time.</p>
+      <p class="lede">Choose how much a financial institution sees before you've spoken to them. One link and QR code per company — raise or lower the level, or turn it off, any time.</p>
 
-      <div class="split">
+      <div id="pass-loading" class="side-note">Loading…</div>
+      <div id="pass-generate-wrap" style="display:none">
+        <p class="side-note" style="margin-bottom:14px">No pass link exists yet for this company.</p>
+        <button class="btn btn-primary" id="pass-generate-btn">Generate my pass link →</button>
+      </div>
+
+      <div id="pass-content" class="split" style="display:none">
         <div class="split-main">
-          <div class="mask-options">
-            <label class="mask-option">
-              <input type="radio" name="mask" >
-              <div class="mask-body">
-                <span class="mask-name">Teaser</span>
-                <span class="mask-desc">Sector, size band, and what you're looking for. No company name.</span>
-              </div>
-            </label>
-            <label class="mask-option selected">
-              <input type="radio" name="mask" checked>
-              <div class="mask-body">
-                <span class="mask-name">Standard</span>
-                <span class="mask-desc">Verified summary, revenue band, and needs — company name withheld until you accept interest.</span>
-              </div>
-            </label>
-            <label class="mask-option">
-              <input type="radio" name="mask">
-              <div class="mask-body">
-                <span class="mask-name">Full</span>
-                <span class="mask-desc">Complete KYB profile and documents. Use once you've chosen an institution.</span>
-              </div>
-            </label>
-          </div>
+          <div class="mask-options" id="pass-tier-options"><!-- rendered by renderPassTierOptions() --></div>
 
-          <div class="pass-preview">
-            <p class="side-title">What they'll see — Standard</p>
-            <div class="pass-card">
-              <p class="pass-field"><span>Entity</span><b>Harbour Trade — Hong Kong entity ●●●●</b></p>
-              <p class="pass-field"><span>Sector</span><b>Trading &amp; logistics</b></p>
-              <p class="pass-field"><span>Revenue band</span><b>HK$30M–50M</b></p>
-              <p class="pass-field"><span>Looking for</span><b>Multi-currency FX &amp; payments facility</b></p>
-              <p class="pass-field"><span>KYB status</span><b>Fully verified, no open flags</b></p>
-            </div>
+          <div class="pass-preview pass-live-preview">
+            <p class="side-title" id="pass-preview-title">What they'll see</p>
+            <div class="pass-card" id="pass-preview-card"><p class="pass-field"><span>Loading preview…</span></p></div>
           </div>
         </div>
 
         <aside class="split-side">
-          <p class="side-title">Match with institutions</p>
-          <div class="match-list">
-            <div class="match-row">
-              <span>Prosper Bank — SME Trade Desk</span>
-              <button class="btn btn-ghost btn-small">Share</button>
-            </div>
-            <div class="match-row">
-              <span>Meridian Capital HK</span>
-              <button class="btn btn-ghost btn-small">Share</button>
-            </div>
-            <div class="match-row">
-              <span>In-house BCPASS consultant</span>
-              <button class="btn btn-ghost btn-small" data-goto="appointments">Book</button>
-            </div>
+          <p class="side-title">Share this pass</p>
+          <div id="pass-status-banner-wrap"></div>
+
+          <div class="pass-link-row">
+            <input type="text" class="field-text" id="pass-share-url" readonly>
           </div>
-          <p class="side-note">Sharing a pass never sends your full documents — only what the selected level allows.</p>
+          <div class="pass-link-actions">
+            <button class="btn btn-ghost btn-small" id="pass-copy-link">Copy link</button>
+            <button class="btn btn-ghost btn-small" id="pass-preview-link">Open as institution ↗</button>
+          </div>
+
+          <div class="pass-qr-wrap"><canvas id="pass-qr-canvas"></canvas></div>
+
+          <label class="pass-toggle-row">
+            <input type="checkbox" id="pass-enabled-toggle">
+            <span>Link is active — anyone with the link or QR code can view your pass at the level shown above</span>
+          </label>
+
+          <div class="pass-expiry-row">
+            <label for="pass-expiry-input">Expires</label>
+            <input type="date" class="field-text" id="pass-expiry-input">
+            <button class="btn btn-ghost btn-small" id="pass-clear-expiry">No expiry</button>
+          </div>
+
+          <p class="side-note">Turning the link off or changing its level/expiry takes effect immediately — anyone who already has the link is blocked or sees the new level on their very next view, nothing to re-share.</p>
         </aside>
       </div>
     </section>
@@ -1968,6 +1973,270 @@ async function loadDocumentsForCase(){
   });
 }
 
+// ---- Pass feature (23 Sept) — client-side link management + live preview ----
+// Backend: kyb_pass_links (client-owned, RLS-protected — see
+// 10_pass_links.sql) + the public get-pass edge function (no auth,
+// token-gated — see get-pass-index.ts). Full spec: pass-feature-spec.md.
+// This code only ever reads/writes kyb_pass_links directly through the
+// normal authenticated supabaseClient — RLS already scopes it to the
+// case owner, same pattern as every other direct table read in this
+// file (loadDashboardCases, loadDocumentsForCase, etc.) — no new edge
+// function needed for these controls, since none of it is a judgment
+// call, just plain settings the owner controls.
+
+// TODO: set this to wherever the public pass-viewer page (task #33) is
+// actually hosted before sharing any real link, e.g.
+// "https://pass.yourdomain.com/view.html". Left as a placeholder so a
+// generated link is obviously wrong (not silently broken) until it's set.
+const PASS_VIEWER_BASE_URL = "PASTE_YOUR_PASS_VIEWER_URL_HERE";
+
+const PASS_TIERS = [
+  { key: 'introduction', name: 'Introduction Pass', desc: "Company name, what you do, and your product — for a business card or marketing material." },
+  { key: 'basic', name: 'Basic Pass', desc: "Adds more detail on what you do, turnover band, and your major markets/suppliers by country — enough for a bank to judge if they can help." },
+  { key: 'standard', name: 'Standard Pass', desc: "Adds transaction information and business model detail, plus exact market/supplier percentages." },
+  { key: 'full', name: 'Full Pass', desc: "Your full profile as you've described it — ownership structure, funding sources, history — without document verification." },
+  { key: 'full_document', name: 'Full Document Pass', desc: "Everything above, plus MAX's document-verified summary and diagram — the same output you see on your own Summary screen." },
+];
+
+let currentPassLink = null; // { link_id, share_token, pass_tier, enabled, expires_at } or null, set by loadPassLinkForCase()
+
+async function loadPassLinkForCase(){
+  const kickerEl = document.getElementById('pass-company-kicker');
+  if(kickerEl) kickerEl.textContent = kycProfile.legal_entity_name?.trim() || 'Company profile';
+
+  const loadingEl = document.getElementById('pass-loading');
+  const generateWrap = document.getElementById('pass-generate-wrap');
+  const contentEl = document.getElementById('pass-content');
+  if(loadingEl){ loadingEl.style.display = 'block'; loadingEl.textContent = 'Loading…'; }
+  if(generateWrap) generateWrap.style.display = 'none';
+  if(contentEl) contentEl.style.display = 'none';
+
+  if(!supabaseClient || !currentCaseId) return;
+
+  const { data, error } = await supabaseClient
+    .from('kyb_pass_links')
+    .select('link_id, share_token, pass_tier, enabled, expires_at')
+    .eq('case_id', currentCaseId)
+    .maybeSingle();
+
+  if(loadingEl) loadingEl.style.display = 'none';
+
+  if(error){
+    if(loadingEl){ loadingEl.style.display = 'block'; loadingEl.textContent = 'Could not load your pass link: ' + error.message; }
+    return;
+  }
+
+  if(!data){
+    currentPassLink = null;
+    if(generateWrap) generateWrap.style.display = 'block';
+    return;
+  }
+
+  currentPassLink = data;
+  if(contentEl) contentEl.style.display = 'grid'; // .split's own display value — see CSS
+  renderPassTierOptions();
+  renderPassLinkBox();
+  renderPassStatusBanner();
+  refreshPassLivePreview();
+}
+
+document.getElementById('pass-generate-btn')?.addEventListener('click', async (e) => {
+  const btn = e.target;
+  btn.disabled = true;
+  try {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(!user) throw new Error("Not logged in.");
+    const { error } = await supabaseClient
+      .from('kyb_pass_links')
+      .insert({ case_id: currentCaseId, user_id: user.id, pass_tier: 'introduction', enabled: true });
+    if(error) throw error;
+    await loadPassLinkForCase();
+  } catch(err) {
+    alert("Could not generate a pass link: " + err.message);
+    btn.disabled = false;
+  }
+});
+
+function renderPassTierOptions(){
+  const wrap = document.getElementById('pass-tier-options');
+  if(!wrap || !currentPassLink) return;
+  wrap.innerHTML = PASS_TIERS.map(t => `
+    <label class="mask-option ${t.key === currentPassLink.pass_tier ? 'selected' : ''}">
+      <input type="radio" name="pass-tier" value="${t.key}" ${t.key === currentPassLink.pass_tier ? 'checked' : ''}>
+      <div class="mask-body">
+        <span class="mask-name">${t.name}</span>
+        <span class="mask-desc">${t.desc}</span>
+      </div>
+    </label>
+  `).join('');
+}
+
+// Delegated listener on the static wrapper, not a per-element one — this
+// element's innerHTML is fully rebuilt every load by renderPassTierOptions()
+// above, so a listener attached once at page-load time (the way the old
+// static-mockup's generic .mask-option handler worked) would never reach
+// these dynamically-created options. Same reasoning as wizardPanel's own
+// delegated listeners elsewhere in this file.
+document.getElementById('pass-tier-options')?.addEventListener('change', async (e) => {
+  if(!e.target.matches('input[name="pass-tier"]')) return;
+  const newTier = e.target.value;
+  document.querySelectorAll('#pass-tier-options .mask-option').forEach(el => el.classList.remove('selected'));
+  e.target.closest('.mask-option').classList.add('selected');
+  await updatePassLink({ pass_tier: newTier });
+  refreshPassLivePreview();
+});
+
+async function updatePassLink(patch){
+  if(!currentPassLink) return;
+  const { error } = await supabaseClient
+    .from('kyb_pass_links')
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq('link_id', currentPassLink.link_id);
+  if(error){ alert("Could not update your pass link: " + error.message); return; }
+  Object.assign(currentPassLink, patch);
+  renderPassStatusBanner();
+}
+
+function renderPassLinkBox(){
+  const urlInput = document.getElementById('pass-share-url');
+  if(!urlInput || !currentPassLink) return;
+  const shareUrl = `${PASS_VIEWER_BASE_URL}?t=${currentPassLink.share_token}`;
+  urlInput.value = shareUrl;
+
+  const toggle = document.getElementById('pass-enabled-toggle');
+  if(toggle) toggle.checked = currentPassLink.enabled;
+
+  const expiryInput = document.getElementById('pass-expiry-input');
+  if(expiryInput) expiryInput.value = currentPassLink.expires_at ? currentPassLink.expires_at.slice(0, 10) : '';
+
+  const canvas = document.getElementById('pass-qr-canvas');
+  if(canvas && typeof QRCode !== 'undefined'){
+    QRCode.toCanvas(canvas, shareUrl, { width: 180, margin: 1 }, (err) => {
+      if(err) console.error('QR code render failed:', err);
+    });
+  }
+}
+
+function renderPassStatusBanner(){
+  const wrap = document.getElementById('pass-status-banner-wrap');
+  if(!wrap || !currentPassLink) return;
+  const isExpired = currentPassLink.expires_at && new Date(currentPassLink.expires_at).getTime() < Date.now();
+  if(!currentPassLink.enabled){
+    wrap.innerHTML = `<p class="pass-status-banner pass-status-off">This link is currently turned off — no one can view it.</p>`;
+  } else if(isExpired){
+    wrap.innerHTML = `<p class="pass-status-banner pass-status-expired">This link's expiry date has passed — no one can view it until you clear or extend it.</p>`;
+  } else {
+    wrap.innerHTML = '';
+  }
+}
+
+document.getElementById('pass-enabled-toggle')?.addEventListener('change', (e) => {
+  updatePassLink({ enabled: e.target.checked });
+});
+
+document.getElementById('pass-expiry-input')?.addEventListener('change', (e) => {
+  const val = e.target.value; // "YYYY-MM-DD" or ""
+  updatePassLink({ expires_at: val ? new Date(val + 'T23:59:59').toISOString() : null });
+});
+
+document.getElementById('pass-clear-expiry')?.addEventListener('click', () => {
+  const input = document.getElementById('pass-expiry-input');
+  if(input) input.value = '';
+  updatePassLink({ expires_at: null });
+});
+
+document.getElementById('pass-copy-link')?.addEventListener('click', async () => {
+  const urlInput = document.getElementById('pass-share-url');
+  const btn = document.getElementById('pass-copy-link');
+  if(!urlInput) return;
+  try {
+    await navigator.clipboard.writeText(urlInput.value);
+  } catch {
+    urlInput.select();
+    document.execCommand('copy');
+  }
+  if(btn){
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  }
+});
+
+document.getElementById('pass-preview-link')?.addEventListener('click', () => {
+  const urlInput = document.getElementById('pass-share-url');
+  if(urlInput?.value) window.open(urlInput.value, '_blank');
+});
+
+// Calls the REAL public get-pass function rather than re-implementing the
+// tier field logic client-side — a second implementation of the same
+// whitelist would risk drifting out of sync with get-pass-index.ts (the
+// one that actually matters, since it's what an institution sees), the
+// same class of bug this whole project has hit before whenever two
+// places were trusted to independently agree on a shape. What the owner
+// sees in this preview is exactly, byte-for-byte, what get-pass returns.
+async function refreshPassLivePreview(){
+  const titleEl = document.getElementById('pass-preview-title');
+  const cardEl = document.getElementById('pass-preview-card');
+  if(!currentPassLink || !cardEl) return;
+  const tierMeta = PASS_TIERS.find(t => t.key === currentPassLink.pass_tier);
+  if(titleEl) titleEl.textContent = `What they'll see — ${tierMeta?.name ?? currentPassLink.pass_tier}`;
+  cardEl.innerHTML = `<p class="pass-field"><span>Loading preview…</span></p>`;
+  try {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/get-pass`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ share_token: currentPassLink.share_token }),
+    });
+    const result = await response.json();
+    if(!response.ok) throw new Error(result?.error || 'Preview failed');
+    cardEl.innerHTML = renderPassFieldsHtml(result.pass);
+  } catch(err) {
+    cardEl.innerHTML = `<p class="pass-field"><span>${escapeHtml(err.message)}</span></p>`;
+  }
+}
+
+// Generic label:value renderer. The field SET differs per tier (see
+// get-pass-index.ts's five buildXTier functions), so rather than
+// hand-writing five separate preview layouts that could quietly drift
+// from the real whitelist, this just walks whatever the function
+// actually returned. Not the polished final institution-facing design
+// (that's pass-viewer.html, task #33) — this is the owner's own rough
+// preview, and correctness (showing exactly what's included, nothing
+// more) matters far more here than visual polish.
+function humanizePassKey(key){
+  return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+function formatPassValue(v){
+  if(v === null || v === undefined || v === '') return '—';
+  if(Array.isArray(v)){
+    if(v.length === 0) return '—';
+    if(typeof v[0] === 'object' && v[0] !== null){
+      return v.map(x => x.country ? `${x.country}${x.percentage != null ? ' ' + x.percentage + '%' : ''}` : JSON.stringify(x)).join(', ');
+    }
+    return v.join(', ');
+  }
+  if(typeof v === 'object') return Object.entries(v).map(([k, val]) => `${k}: ${val}`).join(', ');
+  return String(v);
+}
+function renderPassFieldsHtml(pass){
+  if(!pass) return `<p class="pass-field"><span>No data.</span></p>`;
+  // These carry either nested structure or need more than a single
+  // label:value line — summarized separately below instead of via the
+  // generic per-field loop.
+  const SPECIAL_KEYS = new Set(['kyb_summary_plain_text', 'business_diagram', 'discrepancies', 'third_party_flags']);
+  const rows = Object.entries(pass)
+    .filter(([k]) => !SPECIAL_KEYS.has(k))
+    .map(([k, v]) => `<p class="pass-field"><span>${escapeHtml(humanizePassKey(k))}</span><b>${escapeHtml(formatPassValue(v))}</b></p>`)
+    .join('');
+  let extras = '';
+  if(pass.business_diagram) extras += `<p class="pass-field"><span>Business diagram</span><b>Included</b></p>`;
+  if(Array.isArray(pass.discrepancies) && pass.discrepancies.length) extras += `<p class="pass-field"><span>Open discrepancies</span><b>${pass.discrepancies.length}</b></p>`;
+  if(Array.isArray(pass.third_party_flags) && pass.third_party_flags.length) extras += `<p class="pass-field"><span>Open review flags</span><b>${pass.third_party_flags.length}</b></p>`;
+  const summary = pass.kyb_summary_plain_text
+    ? `<div class="pass-field" style="display:block;border-bottom:none"><span>KYB summary</span><p style="color:#E8EEE9;font-weight:400;white-space:pre-wrap;margin-top:6px">${escapeHtml(pass.kyb_summary_plain_text)}</p></div>`
+    : '';
+  return (rows + extras + summary) || `<p class="pass-field"><span>No data.</span></p>`;
+}
 
 function goToScreen(name){
   // TODO (production, not testing phase): the Documents screen should not be
@@ -1986,6 +2255,7 @@ function goToScreen(name){
   if(name === 'dashboard') loadDashboardCases();
   if(name === 'documents') loadDocumentsForCase();
   if(name === 'summary') loadSummaryForCase();
+  if(name === 'pass') loadPassLinkForCase();
 
   window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
 }
