@@ -140,6 +140,9 @@ ul{ margin:0; padding:0; list-style:none; }
 .progress-track{ height:5px; background: var(--line); border-radius:4px; overflow:hidden; margin-bottom:10px; }
 .progress-fill{ height:100%; background: var(--accent); }
 .company-foot{ display:flex; justify-content:space-between; align-items:center; }
+.company-foot-actions{ display:flex; align-items:center; gap:8px; }
+.company-delete-btn{ color: var(--muted); border-color: transparent; padding:7px 10px; }
+.company-delete-btn:hover{ color: var(--amber); border-color: var(--amber); background: var(--amber-soft); }
 .progress-label{ font-size:0.8rem; color: var(--ink-soft); font-weight:500; }
 .company-card-add{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; background:transparent; border:1px dashed var(--line-strong); color: var(--muted); font-size:0.9rem; min-height:150px; }
 .company-card-add:hover{ border-color: var(--accent); color: var(--accent); }
@@ -1052,9 +1055,15 @@ async function loadDashboardCases(){
   const emailEl = document.getElementById('dashboard-user-email');
   if(emailEl && user) emailEl.textContent = user.email;
 
+  // 25 Sept: ".is('deleted_at', null)" — a deleted profile is soft-deleted
+  // (see 11_kyb_cases_soft_delete.sql and deleteCompanyProfile() below), so
+  // the row still exists; this filter is what actually hides it from the
+  // client's own dashboard. Same "revoke via a flag, don't actually remove
+  // the row" pattern kyb_pass_links already uses for its own "enabled" flag.
   const { data: cases, error } = await supabaseClient
     .from('kyb_cases')
     .select('case_id, company_name, status, candy_profile, updated_at')
+    .is('deleted_at', null)
     .order('updated_at', { ascending: false });
 
   if(error){ console.error('Could not load cases:', error.message); return; }
@@ -1079,15 +1088,46 @@ async function loadDashboardCases(){
       <div class="progress-track"><div class="progress-fill" style="width:${score}%"></div></div>
       <div class="company-foot">
         <span class="progress-label">${score}% complete</span>
-        <button class="btn btn-ghost">Continue building →</button>
+        <div class="company-foot-actions">
+          <button class="btn btn-ghost btn-small company-delete-btn" title="Delete this profile" aria-label="Delete this profile">Delete</button>
+          <button class="btn btn-ghost">Continue building →</button>
+        </div>
       </div>
     `;
-    card.querySelector('.btn-ghost').addEventListener('click', () => {
+    card.querySelector('.company-foot-actions .btn-ghost:not(.company-delete-btn)').addEventListener('click', () => {
       loadCaseIntoWizard(c.case_id, c.candy_profile);
     });
+    card.querySelector('.company-delete-btn').addEventListener('click', (e) => deleteCompanyProfile(c, card, e.currentTarget));
     if(addBtn) listEl.insertBefore(card, addBtn);
     else listEl.appendChild(card);
   });
+}
+
+// ---- Delete a company profile (25 Sept) ----
+// Soft delete only — sets kyb_cases.deleted_at via the delete-case edge
+// function rather than removing anything, so a client's data (documents,
+// generated summary, Pass link history) survives their own delete click,
+// same reasoning kyb_pass_links already uses for its "enabled" flag rather
+// than a real row delete (see 10_pass_links.sql / 11_kyb_cases_soft_
+// delete.sql). Blocked server-side (not just here) if the case still has
+// an ENABLED Pass link — a bank may already have that link/QR code, and
+// silently pulling the case out from under it would turn a live share into
+// a broken page with no warning; the client is told to disable it first on
+// the Share Pass screen, a normal, already-built action.
+async function deleteCompanyProfile(caseSummary, cardEl, btnEl){
+  const label = caseSummary.company_name?.trim() || 'this profile';
+  const confirmed = confirm(
+    `Delete "${label}"?\n\nIt will be removed from your dashboard immediately. If it has an active Pass link shared with a bank, you'll need to turn that off first (on the Share Pass screen) before it can be deleted.`
+  );
+  if(!confirmed) return;
+  btnEl.disabled = true;
+  try {
+    await callFunction('delete-case', { case_id: caseSummary.case_id });
+    cardEl.remove();
+  } catch (err) {
+    alert("Could not delete this profile: " + err.message);
+    btnEl.disabled = false;
+  }
 }
 
 // ---- Login form ----
