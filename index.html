@@ -186,6 +186,21 @@ ul{ margin:0; padding:0; list-style:none; }
 .summary-card{ background: var(--paper-raise); border:1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
 .summary-title{ font-size:0.75rem; font-weight:600; color: var(--muted); margin-bottom:8px; }
 .summary-text{ font-size:0.96rem; color: var(--ink-soft); margin:0; max-height:220px; overflow-y:auto; padding-right:6px; }
+
+/* MAX's holistic "readiness to send to a bank" comment (25 Sept) — sits
+   right under the generated summary. Same green/amber 2-tone risk system
+   already used everywhere else on this screen (tag-green/tag-amber) —
+   "minor_gaps" and "significant_misalignment" both read as amber, the
+   label text is what actually distinguishes them, matching how this
+   project already treats risk signals as a simple "fine vs needs a
+   look" rather than introducing a third color the rest of the app
+   doesn't otherwise use. */
+.readiness-banner{ display:flex; align-items:flex-start; gap:10px; margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
+.readiness-dot{ width:9px; height:9px; border-radius:50%; margin-top:5px; flex-shrink:0; background: var(--accent); }
+.readiness-banner.tier-minor_gaps .readiness-dot,
+.readiness-banner.tier-significant_misalignment .readiness-dot{ background: var(--amber); }
+.readiness-label{ font-size:0.85rem; font-weight:600; color: var(--ink); margin:0 0 3px; }
+.readiness-comment{ font-size:0.85rem; color: var(--ink-soft); margin:0; }
 .flag-list{ display:flex; flex-direction:column; gap:10px; }
 .flag-item{ border:1px solid var(--line); border-left:3px solid var(--line-strong); border-radius: var(--radius); padding:14px 16px; background: var(--paper-raise); }
 .flag-item.flag-amber{ border-left-color: var(--amber); }
@@ -422,6 +437,14 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
 .select-pill.picked{ background: var(--ink); color:#fff; border-color: var(--ink); }
 
 .field-note{ font-size:0.78rem; color: var(--muted); margin-top:6px; }
+
+/* CANDY advisory feedback (25 Sept) — input-time, cross-field hints shown
+   directly under a field. Advisory-only styling on purpose: same amber
+   used for "worth a look" tags elsewhere (pct-total.warn, field-critical-dot),
+   never the sterner treatment a blocking/critical state would get. */
+.candy-advisory-slot{ margin-top:6px; }
+.candy-advisory-note{ font-size:0.78rem; color: var(--amber); background: var(--amber-soft); border-radius: var(--radius); padding:7px 10px; margin:0 0 4px; }
+.candy-advisory-note:last-child{ margin-bottom:0; }
 
 .pct-grid{ display:flex; flex-direction:column; gap:4px; }
 .pct-grid-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:5px 0; }
@@ -670,6 +693,13 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
             <div class="summary-card">
               <p class="summary-title">Generated summary</p>
               <p class="summary-text" id="summary-text"></p>
+              <div class="readiness-banner" id="readiness-banner" style="display:none">
+                <span class="readiness-dot" id="readiness-dot"></span>
+                <div>
+                  <p class="readiness-label" id="readiness-label"></p>
+                  <p class="readiness-comment" id="readiness-comment"></p>
+                </div>
+              </div>
             </div>
 
             <p class="side-title">Discrepancies</p>
@@ -1022,6 +1052,209 @@ function mapCandySchemaToWizardProfile(nestedProfile){
   return flat;
 }
 
+// ============================================================
+// CANDY advisory feedback — agreed 25 Sept as "input-time prevention":
+// cheap, cross-field consistency hints shown right under a field, distinct
+// from run-candy's own per-field extraction call above. Two tiers, split
+// specifically by cost:
+//
+//   Tier 1 (below): pure string/number checks, no AI call at all — same
+//   "verify deterministically, don't trust a model with arithmetic/string
+//   comparison" pattern already used for case_status, the completion
+//   score, and percentageTotalNote (run-max-index.ts). Cheap enough to
+//   recompute on every keystroke.
+//
+//   Tier 2 (see maybeRunConsistencyCheck() near performSave() below):
+//   genuine cross-field JUDGMENT calls that need the model — routed to
+//   the separate check-candy-consistency function, fired at most once per
+//   auto-save debounce tick and only when something relevant actually
+//   changed, to keep it cheap despite CANDY's fields already firing
+//   fairly often.
+//
+// Both tiers are advisory only (agreed 25 Sept) — never blocks navigation
+// or sign-off, unlike the critical-field gating elsewhere in this wizard.
+// ============================================================
+
+// Reverse of WIZARD_TO_CANDY_PATH — used to map a consistency note's
+// dotted CANDY path (what check-candy-consistency-index.ts returns) back
+// to the wizard's flat field key (what the DOM advisory slots are keyed
+// by). Built once from the same source of truth as the forward map, so
+// the two can never drift apart from each other.
+const CANDY_PATH_TO_WIZARD = Object.fromEntries(
+  Object.entries(WIZARD_TO_CANDY_PATH).map(([flatKey, path]) => [path, flatKey]),
+);
+
+// The flat field keys Tier 2's cross-field check is allowed to read and
+// comment on — kept in sync with ALLOWED_CONSISTENCY_FIELDS in
+// check-candy-consistency-index.ts (that file lists the same set as
+// dotted CANDY paths; this is the flat-key equivalent used client-side
+// for the "how many are filled" gate and the debounce-change snapshot).
+const CONSISTENCY_CHECK_FIELDS = [
+  'legal_entity_name', 'type_of_business', 'description_of_business', 'products_sold',
+  'industry_sector', 'location_of_main_suppliers', 'location_of_main_buyers_customers',
+  'ongoing_sof', 'wealth_history', 'revenue_band', 'eav_band', 'payment_size_band',
+  'payment_volume_out', 'payment_volume_in',
+  // 26 Sept: currency fields added. Deliberately checked only against the
+  // client's OWN stated words (e.g. a narrative describing purely
+  // domestic trade vs. an international currency with no explanation),
+  // never against supplier/customer country by itself — trading
+  // internationally in USD (or another major trade currency) regardless
+  // of counterparty country is normal, not a red flag. See the "What does
+  // NOT count" section of CONSISTENCY_SYSTEM_PROMPT in
+  // check-candy-consistency-index.ts for the exact rule the AI is given.
+  'currencies_out', 'currencies_in',
+];
+
+// The flat field keys ANY advisory (Tier 1 or Tier 2) can ever target —
+// used by renderFieldAdvisories() to know which DOM slots to keep in
+// sync (including clearing one that no longer applies). Currently the
+// same set as CONSISTENCY_CHECK_FIELDS since Tier 1's two checks below
+// both target fields already in that list, but kept as its own constant
+// in case a future Tier 1 check targets a field Tier 2 doesn't.
+const ADVISORY_FIELD_KEYS = CONSISTENCY_CHECK_FIELDS;
+
+function advisoryFieldHasValue(v){
+  if(v === null || v === undefined) return false;
+  if(typeof v === 'string') return v.trim() !== '';
+  if(Array.isArray(v)) return v.length > 0;
+  if(typeof v === 'object') return Object.values(v).some(x => Number(x) > 0) || Object.keys(v).length > 0;
+  return true;
+}
+
+// Best-effort currency/magnitude parser for free-text money fields (e.g.
+// "$2M per year", "GBP 500,000", "around 250k"). Deliberately simple —
+// this only needs to catch an order-of-magnitude mismatch, not parse
+// currency correctly; returns null (meaning "can't tell, don't flag")
+// rather than guessing on anything that doesn't look like a plain number.
+function parseMoneyMagnitude(text){
+  if(!text || typeof text !== 'string') return null;
+  const t = text.toLowerCase().replace(/,/g, '');
+  const match = t.match(/(\d+(?:\.\d+)?)\s*(k|thousand|m|mn|million|b|bn|billion)?/);
+  if(!match) return null;
+  const num = parseFloat(match[1]);
+  if(!Number.isFinite(num)) return null;
+  const unit = match[2];
+  if(unit === 'k' || unit === 'thousand') return num * 1e3;
+  if(unit === 'm' || unit === 'mn' || unit === 'million') return num * 1e6;
+  if(unit === 'b' || unit === 'bn' || unit === 'billion') return num * 1e9;
+  return num;
+}
+
+// Looks for a capitalized phrase ending in a common company suffix inside
+// free text — a strong signal the client is naming a company by name
+// inline, worth comparing against the legal entity name field.
+function extractEntityNameCandidate(text){
+  if(!text || typeof text !== 'string') return null;
+  const match = text.match(
+    /\b([A-Z][A-Za-z0-9&'.-]*(?:\s+[A-Z][A-Za-z0-9&'.-]*){0,4}\s+(?:Ltd|Limited|LLC|Inc|Incorporated|Corp|Corporation|PLC|LLP|Co|Group|Holdings)\.?)\b/,
+  );
+  return match ? match[1].trim() : null;
+}
+
+function namesRoughlyMatch(a, b){
+  const norm = (s) => s.toLowerCase()
+    .replace(/[.,'&]/g, '')
+    .replace(/\b(ltd|limited|llc|inc|incorporated|corp|corporation|plc|llp|co|group|holdings)\b/g, '')
+    .replace(/\s+/g, ' ').trim();
+  const na = norm(a), nb = norm(b);
+  if(!na || !nb) return true; // can't compare meaningfully — don't flag
+  return na === nb || na.includes(nb) || nb.includes(na);
+}
+
+// Tier 1, check A: a company name mentioned inline in the business
+// description that doesn't match the stated legal entity name.
+function checkEntityNameMention(profile){
+  const legalName = (profile.legal_entity_name || '').trim();
+  const description = profile.description_of_business || '';
+  if(!legalName || !description.trim()) return null;
+  const mentioned = extractEntityNameCandidate(description);
+  if(!mentioned || namesRoughlyMatch(legalName, mentioned)) return null;
+  return { message: `Worth checking: this mentions "${mentioned}", which doesn't match the legal entity name you entered ("${legalName}"). Make sure both refer to the same company.` };
+}
+
+// Tier 1, check B: a typical single payment larger than stated annual
+// turnover — almost always worth a second look regardless of currency
+// granularity either field was written in.
+function checkPaymentVsTurnover(profile){
+  const turnoverText = profile.revenue_band || '';
+  const paymentText = profile.payment_size_band || '';
+  if(!turnoverText.trim?.() || !paymentText.trim?.()) return null;
+  const turnover = parseMoneyMagnitude(turnoverText);
+  const payment = parseMoneyMagnitude(paymentText);
+  if(turnover == null || payment == null || payment <= turnover) return null;
+  return { message: `Worth checking: your typical payment size looks larger than your stated turnover/revenue. If both are accurate, no action needed — just flagging in case one was a typo.` };
+}
+
+// Extend this list as more Tier 1 checks are added — each returns
+// { [flatFieldKey]: [{ message }] } or {} when nothing to flag.
+function computeTier1Advisories(profile){
+  const result = {};
+  const entityCheck = checkEntityNameMention(profile);
+  if(entityCheck) result.description_of_business = [entityCheck];
+  const paymentCheck = checkPaymentVsTurnover(profile);
+  if(paymentCheck) result.payment_size_band = [paymentCheck];
+  return result;
+}
+
+// Tier 2's last successfully-applied results, keyed by flat field key —
+// { [flatFieldKey]: [{ message }] }. Populated by maybeRunConsistencyCheck()
+// below; read by renderFieldAdvisories() alongside Tier 1's live results.
+let candyTier2Notes = {};
+
+// Syncs every advisory-capable field's DOM slot (added in renderPanel()'s
+// field template) with the current merged Tier 1 + Tier 2 results. Safe
+// to call often — recomputing Tier 1 is cheap pure JS, and this only
+// touches slots that actually exist on the currently-rendered wizard
+// step (fields on other steps are simply skipped via the null check).
+function renderFieldAdvisories(){
+  const tier1 = computeTier1Advisories(kycProfile);
+  for(const key of ADVISORY_FIELD_KEYS){
+    const slot = document.getElementById('candy-advisory-' + key);
+    if(!slot) continue;
+    const notes = [...(tier1[key] || []), ...(candyTier2Notes[key] || [])];
+    slot.innerHTML = notes.map(n => `<p class="candy-advisory-note">${escapeHtml(n.message)}</p>`).join('');
+    slot.style.display = notes.length ? 'block' : 'none';
+  }
+}
+
+// Snapshot of the last CONSISTENCY_CHECK_FIELDS values Tier 2 was run
+// against, so an auto-save tick that didn't touch any relevant field
+// skips the AI call entirely rather than re-asking the same question.
+let lastConsistencySnapshot = null;
+
+// Called from performSave() below, after a successful auto-save — fire-
+// and-forget (never awaited by its caller) so this advisory-only feature
+// can never slow down a save or a flushSave()-gated navigation. Gated on
+// two things to keep it cheap: at least 2 of the relevant fields need to
+// be filled (nothing meaningful to cross-check with just one), and the
+// relevant fields' values must have actually changed since the last check
+// (editing an unrelated field, e.g. the registered address, should never
+// re-trigger this).
+async function maybeRunConsistencyCheck(){
+  if(!currentCaseId) return;
+  const filledCount = CONSISTENCY_CHECK_FIELDS.filter(k => advisoryFieldHasValue(kycProfile[k])).length;
+  if(filledCount < 2) return;
+  const snapshot = JSON.stringify(CONSISTENCY_CHECK_FIELDS.map(k => kycProfile[k] ?? null));
+  if(snapshot === lastConsistencySnapshot) return;
+  lastConsistencySnapshot = snapshot;
+  try {
+    const result = await callFunction('check-candy-consistency', { case_id: currentCaseId });
+    const notes = Array.isArray(result.consistency_notes) ? result.consistency_notes : [];
+    const grouped = {};
+    for(const note of notes){
+      const flatKey = CANDY_PATH_TO_WIZARD[note.field];
+      if(!flatKey) continue; // defensive — server already validates against the same whitelist
+      (grouped[flatKey] ||= []).push({ message: note.message });
+    }
+    candyTier2Notes = grouped;
+    renderFieldAdvisories();
+  } catch (err) {
+    // Advisory-only — a failed check should never surface an error to the
+    // client for something they never explicitly asked to run.
+    console.error("check-candy-consistency failed:", err.message);
+  }
+}
+
 // Loads a case's saved profile into the wizard and jumps to step 1,
 // refreshing every part of the UI that depends on kycProfile.
 function loadCaseIntoWizard(caseId, nestedProfile){
@@ -1201,6 +1434,10 @@ async function performSave(){
       candy_profile: candyShapedProfile,
       company_name: kycProfile.legal_entity_name || undefined,
     });
+    // Fire-and-forget (not awaited): Tier 2's cross-field consistency
+    // check rides the same auto-save debounce tick, but must never slow
+    // down this save or anything awaiting it (flushSave()'s navigation).
+    maybeRunConsistencyCheck();
   } catch (err) {
     console.error("Auto-save failed:", err.message);
   }
@@ -1988,9 +2225,30 @@ async function loadSummaryForCase(){
   const textEl = document.getElementById('summary-text');
   if(textEl) textEl.textContent = data.kyb_summary_plain_text || 'Summary not yet available.';
 
+  renderReadinessBanner(data.readiness_tier, data.readiness_label, data.readiness_comment);
   renderBusinessDiagram(data.business_diagram);
   renderDiscrepancyList(discrepancies);
   renderChecksList(flags);
+}
+
+// MAX's holistic "readiness to send to a bank" comment (25 Sept) — tier
+// and label are computed deterministically server-side (run-max-index.ts),
+// the comment is MAX's own short explanation. Hidden entirely on an older
+// case generated before this feature existed (no readiness_tier column
+// value yet) rather than showing a misleading blank banner.
+function renderReadinessBanner(tier, label, comment){
+  const banner = document.getElementById('readiness-banner');
+  if(!banner) return;
+  if(!tier || !label){
+    banner.style.display = 'none';
+    return;
+  }
+  banner.style.display = 'flex';
+  banner.className = `readiness-banner tier-${tier}`;
+  const labelEl = document.getElementById('readiness-label');
+  if(labelEl) labelEl.textContent = label;
+  const commentEl = document.getElementById('readiness-comment');
+  if(commentEl) commentEl.textContent = comment || '';
 }
 
 // Loads existing kyb_documents rows for the current case so previously
@@ -2710,11 +2968,18 @@ function renderPanel(){
         </div>
         <div id="control-${f.key}">${fieldControlHTML(f)}</div>
         ${f.ai ? '<p class="field-note">This response is read by the AI agent to extract, score your profile and give you feedback.</p>' : (f.note ? `<p class="field-note">${f.note}</p>` : '')}
+        <div class="candy-advisory-slot" id="candy-advisory-${f.key}" style="display:none"></div>
       </div>
     `).join('')}
   `;
   document.getElementById('wizard-back').disabled = wizardStep === 0;
   updateWizardNextButton();
+  // New slots just got (re)created above — populate them with whatever
+  // Tier 1/Tier 2 advisories already apply, same as updateSidebar() does
+  // on every edit. Needed here too since navigation (step-nav clicks,
+  // Back/Next) calls renderPanel() without always also calling
+  // updateSidebar() right after.
+  renderFieldAdvisories();
 }
 
 // 22 SEPT FIX: this used to be inlined at the end of renderPanel(), which
@@ -2837,6 +3102,13 @@ function updateSidebar(){
   // 22 SEPT FIX: keeps the last-step wizard-next button's label in sync
   // with every edit, not just step navigation — see updateWizardNextButton().
   updateWizardNextButton();
+
+  // Tier 1's checks are cheap pure JS, so recomputed live on every edit —
+  // gives the client the "right below the field" hint the moment it
+  // applies, not just on save. Tier 2's own results are cached in
+  // candyTier2Notes and merged in here too; Tier 2 itself only actually
+  // re-runs via maybeRunConsistencyCheck(), on the auto-save debounce tick.
+  renderFieldAdvisories();
 
   scheduleSave(); // auto-save to the backend, debounced 2s after the last change
 }
