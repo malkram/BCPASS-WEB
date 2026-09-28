@@ -1262,6 +1262,7 @@ function loadCaseIntoWizard(caseId, nestedProfile){
   for(const key of Object.keys(kycProfile)) delete kycProfile[key];
   Object.assign(kycProfile, mapCandySchemaToWizardProfile(nestedProfile));
   lastKnownClientFeedback = nestedProfile?.client_feedback ?? null;
+  lastKnownFutureNeedsSignals = nestedProfile?.purpose_services_required?.future_needs_signals ?? null;
   wizardStep = 0;
   goToScreen('build');
   renderStepNav();
@@ -1429,6 +1430,12 @@ async function performSave(){
     // questions) so a plain field's auto-save never wipes it — see the
     // note on lastKnownClientFeedback above.
     if(lastKnownClientFeedback) candyShapedProfile.client_feedback = lastKnownClientFeedback;
+    // Same re-attachment, same reason, for future_needs_signals — see its
+    // declaration above. setNestedPath (not a plain assignment) because
+    // candyShapedProfile.purpose_services_required may not exist yet if
+    // none of its OTHER flat fields (areas_of_interest, main_banks, etc.)
+    // are set on this particular save.
+    if(lastKnownFutureNeedsSignals) setNestedPath(candyShapedProfile, 'purpose_services_required.future_needs_signals', lastKnownFutureNeedsSignals);
     await callFunction('save-profile', {
       case_id: currentCaseId,
       candy_profile: candyShapedProfile,
@@ -1470,6 +1477,11 @@ async function runCandyOnField(fieldKey, fieldValue){
     if(result.client_feedback){
       renderAIFeedback(result.client_feedback);
     }
+    // Capture CANDY's own future_needs_signals output the same way
+    // client_feedback is captured above — see lastKnownFutureNeedsSignals'
+    // declaration for why this needs to survive the next plain-field save.
+    const signals = result.full_profile?.purpose_services_required?.future_needs_signals;
+    if(Array.isArray(signals)) lastKnownFutureNeedsSignals = signals;
   } catch (err) {
     console.error("run-candy failed:", err.message);
   }
@@ -2171,6 +2183,9 @@ async function loadSummaryForCase(){
       if(lastKnownClientFeedback === null && candyProfile.client_feedback){
         lastKnownClientFeedback = candyProfile.client_feedback;
       }
+      if(lastKnownFutureNeedsSignals === null && candyProfile.purpose_services_required?.future_needs_signals){
+        lastKnownFutureNeedsSignals = candyProfile.purpose_services_required.future_needs_signals;
+      }
     }
   }
   const commentsBox = document.getElementById('summary-comments-box');
@@ -2674,6 +2689,13 @@ const kycProfile = {};
 // kycProfile, which never mirrors client_feedback) — exactly what produced
 // a real case showing 94% in the wizard but 0% on the Dashboard.
 let lastKnownClientFeedback = null;
+// Same problem, same fix, for the new future_needs_signals array (28 Sept):
+// only run-candy ever populates purpose_services_required.future_needs_signals
+// (see run-candy-index.ts), but it's not part of kycProfile/WIZARD_TO_CANDY_PATH
+// — it's a CANDY-derived field, not a wizard-editable one, same as
+// client_feedback. Without re-attaching this before every plain save, the
+// next debounced save-profile call would silently wipe it the same way.
+let lastKnownFutureNeedsSignals = null;
 let wizardStep = 0;
 
 const wizardPanel = document.getElementById('wizard-panel');
