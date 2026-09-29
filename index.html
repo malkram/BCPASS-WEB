@@ -446,6 +446,32 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
 .candy-advisory-note{ font-size:0.78rem; color: var(--amber); background: var(--amber-soft); border-radius: var(--radius); padding:7px 10px; margin:0 0 4px; }
 .candy-advisory-note:last-child{ margin-bottom:0; }
 
+/* Maisy B2 (29 Sept) — staff-proposed profile corrections, reviewed by the
+   client inline on the relevant field (maisy-agent-spec.md 2a: "reuses the
+   existing advisory-slot UI pattern"). Deliberately styled DIFFERENT from
+   the amber advisory notes above — those are passive hints, this is an
+   actionable proposal from a real person that needs a decision, so it gets
+   the same --accent green already used for "verified" states elsewhere. */
+.candy-correction-slot{ margin-top:6px; }
+.candy-correction-card{ font-size:0.82rem; color: var(--ink-soft); background: var(--accent-soft); border:1px solid var(--accent); border-radius: var(--radius); padding:9px 11px; margin:0 0 6px; }
+.candy-correction-card:last-child{ margin-bottom:0; }
+.candy-correction-header{ font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; color: var(--accent); font-weight:600; margin-bottom:4px; }
+.candy-correction-values{ margin:0 0 4px; }
+.candy-correction-values del{ color: var(--muted); }
+.candy-correction-values b{ color: var(--ink); }
+.candy-correction-reason{ font-style:italic; color: var(--muted); margin:0 0 8px; }
+.candy-correction-actions{ display:flex; gap:8px; }
+.candy-correction-actions button{ font-size:0.78rem; padding:5px 11px; border-radius: var(--radius); border:1px solid var(--line-strong); background: var(--paper-raise); color: var(--ink-soft); cursor:pointer; }
+.candy-correction-accept{ background: var(--accent) !important; color:#fff !important; border-color: var(--accent) !important; }
+.candy-correction-decline:hover{ border-color: var(--amber); color: var(--amber); }
+
+/* Small dismissible banner (top of the Build KYB screen) so a proposed
+   correction on a step the client isn't currently viewing is still
+   noticed, not just silently waiting on a field they may never scroll
+   back to. Same amber-vs-accent distinction as the inline card. */
+.correction-banner{ display:flex; align-items:center; justify-content:space-between; gap:12px; background: var(--accent-soft); border:1px solid var(--accent); border-radius: var(--radius); padding:10px 14px; margin:0 0 14px; font-size:0.85rem; color: var(--ink-soft); }
+.correction-banner button{ font-size:0.78rem; padding:5px 11px; border-radius: var(--radius); border:1px solid var(--accent); background:#fff; color: var(--accent); cursor:pointer; white-space:nowrap; }
+
 .pct-grid{ display:flex; flex-direction:column; gap:4px; }
 .pct-grid-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:5px 0; }
 .pct-grid-row label{ font-size:0.87rem; color: var(--ink-soft); }
@@ -607,6 +633,12 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
         <div class="wizard-progress-track"><div class="wizard-progress-fill" id="wizard-progress-fill"></div></div>
         <div class="wizard-steps" id="wizard-steps"></div>
       </div>
+
+      <!-- Maisy B2 (29 Sept) — visible whenever staff have proposed a
+           correction on a field the client isn't currently viewing, so it's
+           never silently missed on a step they don't happen to click into.
+           Populated/hidden by renderCorrectionBanner(). -->
+      <div class="correction-banner" id="correction-banner" style="display:none"></div>
 
       <div class="split">
         <div class="split-main">
@@ -1217,6 +1249,155 @@ function renderFieldAdvisories(){
   }
 }
 
+// ============================================================
+// Maisy B2, 2a (29 Sept 2026) — staff-proposed candy_profile_corrections,
+// reviewed by the client inline on the relevant field. Staff propose a
+// correction directly into candy_profile_corrections (via Retool — no
+// new edge function needed, same "staff writes their own observation,
+// no AI involved" pattern as staff_notes; see 21_candy_profile_
+// corrections.sql). This code only ever READS that table (RLS-scoped to
+// the case's own owner) and, on accept, writes the accepted value
+// through the SAME save path the client's own edits already use
+// (kycProfile -> flushSave() -> save-profile) — never a direct write to
+// candy_profile from here, per maisy-agent-spec.md 2a's standing rule
+// that a correction only becomes real once the client confirms it
+// through their own save path, the same authorship gate every other
+// candy_profile write already goes through.
+// ============================================================
+
+// { [wizardFlatKey]: [correctionRow, ...] } — only rows whose field_path
+// maps to a real wizard field via CANDY_PATH_TO_WIZARD. A row whose
+// field_path doesn't map to anything the wizard knows about is kept
+// separately (pendingCorrectionsUnmapped) so it still shows up via the
+// banner's count rather than silently vanishing.
+let pendingCorrectionsByField = {};
+let pendingCorrectionsUnmapped = [];
+
+async function loadPendingCorrections(){
+  pendingCorrectionsByField = {};
+  pendingCorrectionsUnmapped = [];
+  if(!supabaseClient || !currentCaseId){ renderCorrectionBanner(); return; }
+  const { data, error } = await supabaseClient
+    .from('candy_profile_corrections')
+    .select('correction_id, field_path, current_value, proposed_value, proposed_by, proposed_at, reason, status')
+    .eq('case_id', currentCaseId)
+    .eq('status', 'pending')
+    .order('proposed_at', { ascending: true });
+  if(error){ console.error('Could not load pending corrections:', error.message); return; }
+  for(const row of (data || [])){
+    const flatKey = CANDY_PATH_TO_WIZARD[row.field_path];
+    if(flatKey) (pendingCorrectionsByField[flatKey] ||= []).push(row);
+    else pendingCorrectionsUnmapped.push(row);
+  }
+  renderFieldCorrections();
+  renderCorrectionBanner();
+}
+
+// Values in candy_profile_corrections can be plain strings/numbers or,
+// for structured wizard fields (percentage grids, country lists), a
+// whole object/array — stringified plainly rather than left as
+// "[object Object]".
+function formatCorrectionValue(v){
+  if(v === null || v === undefined || v === '') return '(empty)';
+  if(typeof v === 'object') return JSON.stringify(v);
+  return String(v);
+}
+
+function correctionCardHTML(row){
+  const from = escapeHtml(formatCorrectionValue(row.current_value));
+  const to = escapeHtml(formatCorrectionValue(row.proposed_value));
+  return `
+    <div class="candy-correction-card" data-correction-id="${row.correction_id}">
+      <p class="candy-correction-header">Proposed correction — ${escapeHtml(row.proposed_by || 'our team')}</p>
+      <p class="candy-correction-values"><del>${from}</del> → <b>${to}</b></p>
+      ${row.reason ? `<p class="candy-correction-reason">"${escapeHtml(row.reason)}"</p>` : ''}
+      <div class="candy-correction-actions">
+        <button type="button" class="candy-correction-accept" data-correction-id="${row.correction_id}" data-decision="accept">Accept</button>
+        <button type="button" class="candy-correction-decline" data-correction-id="${row.correction_id}" data-decision="decline">Decline</button>
+      </div>
+    </div>`;
+}
+
+// Same per-step-slot pattern as renderFieldAdvisories() — only touches
+// slots that exist on whichever wizard step is currently rendered.
+// Called again from renderPanel() every time the step changes, so a
+// field's card appears the moment its own step is opened, and from
+// updateSidebar() on every edit so accepting/declining refreshes
+// immediately without waiting for a step navigation.
+function renderFieldCorrections(){
+  for(const key of Object.keys(WIZARD_TO_CANDY_PATH)){
+    const slot = document.getElementById('candy-correction-' + key);
+    if(!slot) continue;
+    const rows = pendingCorrectionsByField[key] || [];
+    slot.innerHTML = rows.map(correctionCardHTML).join('');
+    slot.style.display = rows.length ? 'block' : 'none';
+  }
+}
+
+// Finds which wizard step a flat field key lives on, for the banner's
+// "jump to" link.
+function findStepIndexForFieldKey(key){
+  return KYC_SCHEMA.findIndex(section => section.fields.some(f => f.key === key));
+}
+
+// Top-of-screen banner (separate from the inline per-field cards above)
+// so a correction on a step the client isn't currently viewing is still
+// noticed, rather than silently waiting on a field they may never click
+// into.
+function renderCorrectionBanner(){
+  const banner = document.getElementById('correction-banner');
+  if(!banner) return;
+  const mappedCount = Object.values(pendingCorrectionsByField).reduce((n, rows) => n + rows.length, 0);
+  const total = mappedCount + pendingCorrectionsUnmapped.length;
+  if(total === 0){ banner.style.display = 'none'; banner.innerHTML = ''; return; }
+  const firstKey = Object.keys(pendingCorrectionsByField)[0];
+  const jumpStep = firstKey ? findStepIndexForFieldKey(firstKey) : -1;
+  banner.style.display = 'flex';
+  banner.innerHTML = `
+    <span>${total} correction${total === 1 ? '' : 's'} proposed by our team — review ${total === 1 ? 'it' : 'them'} on the relevant field${total === 1 ? '' : 's'}.</span>
+    ${jumpStep >= 0 ? `<button type="button" id="correction-banner-jump">Review now →</button>` : ''}
+  `;
+  const jumpBtn = document.getElementById('correction-banner-jump');
+  if(jumpBtn) jumpBtn.addEventListener('click', () => {
+    wizardStep = jumpStep;
+    renderPanel();
+    renderStepNav();
+  });
+}
+
+// Shared by both Accept and Decline — marks the correction row decided
+// directly (same direct .update() pattern kyb_pass_links already uses
+// elsewhere in this file, RLS-scoped to the case's own owner — see
+// 21_candy_profile_corrections.sql's client-facing update policy). On
+// accept ONLY, the value is also written into kycProfile and saved
+// through the normal save-profile path; on decline, candy_profile is
+// never touched at all.
+async function decideCorrection(correctionId, decision){
+  const allRows = [...Object.values(pendingCorrectionsByField).flat(), ...pendingCorrectionsUnmapped];
+  const row = allRows.find(r => r.correction_id === correctionId);
+  if(!row) return;
+
+  if(decision === 'accept'){
+    const flatKey = CANDY_PATH_TO_WIZARD[row.field_path];
+    if(!flatKey){
+      alert("This correction targets a field this version of the wizard doesn't recognize yet — please let the team know so they can apply it manually.");
+      return;
+    }
+    kycProfile[flatKey] = row.proposed_value;
+    await flushSave(); // same save path the client's own edits use
+  }
+
+  const { error } = await supabaseClient
+    .from('candy_profile_corrections')
+    .update({ status: decision === 'accept' ? 'accepted' : 'declined', client_reviewed_at: new Date().toISOString() })
+    .eq('correction_id', correctionId);
+  if(error){ alert("Could not save your decision: " + error.message); return; }
+
+  await loadPendingCorrections();
+  renderPanel();
+  updateSidebar();
+}
+
 // Snapshot of the last CONSISTENCY_CHECK_FIELDS values Tier 2 was run
 // against, so an auto-save tick that didn't touch any relevant field
 // skips the AI call entirely rather than re-asking the same question.
@@ -1268,6 +1449,10 @@ function loadCaseIntoWizard(caseId, nestedProfile){
   renderStepNav();
   renderPanel();
   updateSidebar();
+  // Maisy B2, 2a (29 Sept) — fire-and-forget, same reasoning as
+  // maybeRunConsistencyCheck(): never let this delay or block the wizard
+  // rendering above.
+  loadPendingCorrections();
 }
 
 function formatRelativeTime(isoString){
@@ -2990,6 +3175,7 @@ function renderPanel(){
         </div>
         <div id="control-${f.key}">${fieldControlHTML(f)}</div>
         ${f.ai ? '<p class="field-note">This response is read by the AI agent to extract, score your profile and give you feedback.</p>' : (f.note ? `<p class="field-note">${f.note}</p>` : '')}
+        <div class="candy-correction-slot" id="candy-correction-${f.key}" style="display:none"></div>
         <div class="candy-advisory-slot" id="candy-advisory-${f.key}" style="display:none"></div>
       </div>
     `).join('')}
@@ -2997,11 +3183,13 @@ function renderPanel(){
   document.getElementById('wizard-back').disabled = wizardStep === 0;
   updateWizardNextButton();
   // New slots just got (re)created above — populate them with whatever
-  // Tier 1/Tier 2 advisories already apply, same as updateSidebar() does
-  // on every edit. Needed here too since navigation (step-nav clicks,
-  // Back/Next) calls renderPanel() without always also calling
-  // updateSidebar() right after.
+  // Tier 1/Tier 2 advisories (and, 29 Sept, any pending Maisy B2
+  // corrections) already apply, same as updateSidebar() does on every
+  // edit. Needed here too since navigation (step-nav clicks, Back/Next)
+  // calls renderPanel() without always also calling updateSidebar()
+  // right after.
   renderFieldAdvisories();
+  renderFieldCorrections();
 }
 
 // 22 SEPT FIX: this used to be inlined at the end of renderPanel(), which
@@ -3131,6 +3319,10 @@ function updateSidebar(){
   // candyTier2Notes and merged in here too; Tier 2 itself only actually
   // re-runs via maybeRunConsistencyCheck(), on the auto-save debounce tick.
   renderFieldAdvisories();
+  // 29 Sept — keeps any pending Maisy B2 correction card in sync with
+  // whichever slots exist on the currently-rendered step; cheap (pure DOM
+  // sync against already-loaded state, no network call).
+  renderFieldCorrections();
 
   scheduleSave(); // auto-save to the backend, debounced 2s after the last change
 }
@@ -3221,6 +3413,18 @@ if(wizardPanel){
       if(kycProfile[key].length === 0) kycProfile[key].push({ country:'', percentage:'' });
       renderRepeaterField(key);
       updateSidebar();
+      return;
+    }
+    // Maisy B2, 2a (29 Sept) — Accept/Decline on a proposed correction
+    // card. Both buttons in a card are disabled immediately so a second
+    // click can't race decideCorrection() while it's still in flight
+    // (same reasoning as the wizard-back/next disable-while-saving guard
+    // below).
+    const correctionBtn = e.target.closest('.candy-correction-accept, .candy-correction-decline');
+    if(correctionBtn){
+      const card = correctionBtn.closest('.candy-correction-card');
+      card?.querySelectorAll('button').forEach(b => b.disabled = true);
+      decideCorrection(correctionBtn.dataset.correctionId, correctionBtn.dataset.decision);
       return;
     }
   });
