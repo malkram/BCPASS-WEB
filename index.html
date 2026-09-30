@@ -108,9 +108,16 @@ ul{ margin:0; padding:0; list-style:none; }
 .btn-small{ padding:7px 12px; font-size:0.82rem; }
 
 /* ============ LOGIN ============ */
-#screen-login{ display:none; grid-template-columns: 1fr 340px; gap: 60px; align-items:center; min-height: calc(100vh - 20px); padding-top: 60px; }
-#screen-login.active{ display:grid; }
+#screen-login, #screen-signup, #screen-mfa-enroll, #screen-mfa-challenge{ display:none; grid-template-columns: 1fr 340px; gap: 60px; align-items:center; min-height: calc(100vh - 20px); padding-top: 60px; }
+#screen-login.active, #screen-signup.active, #screen-mfa-enroll.active, #screen-mfa-challenge.active{ display:grid; }
 .auth-wrap{ max-width: 460px; }
+.auth-switch{ font-size:0.85rem; color: var(--muted); margin-top:8px; }
+.auth-switch a{ color: var(--ink); font-weight:600; text-decoration:none; border-bottom:1px solid var(--line-strong); cursor:pointer; }
+.auth-switch a:hover{ border-color: var(--ink); }
+.mfa-qr-box{ display:flex; flex-direction:column; align-items:flex-start; gap:10px; margin: 18px 0; padding:18px; border:1px solid var(--line); border-radius: var(--radius); background: var(--paper-raise); }
+.mfa-qr-box img{ width:180px; height:180px; background:#fff; border-radius:8px; padding:8px; }
+.mfa-secret{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:0.82rem; letter-spacing:0.04em; color: var(--ink-soft); word-break: break-all; background: var(--paper); padding:8px 10px; border-radius:6px; border:1px solid var(--line); }
+.field input.code-input{ letter-spacing:0.4em; font-size:1.1rem; text-align:center; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .auth-form{ display:flex; flex-direction:column; gap:14px; margin: 22px 0 16px; }
 .field{ display:flex; flex-direction:column; gap:6px; font-size:0.85rem; color: var(--ink-soft); font-weight:500; }
 .field input{ font-family: inherit; font-size:0.95rem; padding:11px 12px; border:1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper-raise); color: var(--text); }
@@ -332,6 +339,31 @@ ul{ margin:0; padding:0; list-style:none; }
 .biz-detail-row span:last-child{ text-align:right; }
 .biz-detail-desc{ font-size:0.88rem; color: var(--ink-soft); line-height:1.5; margin-top:12px; white-space:pre-wrap; }
 
+/* Phase 2 (29 Sept 2026): named counterparties + market context sections in
+   the business-diagram detail panel — see openBizDetail(). */
+.biz-detail-section{ margin-top:16px; padding-top:14px; border-top:1px solid var(--line); }
+.biz-detail-section-title{ font-size:0.76rem; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; color: var(--muted); margin-bottom:10px; }
+.biz-named-entity{ background: var(--paper-raise); border-radius: var(--radius); padding:10px 12px; margin-bottom:8px; }
+.biz-named-entity:last-child{ margin-bottom:0; }
+.biz-named-entity-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.biz-named-entity-name{ font-weight:600; font-size:0.9rem; color: var(--ink); }
+.biz-named-entity-meta{ font-size:0.8rem; color: var(--ink-soft); margin-top:4px; }
+.biz-named-entity-source{ font-size:0.74rem; color: var(--muted); margin-top:4px; }
+/* Deliberately visually distinct from the document-disclosed entity above it
+   — a different background + a left accent bar — so a reader can't mistake
+   BCPASS's own research for something the client stated. */
+.biz-riley-research{ margin-top:10px; padding:8px 10px; background: var(--accent-soft); border-left:3px solid var(--accent); border-radius: 4px; }
+.biz-riley-research-label{ font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.02em; color: var(--accent); margin-bottom:4px; }
+.biz-riley-research-summary{ font-size:0.82rem; color: var(--ink-soft); line-height:1.45; }
+.biz-riley-research-sources{ display:flex; flex-direction:column; gap:2px; margin-top:6px; }
+.biz-riley-research-sources a{ font-size:0.72rem; color: var(--accent); word-break:break-all; }
+/* Market context: visually distinct from named counterparties — amber tone,
+   the same "general/unverified" language this screen already uses elsewhere
+   (tag-amber) — and explicitly labeled as research, not client fact. */
+.biz-market-context{ background: var(--amber-soft); border-radius: var(--radius); padding:12px; border-top:none; margin-top:16px; }
+.biz-market-context-label{ font-size:0.72rem; font-weight:600; color: var(--amber); margin-bottom:6px; }
+.biz-market-context-text{ font-size:0.86rem; color: var(--ink-soft); line-height:1.5; }
+
 /* ============ PASS / MASKING ============ */
 .mask-options, .consult-options{ display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
 .mask-option{ display:flex; gap:12px; align-items:flex-start; border:1px solid var(--line); border-radius: var(--radius); padding:14px 16px; background: var(--paper-raise); cursor:pointer; }
@@ -381,7 +413,7 @@ ul{ margin:0; padding:0; list-style:none; }
 /* ============ RESPONSIVE ============ */
 @media (max-width: 880px){
   .split{ grid-template-columns: 1fr; }
-  #screen-login{ grid-template-columns: 1fr; padding-top: 30px; }
+  #screen-login, #screen-signup, #screen-mfa-enroll, #screen-mfa-challenge{ grid-template-columns: 1fr; padding-top: 30px; }
   .auth-side{ order:-1; }
 }
 
@@ -543,6 +575,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
           <button type="submit" class="btn btn-primary btn-block">Continue</button>
           <p class="field-note" id="login-error" style="color:var(--amber); display:none;"></p>
         </form>
+        <p class="auth-switch">New to BCPASS? <a data-goto="signup">Create an account →</a></p>
         <p class="auth-note">One login can hold profiles for several companies. Each colleague signs in separately — nothing is shared by default.</p>
         <div class="auth-security">
           <span class="dot"></span> Two-factor authentication required on every account
@@ -556,6 +589,92 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
           <div class="ledger-row"><span>Meridian Freight Co</span><span class="tag tag-muted">Draft</span></div>
         </div>
       </div>
+    </section>
+
+    <!-- ---------- 1b. SIGN UP ("Join us") ---------- -->
+    <section class="screen" id="screen-signup">
+      <div class="auth-wrap">
+        <p class="eyebrow-none kicker">Corporate KYB, held in one place</p>
+        <h1 class="display">Create your<br>BCPASS account.</h1>
+        <p class="lede">One login can hold profiles for several companies. You'll set up two-factor authentication right after this — it's required on every account.</p>
+
+        <form class="auth-form" id="signup-form">
+          <label class="field">
+            <span>Work email</span>
+            <input type="email" id="signup-email" placeholder="cfo@yourcompany.com" autocomplete="email">
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input type="password" id="signup-password" placeholder="At least 8 characters" autocomplete="new-password">
+          </label>
+          <label class="field">
+            <span>Confirm password</span>
+            <input type="password" id="signup-password-confirm" placeholder="••••••••" autocomplete="new-password">
+          </label>
+          <button type="submit" class="btn btn-primary btn-block" id="signup-submit-btn">Create account</button>
+          <p class="field-note" id="signup-error" style="color:var(--amber); display:none;"></p>
+          <p class="field-note" id="signup-notice" style="color:var(--accent); display:none;"></p>
+        </form>
+        <p class="auth-switch">Already have an account? <a data-goto="login">Sign in →</a></p>
+      </div>
+      <div class="auth-side" aria-hidden="true">
+        <div class="ledger-preview">
+          <div class="ledger-row head"><span>Entity</span><span>Status</span></div>
+          <div class="ledger-row"><span>Harbour Trade Ltd</span><span class="tag tag-amber">2 flags</span></div>
+          <div class="ledger-row"><span>Harbour Trade HK</span><span class="tag tag-green">Ready</span></div>
+          <div class="ledger-row"><span>Meridian Freight Co</span><span class="tag tag-muted">Draft</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 1c. TWO-FACTOR ENROLLMENT (mandatory, right after account creation) ---------- -->
+    <section class="screen" id="screen-mfa-enroll">
+      <div class="auth-wrap">
+        <p class="eyebrow-none kicker">One more step</p>
+        <h1 class="display">Set up two-factor<br>authentication.</h1>
+        <p class="lede">Scan this code with an authenticator app (Google Authenticator, 1Password, Authy), then enter the 6-digit code it shows to finish setting up your account.</p>
+
+        <div class="mfa-qr-box">
+          <img id="mfa-enroll-qr" alt="Two-factor authentication QR code" src="">
+          <span class="mfa-secret" id="mfa-enroll-secret">Loading…</span>
+        </div>
+
+        <form class="auth-form" id="mfa-enroll-form">
+          <label class="field">
+            <span>6-digit code</span>
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" class="code-input" id="mfa-enroll-code" placeholder="000000" autocomplete="one-time-code">
+          </label>
+          <button type="submit" class="btn btn-primary btn-block" id="mfa-enroll-submit-btn">Enable two-factor authentication</button>
+          <p class="field-note" id="mfa-enroll-error" style="color:var(--amber); display:none;"></p>
+        </form>
+        <p class="auth-switch"><a id="mfa-enroll-logout">Not you? Sign out</a></p>
+      </div>
+      <div class="auth-side" aria-hidden="true">
+        <div class="ledger-preview">
+          <div class="ledger-row head"><span>Why this matters</span></div>
+          <div class="ledger-row"><span>Your profile holds real financial and ownership information — 2FA stops a leaked password alone from being enough to reach it.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 1d. TWO-FACTOR CHALLENGE (returning login) ---------- -->
+    <section class="screen" id="screen-mfa-challenge">
+      <div class="auth-wrap">
+        <p class="eyebrow-none kicker">Verify it's you</p>
+        <h1 class="display">Enter your<br>authentication code.</h1>
+        <p class="lede">Open your authenticator app and enter the current 6-digit code for BCPASS.</p>
+
+        <form class="auth-form" id="mfa-challenge-form">
+          <label class="field">
+            <span>6-digit code</span>
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" class="code-input" id="mfa-challenge-code" placeholder="000000" autocomplete="one-time-code">
+          </label>
+          <button type="submit" class="btn btn-primary btn-block" id="mfa-challenge-submit-btn">Verify</button>
+          <p class="field-note" id="mfa-challenge-error" style="color:var(--amber); display:none;"></p>
+        </form>
+        <p class="auth-switch"><a id="mfa-challenge-logout">Not you? Sign out</a></p>
+      </div>
+      <div class="auth-side" aria-hidden="true"></div>
     </section>
 
     <!-- ---------- 2. DASHBOARD ---------- -->
@@ -1549,6 +1668,61 @@ async function deleteCompanyProfile(caseSummary, cardEl, btnEl){
   }
 }
 
+// ---- Auth routing: password sign-in/sign-up only ever lands the client on
+// the dashboard once two-factor authentication is actually satisfied for
+// THIS session — never a direct hop from a password check to real data. 30
+// Sept build: previously there was no sign-up screen at all ("no where to
+// 'join us'") and the login screen's own "Two-factor authentication
+// required on every account" line was aspirational copy with nothing behind
+// it. Both are real now, via Supabase Auth's native TOTP MFA (no new
+// backend/edge function needed — supabase-js talks to Supabase's own
+// GoTrue MFA endpoints directly).
+//
+// routeAfterAuth() is the single gate every successful password check (both
+// sign-in and sign-up) must pass through:
+//   - no verified TOTP factor on the account at all (a brand-new signup, OR
+//     an account created before this feature existed) -> mfa-enroll,
+//     mandatory, not skippable, so 2FA really is "required on every
+//     account" rather than opt-in for old accounts;
+//   - a verified factor exists but this particular session hasn't stepped
+//     up to it yet (aal2) -> mfa-challenge;
+//   - already at aal2 -> dashboard.
+// KNOWN LIMIT, flagged rather than silently left: this only gates the two
+// screens that call it. It does not by itself stop a stolen access token
+// from reaching kyb_cases/kyb_documents/etc directly via the API — that
+// would need each table's RLS policies to also check `(auth.jwt()->>'aal')
+// = 'aal2'`, a separate, higher-risk change to every existing production
+// policy that wasn't made in this pass (see the project roadmap doc for
+// why). Today's build makes the UI actually enforce and offer 2FA, which it
+// didn't do at all before; the DB-level belt-and-braces layer is a real,
+// separate follow-up.
+async function routeAfterAuth(){
+  if(!supabaseClient){ goToScreen('dashboard'); return; }
+  const { data: aal, error: aalErr } = await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
+  if(aalErr){ console.error('getAuthenticatorAssuranceLevel failed', aalErr); goToScreen('dashboard'); return; }
+  if(aal.nextLevel === 'aal2' && aal.currentLevel !== aal.nextLevel){
+    goToScreen('mfa-challenge');
+    return;
+  }
+  const { data: factors } = await supabaseClient.auth.mfa.listFactors();
+  const hasVerifiedTotp = (factors?.totp || []).some(f => f.status === 'verified');
+  if(!hasVerifiedTotp){
+    goToScreen('mfa-enroll');
+    return;
+  }
+  goToScreen('dashboard');
+}
+
+async function handleAuthSignOut(){
+  if(supabaseClient) await supabaseClient.auth.signOut();
+  pendingEnrollFactorId = null;
+  pendingChallengeFactorId = null;
+  pendingChallengeId = null;
+  goToScreen('login');
+}
+document.getElementById('mfa-enroll-logout')?.addEventListener('click', (e) => { e.preventDefault(); handleAuthSignOut(); });
+document.getElementById('mfa-challenge-logout')?.addEventListener('click', (e) => { e.preventDefault(); handleAuthSignOut(); });
+
 // ---- Login form ----
 const loginForm = document.getElementById('login-form');
 if(loginForm){
@@ -1569,7 +1743,198 @@ if(loginForm){
       errorEl.style.display = 'block';
       return;
     }
-    goToScreen('dashboard');
+    await routeAfterAuth();
+  });
+}
+
+// ---- Sign-up form ("Join us") ----
+const signupForm = document.getElementById('signup-form');
+if(signupForm){
+  signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errorEl = document.getElementById('signup-error');
+    const noticeEl = document.getElementById('signup-notice');
+    errorEl.style.display = 'none';
+    noticeEl.style.display = 'none';
+    if(!supabaseClient){
+      errorEl.textContent = "Backend not configured yet — add your real anon key in the code.";
+      errorEl.style.display = 'block';
+      return;
+    }
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const passwordConfirm = document.getElementById('signup-password-confirm').value;
+    if(!email || !password){
+      errorEl.textContent = "Enter your work email and a password.";
+      errorEl.style.display = 'block';
+      return;
+    }
+    if(password.length < 8){
+      errorEl.textContent = "Password must be at least 8 characters.";
+      errorEl.style.display = 'block';
+      return;
+    }
+    if(password !== passwordConfirm){
+      errorEl.textContent = "Passwords don't match.";
+      errorEl.style.display = 'block';
+      return;
+    }
+    const submitBtn = document.getElementById('signup-submit-btn');
+    submitBtn.disabled = true;
+    try {
+      const { data, error } = await supabaseClient.auth.signUp({ email, password });
+      if(error) throw error;
+      if(!data.session){
+        // This Supabase project has "confirm email" turned on in its auth
+        // settings, so signUp() succeeds but returns no session until the
+        // client clicks the emailed confirmation link — there's no session
+        // yet to enroll a 2FA factor against, so send them to sign in after
+        // confirming instead of straight into mfa-enroll.
+        noticeEl.textContent = "Check your inbox to confirm your email, then sign in — you'll set up two-factor authentication on first login.";
+        noticeEl.style.display = 'block';
+        signupForm.reset();
+        return;
+      }
+      await routeAfterAuth(); // a brand-new account has no factor yet -> mfa-enroll
+    } catch(err){
+      errorEl.textContent = err.message || 'Could not create your account.';
+      errorEl.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+}
+
+// ---- Two-factor enrollment (mandatory for any account with no verified factor) ----
+let pendingEnrollFactorId = null;
+async function startMfaEnrollment(){
+  const errorEl = document.getElementById('mfa-enroll-error');
+  errorEl.style.display = 'none';
+  document.getElementById('mfa-enroll-qr').src = '';
+  document.getElementById('mfa-enroll-secret').textContent = 'Loading…';
+  document.getElementById('mfa-enroll-code').value = '';
+  pendingEnrollFactorId = null;
+  if(!supabaseClient) return;
+  // Supabase refuses to enroll a second TOTP factor while an earlier
+  // abandoned attempt (started, never verified) still exists for this
+  // user — clear any stale unverified factor first so re-entering this
+  // screen (e.g. after a page refresh mid-setup) always works cleanly.
+  const { data: existing } = await supabaseClient.auth.mfa.listFactors();
+  const staleUnverified = (existing?.totp || []).filter(f => f.status !== 'verified');
+  for(const f of staleUnverified){
+    await supabaseClient.auth.mfa.unenroll({ factorId: f.id });
+  }
+  const { data, error } = await supabaseClient.auth.mfa.enroll({ factorType: 'totp' });
+  if(error){
+    errorEl.textContent = error.message;
+    errorEl.style.display = 'block';
+    return;
+  }
+  pendingEnrollFactorId = data.id;
+  // Supabase returns the QR code as a ready-to-use "data:image/svg+xml..."
+  // string — no client-side QR library needed (this project already
+  // learned the hard way, on the Pass feature's QR code, that a
+  // third-party CDN script can get silently blocked by a corporate
+  // security tool; this sidesteps that class of problem entirely).
+  document.getElementById('mfa-enroll-qr').src = data.totp.qr_code;
+  document.getElementById('mfa-enroll-secret').textContent = data.totp.secret;
+}
+const mfaEnrollForm = document.getElementById('mfa-enroll-form');
+if(mfaEnrollForm){
+  mfaEnrollForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errorEl = document.getElementById('mfa-enroll-error');
+    errorEl.style.display = 'none';
+    if(!pendingEnrollFactorId){
+      errorEl.textContent = "Still setting up — wait a moment and try again.";
+      errorEl.style.display = 'block';
+      return;
+    }
+    const code = document.getElementById('mfa-enroll-code').value.trim();
+    const submitBtn = document.getElementById('mfa-enroll-submit-btn');
+    submitBtn.disabled = true;
+    try {
+      const { data: challenge, error: challengeErr } = await supabaseClient.auth.mfa.challenge({ factorId: pendingEnrollFactorId });
+      if(challengeErr) throw challengeErr;
+      const { error: verifyErr } = await supabaseClient.auth.mfa.verify({ factorId: pendingEnrollFactorId, challengeId: challenge.id, code });
+      if(verifyErr) throw verifyErr;
+      pendingEnrollFactorId = null;
+      goToScreen('dashboard');
+    } catch(err){
+      errorEl.textContent = err.message || "That code didn't verify — check your authenticator app and try again.";
+      errorEl.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+}
+
+// ---- Two-factor challenge (returning login, factor already verified) ----
+let pendingChallengeFactorId = null;
+let pendingChallengeId = null;
+async function startMfaChallenge(preserveError){
+  const errorEl = document.getElementById('mfa-challenge-error');
+  // preserveError=true is used when re-issuing a challenge right after a
+  // failed verify (Supabase challenges are single-use) — wiping the error
+  // here would make the "that code didn't verify" message flash and
+  // disappear before the client could ever read it. A fresh screen entry
+  // (via goToScreen) always clears it, since there's nothing to preserve.
+  if(!preserveError) errorEl.style.display = 'none';
+  document.getElementById('mfa-challenge-code').value = '';
+  pendingChallengeFactorId = null;
+  pendingChallengeId = null;
+  if(!supabaseClient) return;
+  const { data: factors, error } = await supabaseClient.auth.mfa.listFactors();
+  if(error){
+    errorEl.textContent = error.message;
+    errorEl.style.display = 'block';
+    return;
+  }
+  const factor = (factors?.totp || []).find(f => f.status === 'verified');
+  if(!factor){
+    // Shouldn't normally happen — routeAfterAuth() only sends the client
+    // here when a verified factor already exists — but if it's somehow
+    // gone (unenrolled from another device, say), fall back to enrollment
+    // rather than showing a challenge screen with nothing to challenge.
+    goToScreen('mfa-enroll');
+    return;
+  }
+  pendingChallengeFactorId = factor.id;
+  const { data: challenge, error: challengeErr } = await supabaseClient.auth.mfa.challenge({ factorId: factor.id });
+  if(challengeErr){
+    errorEl.textContent = challengeErr.message;
+    errorEl.style.display = 'block';
+    return;
+  }
+  pendingChallengeId = challenge.id;
+}
+const mfaChallengeForm = document.getElementById('mfa-challenge-form');
+if(mfaChallengeForm){
+  mfaChallengeForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errorEl = document.getElementById('mfa-challenge-error');
+    errorEl.style.display = 'none';
+    if(!pendingChallengeFactorId || !pendingChallengeId){
+      errorEl.textContent = "Still verifying — wait a moment and try again.";
+      errorEl.style.display = 'block';
+      return;
+    }
+    const code = document.getElementById('mfa-challenge-code').value.trim();
+    const submitBtn = document.getElementById('mfa-challenge-submit-btn');
+    submitBtn.disabled = true;
+    try {
+      const { error } = await supabaseClient.auth.mfa.verify({ factorId: pendingChallengeFactorId, challengeId: pendingChallengeId, code });
+      if(error) throw error;
+      pendingChallengeFactorId = null;
+      pendingChallengeId = null;
+      goToScreen('dashboard');
+    } catch(err){
+      errorEl.textContent = err.message || "That code didn't verify — try the current code from your authenticator app.";
+      errorEl.style.display = 'block';
+      startMfaChallenge(true); // re-issue a fresh challenge (Supabase challenges are single-use) without wiping the error just shown
+    } finally {
+      submitBtn.disabled = false;
+    }
   });
 }
 
@@ -2155,6 +2520,55 @@ function openBizDetail(zone, index){
     desc = entity.business_description || '';
   }
 
+  // ---- Phase 2 (29 Sept 2026): named counterparties + market context ----
+  // Only rendered for a supplier/customer node, and only when the field is
+  // actually present — most nodes today still have neither (the default,
+  // plain-country case). Never rendered for any other zone.
+  let extraSectionsHtml = '';
+  if((zone === 'suppliers' || zone === 'customers') && Array.isArray(entity.named_entities) && entity.named_entities.length){
+    const items = entity.named_entities.map((ne) => {
+      const metaBits = [];
+      if(ne.products_or_services) metaBits.push(escapeHtml(ne.products_or_services));
+      if(ne.percentage_or_volume) metaBits.push(escapeHtml(ne.percentage_or_volume));
+      const research = ne.riley_research && ne.riley_research.summary ? ne.riley_research : null;
+      const researchSources = research && Array.isArray(research.sources)
+        ? research.sources.filter((s) => typeof s === 'string' && /^https?:\/\//i.test(s))
+        : [];
+      return `
+        <div class="biz-named-entity">
+          <div class="biz-named-entity-head">
+            <span class="biz-named-entity-name">${escapeHtml(ne.entity_name || 'Unnamed')}</span>
+            <span class="tag tag-green" style="font-size:0.66rem">Document-disclosed</span>
+          </div>
+          ${metaBits.length ? `<div class="biz-named-entity-meta">${metaBits.join(' &middot; ')}</div>` : ''}
+          ${ne.source_note ? `<div class="biz-named-entity-source">Source: ${escapeHtml(ne.source_note)}</div>` : ''}
+          ${research ? `
+            <div class="biz-riley-research">
+              <p class="biz-riley-research-label">BCPASS research — our own sourced research about this company, not part of the client's disclosure</p>
+              <p class="biz-riley-research-summary">${escapeHtml(research.summary)}</p>
+              ${researchSources.length ? `<div class="biz-riley-research-sources">${researchSources.map((s) => `<a href="${escapeHtml(s)}" target="_blank" rel="noopener noreferrer">${escapeHtml(s)}</a>`).join('')}</div>` : ''}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+    extraSectionsHtml += `
+      <div class="biz-detail-section">
+        <p class="biz-detail-section-title">Named counterparties</p>
+        ${items}
+      </div>
+    `;
+  }
+  if((zone === 'suppliers' || zone === 'customers') && typeof entity.context_note === 'string' && entity.context_note.trim()){
+    extraSectionsHtml += `
+      <div class="biz-detail-section biz-market-context">
+        <p class="biz-detail-section-title">Market context</p>
+        <p class="biz-market-context-label">General research, not a claim about this client's actual relationships</p>
+        <p class="biz-market-context-text">${escapeHtml(entity.context_note)}</p>
+      </div>
+    `;
+  }
+
   panel.innerHTML = `
     <div class="biz-detail-head">
       <h3 class="biz-detail-title" id="biz-detail-title">${escapeHtml(title)}</h3>
@@ -2163,6 +2577,7 @@ function openBizDetail(zone, index){
     ${tags.length ? `<div class="biz-detail-tags">${tags.join('')}</div>` : ''}
     ${rows.map(([label, value]) => `<div class="biz-detail-row"><span>${label}</span><span>${value}</span></div>`).join('')}
     ${desc ? `<div class="biz-detail-desc">${escapeHtml(desc)}</div>` : ''}
+    ${extraSectionsHtml}
   `;
 
   overlay.hidden = false;
@@ -2791,6 +3206,8 @@ function goToScreen(name){
   if(name === 'documents') loadDocumentsForCase();
   if(name === 'summary') loadSummaryForCase();
   if(name === 'pass') loadPassLinkForCase();
+  if(name === 'mfa-enroll') startMfaEnrollment();
+  if(name === 'mfa-challenge') startMfaChallenge();
 
   window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
 }
