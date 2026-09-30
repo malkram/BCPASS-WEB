@@ -30,6 +30,7 @@
   --amber: #B5622A;
   --amber-soft: #F6E7DA;
   --muted: #6B776E;
+  --trust: #3F6B56;
   --zone-supplier: #F7EFC7;
   --zone-supplier-line: #E3D48C;
   --zone-client: #E1EFE7;
@@ -554,6 +555,34 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
 
 .screen.screen-marketing{ padding:0; max-width:none; }
 
+/* Colour tune (1 Oct 2026) — the public-facing experience (marketing pages
+   PLUS the sign-in/sign-up/2FA screens, which are the entry point from
+   them — see the isPublicShell logic in goToScreen()) now uses the exact
+   palette from the approved bcpass-landing-mockup.html artifact, rather
+   than the internal app's own green/teal tokens: a warm amber accent, a
+   deep teal "trust" color for verification/security cues, and a navy ink
+   instead of the internal app's green-black. Scoped to body.marketing-mode
+   so the authenticated app (dashboard onward) keeps its existing look
+   entirely unchanged — only the public-facing shell re-themes. */
+body.marketing-mode{
+  --ink: #16233A;
+  --ink-soft: #3A4A63;
+  --accent: #B97A22;
+  --accent-soft: #F3E6D2;
+  --muted: #51607A;
+  --paper-raise: #E3E7DE;
+  --line: rgba(22,35,58,0.14);
+  --line-strong: rgba(22,35,58,0.28);
+}
+body.marketing-mode .btn{ border-radius: 999px; }
+/* Keep the "ready/verified" (green) signal visually distinct from the new
+   amber brand accent — reuse the mockup's own --trust teal for it, the
+   same color the mockup uses for its Pass card's "Verified profile" dot,
+   rather than letting tag-green and tag-amber collapse into near-identical
+   ambers on the login/signup ledger preview. */
+body.marketing-mode .tag-green{ background: #E3EEE8; color: var(--trust); }
+body.marketing-mode .dot{ background: var(--trust); }
+
 .site-nav{ display:none; position:sticky; top:0; z-index:40; background: var(--paper); border-bottom:1px solid var(--line); }
 body.marketing-mode .site-nav{ display:block; }
 body.marketing-mode .railnav{ display:none; }
@@ -570,15 +599,42 @@ body.marketing-mode .tabbar{ display:none; }
 
 .mkt-container{ max-width:1180px; margin:0 auto; padding:0 48px; }
 
-.mkt-hero{ padding:76px 0 60px; }
+.mkt-hero{ padding:56px 0 60px; }
 .mkt-hero-grid{ display:grid; grid-template-columns: 1fr 380px; gap:56px; align-items:center; }
 .mkt-kicker{ font-size:0.85rem; color: var(--muted); margin-bottom:10px; }
 .mkt-hero-actions{ display:flex; gap:12px; margin-top:24px; flex-wrap:wrap; }
 .mkt-hero-side{ background: var(--paper-raise); border:1px solid var(--line); border-radius: var(--radius); padding:22px; }
 
+/* ---- Sample Pass card — ported directly from bcpass-landing-mockup.html's
+   own .pass component (perforated "ticket" divider + QR dot grid), the
+   piece of that mockup the client specifically liked. Distinct class names
+   (.mkt-pass-*) so it never collides with the production Pass screen's own
+   .pass-card component, which stays exactly as it was. ---- */
+.mkt-pass-wrap{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+.mkt-pass{ background: var(--paper-raise); border:1px solid var(--line); border-radius:20px; width:100%; max-width:380px; overflow:hidden; box-shadow:0 30px 60px -32px rgba(22,35,58,0.35); text-align:left; }
+.mkt-pass-top{ padding:22px 24px 18px; display:flex; align-items:center; justify-content:space-between; }
+.mkt-pass-who{ display:flex; align-items:center; gap:9px; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color: var(--muted); font-weight:600; }
+.mkt-pass-dot{ width:7px; height:7px; border-radius:50%; background: var(--trust); flex-shrink:0; }
+.mkt-pass-body{ padding:0 24px 20px; }
+.mkt-pass-company{ font-family: var(--font-display); font-size:1.35rem; font-weight:600; color: var(--ink); }
+.mkt-pass-meta{ margin-top:4px; font-size:0.84rem; color: var(--muted); }
+.mkt-perf{ position:relative; height:1px; margin:0 -1px; border-top:2px dashed var(--line-strong); }
+.mkt-perf::before, .mkt-perf::after{ content:""; position:absolute; top:-9px; width:18px; height:18px; border-radius:50%; background: var(--paper); }
+.mkt-perf::before{ left:-9px; }
+.mkt-perf::after{ right:-9px; }
+.mkt-pass-bottom{ padding:18px 24px 22px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.mkt-pass-ref{ font-size:0.78rem; color: var(--muted); letter-spacing:0.03em; }
+.mkt-pass-tier{ margin-top:6px; font-size:0.72rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color: var(--trust); }
+.mkt-qr{ display:grid; grid-template-columns:repeat(5,5px); grid-template-rows:repeat(5,5px); gap:2px; flex-shrink:0; }
+.mkt-qr i{ background: var(--ink); border-radius:1px; opacity:0.86; font-style:normal; display:block; }
+.mkt-qr i:nth-child(3n){ opacity:0.35; }
+.mkt-qr i:nth-child(7n){ opacity:0.15; }
+.mkt-pass-caption{ font-size:0.78rem; color: var(--muted); text-align:center; max-width:340px; }
+
 .mkt-band{ background: var(--ink); color:#DDE7E1; padding:60px 0; }
 .mkt-band .display, .mkt-band h2{ color:#fff; }
-.mkt-band .mkt-section-sub, .mkt-band p{ color:#B7C7BE; }
+.mkt-band .mkt-kicker{ color:#D9C6A3; }
+.mkt-band .mkt-section-sub, .mkt-band p{ color:rgba(239,241,236,0.66); }
 
 .mkt-section{ padding:60px 0; }
 .mkt-section-head{ max-width:640px; margin-bottom:34px; }
@@ -695,29 +751,44 @@ body.marketing-mode .site-footer{ display:block; }
     <section class="screen screen-marketing active" id="screen-home">
 
       <div class="mkt-hero">
-        <div class="mkt-container mkt-hero-grid">
-          <div>
-            <p class="mkt-kicker">AI-powered · Built for corporates and SMEs</p>
-            <h1 class="display">Tell your story once.<br>Share it precisely.</h1>
-            <p class="lede" style="max-width:52ch">BCPASS uses AI to turn a conversation about your business into a verified company profile — then lets you share exactly what you choose with any bank, partner, or institution, whenever KYC comes up.</p>
-            <div class="mkt-hero-actions">
-              <a class="btn btn-primary" data-goto="signup">Get started →</a>
-              <a class="btn btn-ghost" data-goto="login">Sign in</a>
+        <div class="mkt-container" style="text-align:center">
+          <p class="mkt-kicker">AI-powered · Built for corporates and SMEs</p>
+
+          <div class="mkt-pass-wrap" style="margin:0 auto 40px">
+            <div class="mkt-pass">
+              <div class="mkt-pass-top">
+                <span class="mkt-pass-who"><span class="mkt-pass-dot"></span>Verified profile</span>
+                <span class="mkt-pass-who">BCPASS</span>
+              </div>
+              <div class="mkt-pass-body">
+                <div class="mkt-pass-company">Harbour Trade Ltd</div>
+                <div class="mkt-pass-meta">Hong Kong · Trading &amp; logistics</div>
+              </div>
+              <div class="mkt-perf"></div>
+              <div class="mkt-pass-bottom">
+                <div>
+                  <div class="mkt-pass-ref">PASS·7F3K·2QXR</div>
+                  <div class="mkt-pass-tier">Standard Pass</div>
+                </div>
+                <div class="mkt-qr" aria-hidden="true">
+                  <i></i><i></i><i></i><i></i><i></i>
+                  <i></i><i></i><i></i><i></i><i></i>
+                  <i></i><i></i><i></i><i></i><i></i>
+                  <i></i><i></i><i></i><i></i><i></i>
+                  <i></i><i></i><i></i><i></i><i></i>
+                </div>
+              </div>
             </div>
-            <p class="side-note" style="margin-top:18px">Open accounts or relationships with several banks and you'll usually answer the same questions each time. BCPASS means you answer them once — then decide who sees what.</p>
+            <p class="mkt-pass-caption">Sample Pass — what a bank, partner, or institution receives when you share.</p>
           </div>
 
-          <div class="mkt-hero-side">
-            <p class="side-title">Sample Pass — what a recipient sees</p>
-            <div class="pass-card pass-card-large" style="margin-top:12px">
-              <p class="pass-field"><span>Entity</span><b>Harbour Trade — Hong Kong entity ●●●●</b></p>
-              <p class="pass-field"><span>Sector</span><b>Trading &amp; logistics</b></p>
-              <p class="pass-field"><span>Trading since</span><b>2016</b></p>
-              <p class="pass-field"><span>Looking for</span><b>Multi-currency FX &amp; payments facility</b></p>
-              <p class="pass-field"><span>Verification status</span><b>Fully verified · 0 open flags</b></p>
-            </div>
-            <p class="pass-caption">Exactly what a bank, partner, or institution sees at this level — including your business diagram, when it's included, so they can understand your structure at a glance.</p>
+          <h1 class="display" style="max-width:22ch; margin-left:auto; margin-right:auto;">Tell your story once.<br>Share it precisely.</h1>
+          <p class="lede" style="max-width:52ch; margin-left:auto; margin-right:auto;">BCPASS uses AI to turn a conversation about your business into a verified company profile — then lets you share exactly what you choose with any bank, partner, or institution, whenever KYC comes up.</p>
+          <div class="mkt-hero-actions" style="justify-content:center">
+            <a class="btn btn-primary" data-goto="signup">Get started →</a>
+            <a class="btn btn-ghost" data-goto="login">Sign in</a>
           </div>
+          <p class="side-note" style="margin:18px auto 0; max-width:52ch;">Open accounts or relationships with several banks and you'll usually answer the same questions each time. BCPASS means you answer them once — then decide who sees what.</p>
         </div>
       </div>
 
@@ -762,7 +833,7 @@ body.marketing-mode .site-footer{ display:block; }
 
       <div class="mkt-band">
         <div class="mkt-container">
-          <p class="mkt-kicker" style="color:#9FB2A6">Beyond your next bank account</p>
+          <p class="mkt-kicker">Beyond your next bank account</p>
           <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.1rem);max-width:30ch">Built for more than lending.</h2>
           <p style="max-width:56ch;font-size:1rem">As BCPASS grows, your verified profile will be able to work harder for you — helping match your business with the right providers not just for loans, but FX, trade finance, cards, merchant and POS services, and more.</p>
           <div class="mkt-feature-grid" style="margin-top:36px">
@@ -1058,7 +1129,7 @@ body.marketing-mode .site-footer{ display:block; }
     </section>
 
     <!-- ---------- 1. LOGIN ---------- -->
-    <section class="screen" id="screen-login">
+    <section class="screen public-shell" id="screen-login">
       <div class="auth-wrap">
         <p class="eyebrow-none kicker">Your business, verified once</p>
         <h1 class="display">Tell us once.<br>Share it precisely.</h1>
@@ -1099,7 +1170,7 @@ body.marketing-mode .site-footer{ display:block; }
     </section>
 
     <!-- ---------- 1b. SIGN UP ("Join us") ---------- -->
-    <section class="screen" id="screen-signup">
+    <section class="screen public-shell" id="screen-signup">
       <div class="auth-wrap">
         <p class="eyebrow-none kicker">Your business, verified once</p>
         <h1 class="display">Create your<br>BCPASS account.</h1>
@@ -1141,7 +1212,7 @@ body.marketing-mode .site-footer{ display:block; }
     </section>
 
     <!-- ---------- 1c. TWO-FACTOR ENROLLMENT (mandatory, right after account creation) ---------- -->
-    <section class="screen" id="screen-mfa-enroll">
+    <section class="screen public-shell" id="screen-mfa-enroll">
       <div class="auth-wrap">
         <p class="eyebrow-none kicker">One more step</p>
         <h1 class="display">Set up two-factor<br>authentication.</h1>
@@ -1171,7 +1242,7 @@ body.marketing-mode .site-footer{ display:block; }
     </section>
 
     <!-- ---------- 1d. TWO-FACTOR CHALLENGE (returning login) ---------- -->
-    <section class="screen" id="screen-mfa-challenge">
+    <section class="screen public-shell" id="screen-mfa-challenge">
       <div class="auth-wrap">
         <p class="eyebrow-none kicker">Verify it's you</p>
         <h1 class="display">Enter your<br>authentication code.</h1>
@@ -3736,8 +3807,19 @@ function goToScreen(name){
   // the public site-nav/site-footer (see MARKETING SITE CSS + the .site-nav/
   // .site-footer markup right after <body>). Falls back to non-marketing
   // (i.e. the normal app shell) if `target` doesn't exist for any reason.
-  const isMarketing = !!(target && target.classList.contains('screen-marketing'));
-  document.body.classList.toggle('marketing-mode', isMarketing);
+  //
+  // 1 Oct 2026: the sign-in/sign-up/2FA screens ALSO get the public shell
+  // now (via .public-shell, not .screen-marketing — they keep their own
+  // two-column auth layout/padding, just gain the public nav/footer and
+  // the marketing colour tune). Client feedback: landing on "login" after
+  // clicking Sign in showed the internal dark rail nav with no way back to
+  // the home page — felt broken/disconnected. Treating the whole
+  // unauthenticated journey (marketing pages + auth) as one public site,
+  // and only the actual authenticated app (dashboard onward) as the
+  // internal shell, fixes that: the public nav's "Home"/logo link is
+  // always there until you're actually signed in.
+  const isPublicShell = !!(target && (target.classList.contains('screen-marketing') || target.classList.contains('public-shell')));
+  document.body.classList.toggle('marketing-mode', isPublicShell);
   document.querySelectorAll('.site-links a, .site-footer-links a').forEach(a => a.classList.toggle('current', a.dataset.goto === name));
 
   document.querySelectorAll('.rail-btn').forEach(b => b.classList.toggle('active', b.dataset.screen === name));
