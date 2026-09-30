@@ -96,6 +96,11 @@ ul{ margin:0; padding:0; list-style:none; }
 .screen-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom: 26px; flex-wrap:wrap; }
 .kicker{ text-transform:none; letter-spacing:0; font-size:0.85rem; color: var(--muted); margin-bottom:4px; }
 .lede{ max-width: 56ch; color: var(--ink-soft); font-size:1.02rem; }
+/* 30 Sept 2026 — a small visual-refresh touch on the screens that are the
+   client's main "moments" in the product (companies list, documents, summary,
+   pass), bringing their headings closer to the approved mockup's display-type
+   rhythm without restructuring any of these screens' working layout/JS. */
+.screen-head.hero h1{ font-family: var(--font-display); font-weight:500; font-size: clamp(1.5rem, 3vw, 2rem); color: var(--ink); }
 
 /* ============ BUTTONS ============ */
 .btn{ border-radius: var(--radius); padding: 11px 18px; font-size:0.92rem; font-weight:600; border:1px solid transparent; transition: transform .08s ease, background .15s; }
@@ -140,7 +145,8 @@ ul{ margin:0; padding:0; list-style:none; }
 
 /* ============ DASHBOARD ============ */
 .company-list{ display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 16px; }
-.company-card{ background: var(--paper-raise); border:1px solid var(--line); border-radius: var(--radius); padding: 20px; text-align:left; }
+.company-card{ background: var(--paper-raise); border:1px solid var(--line); border-radius: var(--radius); padding: 20px; text-align:left; transition: box-shadow .15s ease, border-color .15s ease; }
+.company-card:hover{ box-shadow: 0 4px 16px rgba(16,40,33,0.10); border-color: var(--line-strong); }
 .company-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:6px; }
 .company-top h2{ font-size:1.08rem; }
 .company-meta{ font-size:0.82rem; color: var(--muted); margin-bottom:16px; }
@@ -366,7 +372,8 @@ ul{ margin:0; padding:0; list-style:none; }
 
 /* ============ PASS / MASKING ============ */
 .mask-options, .consult-options{ display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
-.mask-option{ display:flex; gap:12px; align-items:flex-start; border:1px solid var(--line); border-radius: var(--radius); padding:14px 16px; background: var(--paper-raise); cursor:pointer; }
+.mask-option{ display:flex; gap:12px; align-items:flex-start; border:1px solid var(--line); border-radius: var(--radius); padding:14px 16px; background: var(--paper-raise); cursor:pointer; transition: box-shadow .15s ease; }
+.mask-option:hover{ box-shadow: 0 2px 10px rgba(16,40,33,0.08); }
 .mask-option.selected, .mask-option:has(input:checked){ border-color: var(--accent); background: var(--accent-soft); }
 .mask-option input{ margin-top:4px; accent-color: var(--accent); }
 .mask-body{ display:flex; flex-direction:column; gap:3px; }
@@ -529,9 +536,129 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
   .score-badge{ align-items:flex-start; }
 }
 
+/* ============================================================
+   MARKETING SITE (30 Sept 2026) — public-facing pages (Home,
+   About, Services, How AI is embedded, Privacy), integrated into
+   this same app rather than a separate site, per the client's own
+   instruction. These pages live as extra .screen sections routed
+   through the existing goToScreen()/data-goto mechanism; the only
+   new piece of routing logic is that goToScreen() toggles a
+   body.marketing-mode class when the target screen carries
+   .screen-marketing, which swaps the internal app's dark .railnav
+   for a public top nav (.site-nav) + footer (.site-footer) built
+   for an unauthenticated visitor. Reuses the existing token system
+   and component classes (.btn, .tag, .pass-card, .prompt-list,
+   .display, .kicker) throughout rather than inventing a parallel
+   style language — the approved mockup's direction and this app's
+   production tokens already matched (see roadmap doc). ============ */
+
+.screen.screen-marketing{ padding:0; max-width:none; }
+
+.site-nav{ display:none; position:sticky; top:0; z-index:40; background: var(--paper); border-bottom:1px solid var(--line); }
+body.marketing-mode .site-nav{ display:block; }
+body.marketing-mode .railnav{ display:none; }
+body.marketing-mode .tabbar{ display:none; }
+
+.site-nav-inner{ max-width:1180px; margin:0 auto; padding:16px 48px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
+.site-brand{ display:flex; align-items:center; gap:8px; font-family: var(--font-display); font-size:1.2rem; color: var(--ink); text-decoration:none; cursor:pointer; background:none; border:none; padding:0; }
+.site-brand .brand-mark{ color: var(--accent); }
+.site-links{ display:flex; gap:28px; flex-wrap:wrap; }
+.site-links a{ color: var(--ink-soft); font-size:0.92rem; font-weight:500; text-decoration:none; cursor:pointer; white-space:nowrap; }
+.site-links a:hover{ color: var(--ink); }
+.site-links a.current{ color: var(--accent); }
+.site-nav-actions{ display:flex; gap:10px; align-items:center; flex-shrink:0; }
+
+.mkt-container{ max-width:1180px; margin:0 auto; padding:0 48px; }
+
+.mkt-hero{ padding:76px 0 60px; }
+.mkt-hero-grid{ display:grid; grid-template-columns: 1fr 380px; gap:56px; align-items:center; }
+.mkt-kicker{ font-size:0.85rem; color: var(--muted); margin-bottom:10px; }
+.mkt-hero-actions{ display:flex; gap:12px; margin-top:24px; flex-wrap:wrap; }
+.mkt-hero-side{ background: var(--paper-raise); border:1px solid var(--line); border-radius: var(--radius); padding:22px; }
+
+.mkt-band{ background: var(--ink); color:#DDE7E1; padding:60px 0; }
+.mkt-band .display, .mkt-band h2{ color:#fff; }
+.mkt-band .mkt-section-sub, .mkt-band p{ color:#B7C7BE; }
+
+.mkt-section{ padding:60px 0; }
+.mkt-section-head{ max-width:640px; margin-bottom:34px; }
+.mkt-section-sub{ color: var(--ink-soft); font-size:1rem; max-width:56ch; }
+
+.mkt-feature-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:30px; }
+.mkt-feature-num{ font-family: var(--font-display); font-size:0.85rem; color: var(--accent); margin-bottom:10px; }
+.mkt-feature h3{ font-family: var(--font-display); font-weight:500; font-size:1.15rem; color: inherit; margin:0 0 8px; }
+.mkt-feature-desc{ font-size:0.92rem; color: var(--ink-soft); margin:0; }
+
+.mkt-steps{ display:flex; flex-direction:column; border-top:1px solid var(--line); }
+.mkt-step{ display:flex; gap:22px; padding:24px 0; border-bottom:1px solid var(--line); }
+.mkt-step-num{ font-family: var(--font-display); font-size:1.4rem; color: var(--accent); width:44px; flex-shrink:0; }
+.mkt-step-body h3{ font-size:1.02rem; margin:0 0 5px; color: var(--ink); }
+.mkt-step-body p{ font-size:0.9rem; color: var(--ink-soft); margin:0; max-width:58ch; }
+
+.mkt-trust{ display:grid; grid-template-columns: 1fr 1fr; gap:44px; align-items:start; }
+.mkt-trust-list li{ display:flex; gap:10px; padding:11px 0; border-bottom:1px solid var(--line); font-size:0.92rem; color: var(--ink-soft); }
+.mkt-trust-list li:last-child{ border-bottom:none; }
+.mkt-trust-list li::before{ content:"—"; color: var(--accent); flex-shrink:0; }
+
+.mkt-principle{ background: var(--accent-soft); border-radius: var(--radius); padding:18px 20px; margin:18px 0; }
+.mkt-principle b{ display:block; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.03em; color: var(--accent); margin-bottom:6px; }
+.mkt-principle p{ margin:0; font-size:0.92rem; color: var(--ink-soft); }
+
+.mkt-prose{ max-width:70ch; }
+.mkt-prose p{ font-size:0.98rem; color: var(--ink-soft); margin-bottom:16px; }
+
+.mkt-cta{ text-align:center; padding:64px 0 84px; }
+.mkt-cta .display{ margin-left:auto; margin-right:auto; }
+.mkt-cta-actions{ display:flex; gap:12px; justify-content:center; margin-top:20px; flex-wrap:wrap; }
+
+.mkt-legal-note{ font-size:0.82rem; color: var(--muted); border-top:1px solid var(--line); margin-top:36px; padding-top:18px; }
+
+.site-footer{ display:none; border-top:1px solid var(--line); background: var(--paper-raise); padding:40px 0 30px; }
+body.marketing-mode .site-footer{ display:block; }
+.site-footer-inner{ max-width:1180px; margin:0 auto; padding:0 48px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:24px; }
+.site-footer-brand{ font-family: var(--font-display); font-size:1.05rem; color: var(--ink); display:flex; align-items:center; gap:7px; }
+.site-footer-links{ display:flex; gap:20px; flex-wrap:wrap; }
+.site-footer-links a{ color: var(--ink-soft); font-size:0.85rem; text-decoration:none; cursor:pointer; }
+.site-footer-links a:hover{ color: var(--ink); }
+.site-footer-note{ font-size:0.8rem; color: var(--muted); margin-top:14px; width:100%; }
+
+@media (max-width: 880px){
+  .mkt-hero-grid{ grid-template-columns:1fr; }
+  .mkt-hero-side{ order:-1; }
+  .mkt-feature-grid{ grid-template-columns:1fr 1fr; }
+  .mkt-trust{ grid-template-columns:1fr; }
+}
+@media (max-width: 720px){
+  .site-nav-inner{ padding:14px 18px; flex-wrap:wrap; gap:10px; }
+  .site-links{ order:3; width:100%; overflow-x:auto; gap:16px; }
+  .mkt-container{ padding:0 18px; }
+  .mkt-hero{ padding:40px 0 40px; }
+  .mkt-section{ padding:40px 0; }
+  .mkt-feature-grid{ grid-template-columns:1fr; }
+  .site-footer-inner{ padding:0 18px; }
+}
+
 </style>
 </head>
-<body>
+<body class="marketing-mode">
+
+<!-- ============ PUBLIC SITE NAV (marketing pages only) ============ -->
+<header class="site-nav" id="site-nav">
+  <div class="site-nav-inner">
+    <button class="site-brand" data-goto="home"><span class="brand-mark">◈</span> BCPASS</button>
+    <nav class="site-links" aria-label="Marketing">
+      <a data-goto="home">Home</a>
+      <a data-goto="about">About us</a>
+      <a data-goto="services">Our services</a>
+      <a data-goto="ai">How AI is embedded</a>
+      <a data-goto="privacy">Privacy</a>
+    </nav>
+    <div class="site-nav-actions">
+      <a class="btn btn-ghost btn-small" data-goto="login">Sign in</a>
+      <a class="btn btn-primary btn-small" data-goto="signup">Join us</a>
+    </div>
+  </div>
+</header>
 
 <div class="app">
 
@@ -557,8 +684,381 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
   <!-- ============ SCREENS ============ -->
   <main class="stage">
 
+    <!-- ============================================================
+         MARKETING PAGES (30 Sept 2026) — public-facing, unauthenticated.
+         Each carries .screen-marketing so goToScreen() switches the app
+         into body.marketing-mode (public .site-nav/.site-footer instead
+         of the internal .railnav/.tabbar). screen-home is the default
+         landing screen for a first-time visitor. ============ -->
+
+    <!-- ---------- 0a. MARKETING: HOME / LANDING ---------- -->
+    <section class="screen screen-marketing active" id="screen-home">
+
+      <div class="mkt-hero">
+        <div class="mkt-container mkt-hero-grid">
+          <div>
+            <p class="mkt-kicker">AI-powered · Built for corporates and SMEs</p>
+            <h1 class="display">Tell your story once.<br>Share it precisely.</h1>
+            <p class="lede" style="max-width:52ch">BCPASS uses AI to turn a conversation about your business into a verified company profile — then lets you share exactly what you choose with any bank, partner, or institution, whenever KYC comes up.</p>
+            <div class="mkt-hero-actions">
+              <a class="btn btn-primary" data-goto="signup">Get started →</a>
+              <a class="btn btn-ghost" data-goto="login">Sign in</a>
+            </div>
+            <p class="side-note" style="margin-top:18px">Open accounts or relationships with several banks and you'll usually answer the same questions each time. BCPASS means you answer them once — then decide who sees what.</p>
+          </div>
+
+          <div class="mkt-hero-side">
+            <p class="side-title">Sample Pass — what a recipient sees</p>
+            <div class="pass-card pass-card-large" style="margin-top:12px">
+              <p class="pass-field"><span>Entity</span><b>Harbour Trade — Hong Kong entity ●●●●</b></p>
+              <p class="pass-field"><span>Sector</span><b>Trading &amp; logistics</b></p>
+              <p class="pass-field"><span>Trading since</span><b>2016</b></p>
+              <p class="pass-field"><span>Looking for</span><b>Multi-currency FX &amp; payments facility</b></p>
+              <p class="pass-field"><span>Verification status</span><b>Fully verified · 0 open flags</b></p>
+            </div>
+            <p class="pass-caption">Exactly what a bank, partner, or institution sees at this level — including your business diagram, when it's included, so they can understand your structure at a glance.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mkt-section">
+        <div class="mkt-container">
+          <div class="mkt-section-head">
+            <p class="mkt-kicker">How it works</p>
+            <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.1rem)">From conversation to verified profile, in four steps.</h2>
+          </div>
+          <div class="mkt-steps">
+            <div class="mkt-step">
+              <span class="mkt-step-num">01</span>
+              <div class="mkt-step-body">
+                <h3>Tell us about your business</h3>
+                <p>By voice or by typing, our AI asks the right questions and builds a structured profile as you talk — no blank forms to stare at.</p>
+              </div>
+            </div>
+            <div class="mkt-step">
+              <span class="mkt-step-num">02</span>
+              <div class="mkt-step-body">
+                <h3>Upload your documents</h3>
+                <p>Our AI works out what each document is and pulls out the relevant details. You don't need to label anything yourself.</p>
+              </div>
+            </div>
+            <div class="mkt-step">
+              <span class="mkt-step-num">03</span>
+              <div class="mkt-step-body">
+                <h3>Review your diagram and summary</h3>
+                <p>See your ownership structure, suppliers, and customers mapped out clearly, with anything worth a second look flagged plainly — nothing hidden in a document.</p>
+              </div>
+            </div>
+            <div class="mkt-step">
+              <span class="mkt-step-num">04</span>
+              <div class="mkt-step-body">
+                <h3>Share your Pass</h3>
+                <p>Choose exactly what a bank, partner, or institution sees — one link and QR code per company, five levels of detail, changeable any time.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mkt-band">
+        <div class="mkt-container">
+          <p class="mkt-kicker" style="color:#9FB2A6">Beyond your next bank account</p>
+          <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.1rem);max-width:30ch">Built for more than lending.</h2>
+          <p style="max-width:56ch;font-size:1rem">As BCPASS grows, your verified profile will be able to work harder for you — helping match your business with the right providers not just for loans, but FX, trade finance, cards, merchant and POS services, and more.</p>
+          <div class="mkt-feature-grid" style="margin-top:36px">
+            <div class="mkt-feature">
+              <p class="mkt-feature-num">AI</p>
+              <h3>Understands your business</h3>
+              <p class="mkt-feature-desc">Your AI-built profile already holds the detail a bank or partner needs — no re-explaining your business from scratch.</p>
+            </div>
+            <div class="mkt-feature">
+              <p class="mkt-feature-num">Diagram</p>
+              <h3>Shows your structure</h3>
+              <p class="mkt-feature-desc">Ownership, suppliers, and customers, mapped visually — so anyone reviewing your profile understands it fast.</p>
+            </div>
+            <div class="mkt-feature">
+              <p class="mkt-feature-num">Pass</p>
+              <h3>Shares on your terms</h3>
+              <p class="mkt-feature-desc">One Pass, several levels of detail, shared with a bank, partner, or institution — you're always in control.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mkt-section">
+        <div class="mkt-container mkt-trust">
+          <div>
+            <p class="mkt-kicker">Your information stays yours</p>
+            <h2 class="display" style="font-size:clamp(1.5rem,3vw,2rem)">You decide what's shared, and with whom.</h2>
+            <p class="lede">A Pass gives a recipient a verified starting point — it never replaces their own due diligence, and it's never shared without your say-so.</p>
+          </div>
+          <ul class="mkt-trust-list">
+            <li>You choose what's shared, at your own pace — nothing goes out until you decide to share it</li>
+            <li>Every bank, partner, or institution you share with still runs its own checks — a Pass gives them a head start, not a shortcut</li>
+            <li>Revoke access, change the level of detail, or set an expiry, any time</li>
+            <li>Two-factor authentication is required on every account, and colleagues sign in separately — nothing is shared by default</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mkt-cta">
+        <div class="mkt-container">
+          <h2 class="display">Ready to stop repeating yourself?</h2>
+          <div class="mkt-cta-actions">
+            <a class="btn btn-primary" data-goto="signup">Create your BCPASS account →</a>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ---------- 0b. MARKETING: ABOUT US ---------- -->
+    <section class="screen screen-marketing" id="screen-about">
+      <div class="mkt-hero" style="padding-bottom:20px">
+        <div class="mkt-container">
+          <p class="mkt-kicker">About BCPASS</p>
+          <h1 class="display">Built for the business,<br>not just the bank.</h1>
+        </div>
+      </div>
+      <div class="mkt-section" style="padding-top:0">
+        <div class="mkt-container mkt-prose">
+          <p>BCPASS started from a simple observation: when a growing company needs to open accounts or build relationships with several banks or financial institutions, it ends up doing the same KYC exercise over and over — the same documents, the same questions, the same explanations, once per institution.</p>
+          <p>We built BCPASS to make that a one-time exercise. Our AI helps you build a verified, structured profile of your business once — then you decide who sees what, and when.</p>
+          <p>We work with corporates and SMEs who are opening new banking relationships, raising financing, or simply trying to keep their own company records organized and current. Behind the Pass you share is a platform we hope your business keeps coming back to on its own terms — a place to see your own structure clearly, keep your profile current, and better understand your own financial position, not just something you open when a bank asks for it.</p>
+        </div>
+      </div>
+
+      <div class="mkt-section" style="padding-top:0">
+        <div class="mkt-container">
+          <div class="mkt-section-head">
+            <p class="mkt-kicker">What we believe</p>
+          </div>
+          <div class="mkt-feature-grid">
+            <div class="mkt-feature">
+              <p class="mkt-feature-num">01</p>
+              <h3>You should only tell your story once</h3>
+              <p class="mkt-feature-desc">Repeating the same KYC exercise for every institution wastes your time and theirs. One verified profile should travel with you.</p>
+            </div>
+            <div class="mkt-feature">
+              <p class="mkt-feature-num">02</p>
+              <h3>Sharing isn't skipping</h3>
+              <p class="mkt-feature-desc">A Pass gives a bank, partner, or institution a verified head start — it's never a substitute for their own checks, and we don't build it to be one.</p>
+            </div>
+            <div class="mkt-feature">
+              <p class="mkt-feature-num">03</p>
+              <h3>AI should do the busywork, not the judgment calls</h3>
+              <p class="mkt-feature-desc">Our AI structures, extracts, and flags — it never guesses a fact you haven't told it or a document hasn't shown. You stay the authority on your own business.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mkt-cta">
+        <div class="mkt-container">
+          <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.1rem)">Want to see it for yourself?</h2>
+          <div class="mkt-cta-actions">
+            <a class="btn btn-primary" data-goto="signup">Create your BCPASS account →</a>
+            <a class="btn btn-ghost" data-goto="services">See what we offer</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 0c. MARKETING: OUR SERVICES ---------- -->
+    <section class="screen screen-marketing" id="screen-services">
+      <div class="mkt-hero" style="padding-bottom:20px">
+        <div class="mkt-container">
+          <p class="mkt-kicker">Our services</p>
+          <h1 class="display">Everything you need to<br>tell your story once.</h1>
+          <p class="lede" style="max-width:56ch">From your first conversation with our AI to the moment you share a Pass, here's what BCPASS actually does.</p>
+        </div>
+      </div>
+
+      <div class="mkt-section" style="padding-top:10px">
+        <div class="mkt-container">
+          <div class="mkt-steps">
+            <div class="mkt-step">
+              <span class="mkt-step-num">—</span>
+              <div class="mkt-step-body">
+                <h3>Build your profile, by voice or text</h3>
+                <p>Our AI guides you through your company overview, business activity, ownership and structure, funding sources, business history, and current and future plans — asking follow-up questions where something's missing, rather than handing you a blank form.</p>
+              </div>
+            </div>
+            <div class="mkt-step">
+              <span class="mkt-step-num">—</span>
+              <div class="mkt-step-body">
+                <h3>Upload documents, and let AI do the sorting</h3>
+                <p>Add financial statements, registry documents, bank letters, and more. Our AI works out what each one is and extracts the relevant detail — you don't need to tell us what anything is, or retype it by hand.</p>
+              </div>
+            </div>
+            <div class="mkt-step">
+              <span class="mkt-step-num">—</span>
+              <div class="mkt-step-body">
+                <h3>See your business clearly</h3>
+                <p>A generated business diagram maps your ownership, directors, suppliers, and customers. A plain-language summary and a readiness check flag anything worth a second look, before you ever share it with anyone.</p>
+              </div>
+            </div>
+            <div class="mkt-step">
+              <span class="mkt-step-num">—</span>
+              <div class="mkt-step-body">
+                <h3>Share exactly what's needed</h3>
+                <p>Your Pass has five levels of detail, from a brief introduction through to your full documents. Pick a level for each bank, partner, or institution you share with, and change it any time — one link and QR code per company.</p>
+              </div>
+            </div>
+            <div class="mkt-step">
+              <span class="mkt-step-num">—</span>
+              <div class="mkt-step-body">
+                <h3>Looking ahead: matching, beyond lending</h3>
+                <p>We're building on your verified profile to help match your business with the right providers — not just for loans, but FX, trade finance, cards, merchant and POS services, and more. This is on our roadmap, not yet live.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mkt-cta">
+        <div class="mkt-container">
+          <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.1rem)">Curious how the AI actually works?</h2>
+          <div class="mkt-cta-actions">
+            <a class="btn btn-primary" data-goto="ai">How AI is embedded →</a>
+            <a class="btn btn-ghost" data-goto="signup">Get started</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 0d. MARKETING: HOW AI IS EMBEDDED ---------- -->
+    <section class="screen screen-marketing" id="screen-ai">
+      <div class="mkt-hero" style="padding-bottom:20px">
+        <div class="mkt-container">
+          <p class="mkt-kicker">How AI is embedded</p>
+          <h1 class="display">AI does the paperwork.<br>You stay the authority.</h1>
+          <p class="lede" style="max-width:56ch">We use AI throughout BCPASS — always in service of getting your business represented accurately, never to replace your own review of it.</p>
+        </div>
+      </div>
+
+      <div class="mkt-section" style="padding-top:10px">
+        <div class="mkt-container">
+          <div class="mkt-feature-grid">
+            <div class="mkt-feature">
+              <p class="mkt-feature-num">Conversation</p>
+              <h3>Turning what you say into structure</h3>
+              <p class="mkt-feature-desc">When you tell us about your business — by voice or by typing — AI organizes what you say into a structured profile, asking follow-up questions where something's missing.</p>
+            </div>
+            <div class="mkt-feature">
+              <p class="mkt-feature-num">Documents</p>
+              <h3>Reading what you upload</h3>
+              <p class="mkt-feature-desc">AI works out what each document is and pulls out the relevant detail, so you don't have to label or retype anything yourself.</p>
+            </div>
+            <div class="mkt-feature">
+              <p class="mkt-feature-num">Diagram</p>
+              <h3>Mapping your structure</h3>
+              <p class="mkt-feature-desc">AI turns your ownership, directors, suppliers, and customers into a diagram, connecting the pieces so it's easy for anyone to follow.</p>
+            </div>
+            <div class="mkt-feature">
+              <p class="mkt-feature-num">Review</p>
+              <h3>Checking for gaps, not guessing</h3>
+              <p class="mkt-feature-desc">Our AI is built to flag what looks inconsistent or incomplete and ask you about it — never to invent a detail you haven't told us or a document hasn't shown.</p>
+            </div>
+            <div class="mkt-feature">
+              <p class="mkt-feature-num">Context</p>
+              <h3>Adding context, always sourced</h3>
+              <p class="mkt-feature-desc">Where it's useful, AI adds general market or industry context — always clearly labeled as research, never presented as a fact about your business.</p>
+            </div>
+            <div class="mkt-feature">
+              <p class="mkt-feature-num">You</p>
+              <h3>You review everything</h3>
+              <p class="mkt-feature-desc">Every AI-generated summary, diagram, and flag is something you — and whoever you share it with — can review before it's relied on. AI drafts; you decide.</p>
+            </div>
+          </div>
+
+          <div class="mkt-principle">
+            <b>Our standing rule</b>
+            <p>Never guess, never invent. If our AI isn't sure about something, it says so — it doesn't fill the gap with a detail that merely sounds right.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mkt-cta">
+        <div class="mkt-container">
+          <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.1rem)">See it in your own business.</h2>
+          <div class="mkt-cta-actions">
+            <a class="btn btn-primary" data-goto="signup">Create your BCPASS account →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 0e. MARKETING: PRIVACY ---------- -->
+    <section class="screen screen-marketing" id="screen-privacy">
+      <div class="mkt-hero" style="padding-bottom:20px">
+        <div class="mkt-container">
+          <p class="mkt-kicker">Privacy</p>
+          <h1 class="display">You decide what's<br>shared, and with whom.</h1>
+          <p class="lede" style="max-width:56ch">Here's how BCPASS is designed to handle your information.</p>
+        </div>
+      </div>
+
+      <div class="mkt-section" style="padding-top:10px">
+        <div class="mkt-container mkt-trust">
+          <div>
+            <p class="side-title">Your Pass, your control</p>
+            <ul class="mkt-trust-list">
+              <li>Nothing is shared until you choose to share it — building your profile doesn't send anything to anyone</li>
+              <li>Your Pass has five levels of detail; you choose the level for each bank, partner, or institution you share with</li>
+              <li>One link and QR code per company — raise or lower the level, set an expiry, or turn it off, any time</li>
+              <li>You can see exactly what a recipient will see before you share it</li>
+            </ul>
+          </div>
+          <div>
+            <p class="side-title">Sharing isn't skipping</p>
+            <ul class="mkt-trust-list">
+              <li>Every bank, partner, or institution you share a Pass with still runs its own checks — a Pass gives them a verified starting point, not a shortcut around their own process</li>
+              <li>Full company name, documents, and director details stay hidden until a recipient accepts your interest</li>
+              <li>Any AI-added research or context is clearly labeled as such, never presented as a fact about your business or your counterparties</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="mkt-section" style="padding-top:0">
+        <div class="mkt-container mkt-trust">
+          <div>
+            <p class="side-title">Your account is protected</p>
+            <ul class="mkt-trust-list">
+              <li>Two-factor authentication is required on every account</li>
+              <li>One login can hold profiles for several companies</li>
+              <li>Each colleague signs in separately — nothing is shared between accounts by default</li>
+            </ul>
+          </div>
+          <div>
+            <p class="side-title">What we ask for, and why</p>
+            <ul class="mkt-trust-list">
+              <li>We ask for the information a bank or partner would typically need for KYC — nothing beyond that</li>
+              <li>Documents you upload are used to build and verify your profile, not for any other purpose</li>
+              <li>You can pause, revise, or delete a company profile from your dashboard</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="mkt-container">
+        <p class="mkt-legal-note">This page describes how BCPASS is designed to work today, during our UK &amp; Hong Kong pilot. It's a plain-language description of our approach, not a substitute for formal legal terms — we'll publish those as we move toward general availability.</p>
+      </div>
+
+      <div class="mkt-cta">
+        <div class="mkt-container">
+          <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.1rem)">Questions about your data?</h2>
+          <div class="mkt-cta-actions">
+            <a class="btn btn-ghost" data-goto="about">Learn more about us</a>
+            <a class="btn btn-primary" data-goto="signup">Create your BCPASS account →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ---------- 1. LOGIN ---------- -->
-    <section class="screen active" id="screen-login">
+    <section class="screen" id="screen-login">
       <div class="auth-wrap">
         <p class="eyebrow-none kicker">Your business, verified once</p>
         <h1 class="display">Tell us once.<br>Share it precisely.</h1>
@@ -692,7 +1192,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
 
     <!-- ---------- 2. DASHBOARD ---------- -->
     <section class="screen" id="screen-dashboard">
-      <header class="screen-head">
+      <header class="screen-head hero">
         <div>
           <p class="kicker" id="dashboard-user-email">mei.chan@harbourtrade.co</p>
           <h1>Your companies</h1>
@@ -792,7 +1292,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
 
     <!-- ---------- 4. DOCUMENTS ---------- -->
     <section class="screen" id="screen-documents">
-      <header class="screen-head">
+      <header class="screen-head hero">
         <div>
           <p class="kicker" id="documents-company-kicker">New company profile</p>
           <h1>Upload supporting documents</h1>
@@ -833,7 +1333,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
 
     <!-- ---------- 5. SUMMARY & DISCREPANCIES ---------- -->
     <section class="screen" id="screen-summary">
-      <header class="screen-head">
+      <header class="screen-head hero">
         <div>
           <p class="kicker" id="summary-company-kicker">Company profile</p>
           <h1>Your summary</h1>
@@ -892,7 +1392,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
 
     <!-- ---------- 6. KYB PASS & SHARE ---------- -->
     <section class="screen" id="screen-pass">
-      <header class="screen-head">
+      <header class="screen-head hero">
         <div>
           <p class="kicker" id="pass-company-kicker">Company profile</p>
           <h1>Your Pass</h1>
@@ -1046,6 +1546,22 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
   <button class="tab-btn" data-screen="summary"><span class="tab-ic">✓</span>Summary</button>
   <button class="tab-btn" data-screen="pass"><span class="tab-ic">◐</span>Pass</button>
 </nav>
+
+<!-- ============ PUBLIC SITE FOOTER (marketing pages only) ============ -->
+<footer class="site-footer" id="site-footer">
+  <div class="site-footer-inner">
+    <div class="site-footer-brand"><span class="brand-mark">◈</span> BCPASS</div>
+    <nav class="site-footer-links" aria-label="Footer">
+      <a data-goto="home">Home</a>
+      <a data-goto="about">About us</a>
+      <a data-goto="services">Our services</a>
+      <a data-goto="ai">How AI is embedded</a>
+      <a data-goto="privacy">Privacy</a>
+      <a data-goto="login">Sign in</a>
+    </nav>
+    <p class="site-footer-note">BCPASS is currently in pilot across the UK &amp; Hong Kong. Every bank, partner, or institution you share a Pass with still runs its own checks — BCPASS gives them a verified starting point, not a shortcut around that process.</p>
+  </div>
+</footer>
 
 <script>
 // ============================================================
@@ -3212,6 +3728,17 @@ function goToScreen(name){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const target = document.getElementById('screen-' + name);
   if(target) target.classList.add('active');
+
+  // 30 Sept 2026: marketing pages (Home/About/Services/AI/Privacy) share this
+  // same app rather than living on a separate site, per the client's own
+  // instruction. Each marketing screen carries .screen-marketing; switching
+  // to/from one swaps the internal app's dark rail nav + mobile tab bar for
+  // the public site-nav/site-footer (see MARKETING SITE CSS + the .site-nav/
+  // .site-footer markup right after <body>). Falls back to non-marketing
+  // (i.e. the normal app shell) if `target` doesn't exist for any reason.
+  const isMarketing = !!(target && target.classList.contains('screen-marketing'));
+  document.body.classList.toggle('marketing-mode', isMarketing);
+  document.querySelectorAll('.site-links a, .site-footer-links a').forEach(a => a.classList.toggle('current', a.dataset.goto === name));
 
   document.querySelectorAll('.rail-btn').forEach(b => b.classList.toggle('active', b.dataset.screen === name));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.screen === name));
