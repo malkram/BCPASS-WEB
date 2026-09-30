@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BCPASS — Corporate KYB, built with you</title>
+<title>BCPASS — Corporate profiles, verified once</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -380,6 +380,7 @@ ul{ margin:0; padding:0; list-style:none; }
 .pass-field:last-child{ border-bottom:none; }
 .pass-field span{ color:#9FB2A6; }
 .pass-field b{ font-weight:600; text-align:right; }
+.pass-caption{ font-size:0.78rem; color: var(--muted); margin-top:12px; padding-top:12px; border-top:1px dashed var(--line-strong); }
 
 .match-list{ display:flex; flex-direction:column; gap:8px; }
 .match-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); font-size:0.87rem; }
@@ -543,7 +544,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
     <ul class="rail-list">
       <li><button class="rail-btn active" data-screen="login">Sign in</button></li>
       <li><button class="rail-btn" data-screen="dashboard">Companies</button></li>
-      <li><button class="rail-btn" data-screen="build">Build KYB</button></li>
+      <li><button class="rail-btn" data-screen="build">Your company profile</button></li>
       <li><button class="rail-btn" data-screen="documents">Documents</button></li>
       <li><button class="rail-btn" data-screen="summary">Summary</button></li>
       <li><button class="rail-btn" data-screen="pass">Share pass</button></li>
@@ -559,9 +560,9 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
     <!-- ---------- 1. LOGIN ---------- -->
     <section class="screen active" id="screen-login">
       <div class="auth-wrap">
-        <p class="eyebrow-none kicker">Corporate KYB, held in one place</p>
+        <p class="eyebrow-none kicker">Your business, verified once</p>
         <h1 class="display">Tell us once.<br>Share it precisely.</h1>
-        <p class="lede">BCPASS turns a conversation about your business into a KYB profile your bank can trust — then lets you control exactly what they see.</p>
+        <p class="lede">BCPASS uses AI to turn a conversation about your business into a verified company profile — then lets you share exactly what you choose with any bank, partner, or institution.</p>
 
         <form class="auth-form" id="login-form">
           <label class="field">
@@ -588,13 +589,19 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
           <div class="ledger-row"><span>Harbour Trade HK</span><span class="tag tag-green">Ready</span></div>
           <div class="ledger-row"><span>Meridian Freight Co</span><span class="tag tag-muted">Draft</span></div>
         </div>
+        <p class="side-title" style="margin-top:22px">How BCPASS helps</p>
+        <ul class="prompt-list">
+          <li>Our AI turns a conversation about your business into a structured, verified profile</li>
+          <li>We generate a clear business diagram — suppliers, customers, ownership — so anyone reviewing it understands it fast</li>
+          <li>Share one Pass with any bank, partner, or institution — you choose what they see, and can change it any time</li>
+        </ul>
       </div>
     </section>
 
     <!-- ---------- 1b. SIGN UP ("Join us") ---------- -->
     <section class="screen" id="screen-signup">
       <div class="auth-wrap">
-        <p class="eyebrow-none kicker">Corporate KYB, held in one place</p>
+        <p class="eyebrow-none kicker">Your business, verified once</p>
         <h1 class="display">Create your<br>BCPASS account.</h1>
         <p class="lede">One login can hold profiles for several companies. You'll set up two-factor authentication right after this — it's required on every account.</p>
 
@@ -624,6 +631,12 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
           <div class="ledger-row"><span>Harbour Trade HK</span><span class="tag tag-green">Ready</span></div>
           <div class="ledger-row"><span>Meridian Freight Co</span><span class="tag tag-muted">Draft</span></div>
         </div>
+        <p class="side-title" style="margin-top:22px">How BCPASS helps</p>
+        <ul class="prompt-list">
+          <li>Our AI turns a conversation about your business into a structured, verified profile</li>
+          <li>We generate a clear business diagram — suppliers, customers, ownership — so anyone reviewing it understands it fast</li>
+          <li>Share one Pass with any bank, partner, or institution — you choose what they see, and can change it any time</li>
+        </ul>
       </div>
     </section>
 
@@ -740,7 +753,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
       <header class="screen-head">
         <div>
           <p class="kicker" id="build-company-kicker">New company profile</p>
-          <h1>Build your KYB profile</h1>
+          <h1>Build your company profile</h1>
         </div>
         <div class="score-badge" id="score-badge">
           <span class="score-num" id="score-num">0</span>
@@ -785,7 +798,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
           <h1>Upload supporting documents</h1>
         </div>
       </header>
-      <p class="lede">Optional — we already verify your company registration automatically. The more you share, the stronger and faster your KYB pass will be. You don't need to tell us what each document is; we'll work that out once it's uploaded.</p>
+      <p class="lede">Optional — we already verify your company registration automatically. The more you share, the stronger and faster your pass will be. You don't need to tell us what each document is; our AI works that out once it's uploaded.</p>
 
       <div class="split">
         <div class="split-main">
@@ -796,7 +809,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
 
           <div class="build-actions">
             <button class="btn btn-ghost" data-goto="build">← Back</button>
-            <button class="btn btn-primary" id="generate-summary-btn">Generate KYB summary →</button>
+            <button class="btn btn-primary" id="generate-summary-btn">Generate your summary →</button>
           </div>
         </div>
 
@@ -823,12 +836,12 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
       <header class="screen-head">
         <div>
           <p class="kicker" id="summary-company-kicker">Company profile</p>
-          <h1>KYB summary</h1>
+          <h1>Your summary</h1>
         </div>
         <span class="tag tag-amber" id="summary-flag-tag" style="display:none"></span>
       </header>
 
-      <div id="summary-loading" class="side-note" style="margin:8px 0 20px">Generating your KYB summary — this can take a minute…</div>
+      <div id="summary-loading" class="side-note" style="margin:8px 0 20px">Generating your summary — this can take a minute…</div>
       <div id="summary-error" class="side-note" style="margin:8px 0 20px; color:#B5622A; display:none"></div>
 
       <div id="summary-content" style="display:none">
@@ -882,10 +895,10 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
       <header class="screen-head">
         <div>
           <p class="kicker" id="pass-company-kicker">Company profile</p>
-          <h1>Your KYB pass</h1>
+          <h1>Your Pass</h1>
         </div>
       </header>
-      <p class="lede">Choose how much a financial institution sees before you've spoken to them. One link and QR code per company — raise or lower the level, or turn it off, any time.</p>
+      <p class="lede">Choose how much a bank, partner, or institution sees before you've spoken to them. One link and QR code per company — raise or lower the level, or turn it off, any time. They'll still run their own checks — this just means they're not starting from zero.</p>
 
       <div id="pass-loading" class="side-note">Loading…</div>
       <div id="pass-generate-wrap" style="display:none">
@@ -900,6 +913,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
           <div class="pass-preview pass-live-preview">
             <p class="side-title" id="pass-preview-title">What they'll see</p>
             <div class="pass-card" id="pass-preview-card"><p class="pass-field"><span>Loading preview…</span></p></div>
+            <p class="pass-caption">Exactly what a bank, partner, or institution sees at this level — including your business diagram, when it's included, so they can understand your structure at a glance.</p>
           </div>
         </div>
 
@@ -912,7 +926,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
           </div>
           <div class="pass-link-actions">
             <button class="btn btn-ghost btn-small" id="pass-copy-link">Copy link</button>
-            <button class="btn btn-ghost btn-small" id="pass-preview-link">Open as institution ↗</button>
+            <button class="btn btn-ghost btn-small" id="pass-preview-link">Open as recipient ↗</button>
           </div>
 
           <div class="pass-qr-wrap" id="pass-qr-wrap"><p class="side-note" style="margin:0">Generating QR code…</p></div>
@@ -1005,7 +1019,7 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
             <p class="pass-field"><span>Revenue band</span><b>HK$30M–50M</b></p>
             <p class="pass-field"><span>Employees</span><b>15–25</b></p>
             <p class="pass-field"><span>Looking for</span><b>Multi-currency FX &amp; payments facility across 7 currencies</b></p>
-            <p class="pass-field"><span>KYB status</span><b>Fully verified · 0 open flags</b></p>
+            <p class="pass-field"><span>Verification status</span><b>Fully verified · 0 open flags</b></p>
             <p class="pass-field"><span>Documents on file</span><b>Financials, bank statements, invoices — available on request</b></p>
           </div>
           <p class="side-note">Full company name, documents, and director details unlock once the client accepts your interest.</p>
@@ -1655,7 +1669,7 @@ async function loadDashboardCases(){
 async function deleteCompanyProfile(caseSummary, cardEl, btnEl){
   const label = caseSummary.company_name?.trim() || 'this profile';
   const confirmed = confirm(
-    `Delete "${label}"?\n\nIt will be removed from your dashboard immediately. If it has an active Pass link shared with a bank, you'll need to turn that off first (on the Share Pass screen) before it can be deleted.`
+    `Delete "${label}"?\n\nIt will be removed from your dashboard immediately. If it has an active Pass link shared with a bank, partner, or institution, you'll need to turn that off first (on the Share Pass screen) before it can be deleted.`
   );
   if(!confirmed) return;
   btnEl.disabled = true;
@@ -2202,14 +2216,14 @@ async function runFullSummaryPipeline(){
     await callFunction('run-riley', { case_id: currentCaseId });
     if(loadingEl) loadingEl.textContent = 'Consolidating findings…';
     await callFunction('run-betty', { case_id: currentCaseId });
-    if(loadingEl) loadingEl.textContent = 'Generating your KYB summary…';
+    if(loadingEl) loadingEl.textContent = 'Generating your summary…';
     await callFunction('run-max', { case_id: currentCaseId });
     summaryPipelineActive = false;
     await loadSummaryForCase();
   } catch (err) {
     summaryPipelineActive = false;
     if(loadingEl) loadingEl.style.display = 'none';
-    if(errorEl){ errorEl.style.display = 'block'; errorEl.textContent = 'Could not generate your KYB summary: ' + err.message; }
+    if(errorEl){ errorEl.style.display = 'block'; errorEl.textContent = 'Could not generate your summary: ' + err.message; }
     console.error('Summary pipeline failed:', err);
   }
 }
@@ -2802,7 +2816,7 @@ async function loadSummaryForCase(){
 
   if(error){
     if(loadingEl) loadingEl.style.display = 'none';
-    if(errorEl){ errorEl.style.display = 'block'; errorEl.textContent = 'Could not load your KYB summary: ' + error.message; }
+    if(errorEl){ errorEl.style.display = 'block'; errorEl.textContent = 'Could not load your summary: ' + error.message; }
     return;
   }
 
@@ -2811,7 +2825,7 @@ async function loadSummaryForCase(){
     // (triggered by the Generate KYB summary button), leave its progress
     // text alone rather than stomping it with the message below.
     if(!summaryPipelineActive){
-      if(loadingEl){ loadingEl.style.display = 'block'; loadingEl.textContent = 'Click "Generate KYB summary" from the documents screen to produce your summary.'; }
+      if(loadingEl){ loadingEl.style.display = 'block'; loadingEl.textContent = 'Click "Generate your summary" from the documents screen to produce your summary.'; }
       if(contentEl) contentEl.style.display = 'none';
     }
     return;
@@ -2925,7 +2939,7 @@ const PASS_VIEWER_BASE_URL = "https://unique-horse-36f2e5.netlify.app/";
 
 const PASS_TIERS = [
   { key: 'introduction', name: 'Introduction Pass', desc: "Company name, what you do, and your product — for a business card or marketing material." },
-  { key: 'basic', name: 'Basic Pass', desc: "Adds more detail on what you do, turnover band, and your major markets/suppliers by country — enough for a bank to judge if they can help." },
+  { key: 'basic', name: 'Basic Pass', desc: "Adds more detail on what you do, turnover band, and your major markets/suppliers by country — enough for a bank, partner, or institution to judge if they can help." },
   { key: 'standard', name: 'Standard Pass', desc: "Adds transaction information and business model detail, plus exact market/supplier percentages." },
   { key: 'full', name: 'Full Pass', desc: "Your full profile as you've described it — ownership structure, funding sources, history — without document verification." },
   { key: 'full_document', name: 'Full Document Pass', desc: "Everything above, plus MAX's document-verified summary and diagram — the same output you see on your own Summary screen." },
@@ -3183,7 +3197,7 @@ function renderPassFieldsHtml(pass){
   if(Array.isArray(pass.discrepancies) && pass.discrepancies.length) extras += `<p class="pass-field"><span>Open discrepancies</span><b>${pass.discrepancies.length}</b></p>`;
   if(Array.isArray(pass.third_party_flags) && pass.third_party_flags.length) extras += `<p class="pass-field"><span>Open review flags</span><b>${pass.third_party_flags.length}</b></p>`;
   const summary = pass.kyb_summary_plain_text
-    ? `<div class="pass-field" style="display:block;border-bottom:none"><span>KYB summary</span><p style="color:#E8EEE9;font-weight:400;white-space:pre-wrap;margin-top:6px">${escapeHtml(pass.kyb_summary_plain_text)}</p></div>`
+    ? `<div class="pass-field" style="display:block;border-bottom:none"><span>Summary</span><p style="color:#E8EEE9;font-weight:400;white-space:pre-wrap;margin-top:6px">${escapeHtml(pass.kyb_summary_plain_text)}</p></div>`
     : '';
   return (rows + extras + summary) || `<p class="pass-field"><span>No data.</span></p>`;
 }
@@ -3275,7 +3289,7 @@ const KYC_SCHEMA = [
     {key:'main_banks', tier:'critical', type:'text', label:'Main bank(s) / financial institution(s) you currently use', placeholder:'e.g. HSBC, Standard Chartered'},
     {key:'value_vs_current', tier:'supporting', type:'text', label:"What's prompting you to look beyond your current bank?", placeholder:'Optional — high transaction charge, diversify of portfolio, improve efficiency'},
     {key:'additional_comments', tier:'none', type:'textarea', label:'Any supplementary or comments', placeholder:'Optional — more supplementary or background information will be helpful for bank(s) or financial institution(s) to understand your business'},
-    {key:'future_planning', tier:'supporting', type:'textarea', label:'Future planning or strategic moves', placeholder:'Optional — expand the business in different geographic location, setup a factory, develop a new line of business, going IPO in 2 years...', note:'With your future planning, our AI system will be able to match and suggest providers that can help you achieve your goal (if you agree).'},
+    {key:'future_planning', tier:'supporting', type:'textarea', label:'Future planning or strategic moves', placeholder:'Optional — expand the business in different geographic location, setup a factory, develop a new line of business, going IPO in 2 years...', note:'With your future planning, our AI system will be able to match and suggest providers that can help you achieve your goal — not just lending, but FX, trade finance, cards, merchant/POS, and more (if you agree).'},
   ]},
 ];
 const CRITICAL_TOTAL = 10;   // matches the summarization agent prompt's scoring rubric
