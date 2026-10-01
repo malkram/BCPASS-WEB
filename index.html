@@ -588,7 +588,7 @@ body.marketing-mode .site-nav{ display:block; }
 body.marketing-mode .railnav{ display:none; }
 body.marketing-mode .tabbar{ display:none; }
 
-.site-nav-inner{ max-width:1180px; margin:0 auto; padding:16px 48px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
+.site-nav-inner{ padding:16px 48px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
 .site-brand{ display:flex; align-items:center; gap:8px; font-family: var(--font-display); font-size:1.2rem; color: var(--ink); text-decoration:none; cursor:pointer; background:none; border:none; padding:0; }
 .site-brand .brand-mark{ color: var(--accent); }
 .site-links{ display:flex; gap:28px; flex-wrap:wrap; }
@@ -600,7 +600,7 @@ body.marketing-mode .tabbar{ display:none; }
 .mkt-container{ max-width:1180px; margin:0 auto; padding:0 48px; }
 
 .mkt-hero{ padding:56px 0 60px; }
-.mkt-hero-grid{ display:grid; grid-template-columns: 1fr 380px; gap:56px; align-items:center; }
+.mkt-hero-grid{ display:grid; grid-template-columns: 1fr 380px; gap:56px; align-items:start; }
 .mkt-kicker{ font-size:0.85rem; color: var(--muted); margin-bottom:10px; }
 .mkt-hero-actions{ display:flex; gap:12px; margin-top:24px; flex-wrap:wrap; }
 .mkt-hero-side{ background: var(--paper-raise); border:1px solid var(--line); border-radius: var(--radius); padding:22px; }
@@ -751,44 +751,47 @@ body.marketing-mode .site-footer{ display:block; }
     <section class="screen screen-marketing active" id="screen-home">
 
       <div class="mkt-hero">
-        <div class="mkt-container" style="text-align:center">
-          <p class="mkt-kicker">AI-powered · Built for corporates and SMEs</p>
-
-          <div class="mkt-pass-wrap" style="margin:0 auto 40px">
-            <div class="mkt-pass">
-              <div class="mkt-pass-top">
-                <span class="mkt-pass-who"><span class="mkt-pass-dot"></span>Verified profile</span>
-                <span class="mkt-pass-who">BCPASS</span>
+        <div class="mkt-container">
+          <div class="mkt-hero-grid">
+            <div>
+              <p class="mkt-kicker">AI-powered · Built for corporates and SMEs</p>
+              <h1 class="display" style="max-width:13ch;">Tell your story once.<br>Share it precisely.</h1>
+              <p class="lede" style="max-width:46ch;">BCPASS uses AI to read your description and documents and turn them into a verified company profile — then lets you share exactly what you choose with any bank, partner, or institution, whenever KYC comes up.</p>
+              <div class="mkt-hero-actions">
+                <a class="btn btn-primary" data-goto="signup">Get started →</a>
+                <a class="btn btn-ghost" data-goto="login">Sign in</a>
               </div>
-              <div class="mkt-pass-body">
-                <div class="mkt-pass-company">Harbour Trade Ltd</div>
-                <div class="mkt-pass-meta">Hong Kong · Trading &amp; logistics</div>
-              </div>
-              <div class="mkt-perf"></div>
-              <div class="mkt-pass-bottom">
-                <div>
-                  <div class="mkt-pass-ref">PASS·7F3K·2QXR</div>
-                  <div class="mkt-pass-tier">Standard Pass</div>
-                </div>
-                <div class="mkt-qr" aria-hidden="true">
-                  <i></i><i></i><i></i><i></i><i></i>
-                  <i></i><i></i><i></i><i></i><i></i>
-                  <i></i><i></i><i></i><i></i><i></i>
-                  <i></i><i></i><i></i><i></i><i></i>
-                  <i></i><i></i><i></i><i></i><i></i>
-                </div>
-              </div>
+              <p class="side-note" style="margin-top:18px; max-width:46ch;">Open accounts or relationships with several banks and you'll usually answer the same questions each time. BCPASS means you answer them once — then decide who sees what.</p>
             </div>
-            <p class="mkt-pass-caption">Sample Pass — what a bank, partner, or institution receives when you share.</p>
-          </div>
 
-          <h1 class="display" style="max-width:22ch; margin-left:auto; margin-right:auto;">Tell your story once.<br>Share it precisely.</h1>
-          <p class="lede" style="max-width:52ch; margin-left:auto; margin-right:auto;">BCPASS uses AI to turn a conversation about your business into a verified company profile — then lets you share exactly what you choose with any bank, partner, or institution, whenever KYC comes up.</p>
-          <div class="mkt-hero-actions" style="justify-content:center">
-            <a class="btn btn-primary" data-goto="signup">Get started →</a>
-            <a class="btn btn-ghost" data-goto="login">Sign in</a>
+            <div class="mkt-pass-wrap">
+              <div class="mkt-pass">
+                <div class="mkt-pass-top">
+                  <span class="mkt-pass-who"><span class="mkt-pass-dot"></span>Verified profile</span>
+                  <span class="mkt-pass-who">BCPASS</span>
+                </div>
+                <div class="mkt-pass-body">
+                  <div class="mkt-pass-company">Harbour Trade Ltd</div>
+                  <div class="mkt-pass-meta">Hong Kong · Trading &amp; logistics</div>
+                </div>
+                <div class="mkt-perf"></div>
+                <div class="mkt-pass-bottom">
+                  <div>
+                    <div class="mkt-pass-ref">PASS·7F3K·2QXR</div>
+                    <div class="mkt-pass-tier">Standard Pass</div>
+                  </div>
+                  <div class="mkt-qr" aria-hidden="true">
+                    <i></i><i></i><i></i><i></i><i></i>
+                    <i></i><i></i><i></i><i></i><i></i>
+                    <i></i><i></i><i></i><i></i><i></i>
+                    <i></i><i></i><i></i><i></i><i></i>
+                    <i></i><i></i><i></i><i></i><i></i>
+                  </div>
+                </div>
+              </div>
+              <p class="mkt-pass-caption">Sample Pass — what a bank, partner, or institution receives when you share.</p>
+            </div>
           </div>
-          <p class="side-note" style="margin:18px auto 0; max-width:52ch;">Open accounts or relationships with several banks and you'll usually answer the same questions each time. BCPASS means you answer them once — then decide who sees what.</p>
         </div>
       </div>
 
@@ -803,7 +806,7 @@ body.marketing-mode .site-footer{ display:block; }
               <span class="mkt-step-num">01</span>
               <div class="mkt-step-body">
                 <h3>Tell us about your business</h3>
-                <p>By voice or by typing, our AI asks the right questions and builds a structured profile as you talk — no blank forms to stare at.</p>
+                <p>Describe your business in your own words and our AI asks the right questions, building a structured profile as you go — no blank forms to stare at.</p>
               </div>
             </div>
             <div class="mkt-step">
@@ -951,7 +954,7 @@ body.marketing-mode .site-footer{ display:block; }
             <div class="mkt-step">
               <span class="mkt-step-num">—</span>
               <div class="mkt-step-body">
-                <h3>Build your profile, by voice or text</h3>
+                <h3>Build your profile by describing your business</h3>
                 <p>Our AI guides you through your company overview, business activity, ownership and structure, funding sources, business history, and current and future plans — asking follow-up questions where something's missing, rather than handing you a blank form.</p>
               </div>
             </div>
@@ -1014,7 +1017,7 @@ body.marketing-mode .site-footer{ display:block; }
             <div class="mkt-feature">
               <p class="mkt-feature-num">Conversation</p>
               <h3>Turning what you say into structure</h3>
-              <p class="mkt-feature-desc">When you tell us about your business — by voice or by typing — AI organizes what you say into a structured profile, asking follow-up questions where something's missing.</p>
+              <p class="mkt-feature-desc">When you describe your business in your own words, AI organizes what you say into a structured profile, asking follow-up questions where something's missing.</p>
             </div>
             <div class="mkt-feature">
               <p class="mkt-feature-num">Documents</p>
@@ -1133,7 +1136,7 @@ body.marketing-mode .site-footer{ display:block; }
       <div class="auth-wrap">
         <p class="eyebrow-none kicker">Your business, verified once</p>
         <h1 class="display">Tell us once.<br>Share it precisely.</h1>
-        <p class="lede">BCPASS uses AI to turn a conversation about your business into a verified company profile — then lets you share exactly what you choose with any bank, partner, or institution.</p>
+        <p class="lede">BCPASS uses AI to read your description and documents and turn them into a verified company profile — then lets you share exactly what you choose with any bank, partner, or institution.</p>
 
         <form class="auth-form" id="login-form">
           <label class="field">
@@ -1162,7 +1165,7 @@ body.marketing-mode .site-footer{ display:block; }
         </div>
         <p class="side-title" style="margin-top:22px">How BCPASS helps</p>
         <ul class="prompt-list">
-          <li>Our AI turns a conversation about your business into a structured, verified profile</li>
+          <li>Our AI reads your description and documents, then turns them into a structured, verified profile</li>
           <li>We generate a clear business diagram — suppliers, customers, ownership — so anyone reviewing it understands it fast</li>
           <li>Share one Pass with any bank, partner, or institution — you choose what they see, and can change it any time</li>
         </ul>
@@ -1204,7 +1207,7 @@ body.marketing-mode .site-footer{ display:block; }
         </div>
         <p class="side-title" style="margin-top:22px">How BCPASS helps</p>
         <ul class="prompt-list">
-          <li>Our AI turns a conversation about your business into a structured, verified profile</li>
+          <li>Our AI reads your description and documents, then turns them into a structured, verified profile</li>
           <li>We generate a clear business diagram — suppliers, customers, ownership — so anyone reviewing it understands it fast</li>
           <li>Share one Pass with any bank, partner, or institution — you choose what they see, and can change it any time</li>
         </ul>
