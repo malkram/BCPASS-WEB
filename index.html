@@ -555,6 +555,16 @@ textarea.field-text{ resize: vertical; min-height:84px; line-height:1.5; }
 
 .screen.screen-marketing{ padding:0; max-width:none; }
 
+/* The auth screens (login/signup/2FA) keep their original max-width:1040px
+   box (see base .screen rule) and layout, but that box was designed to sit
+   flush-left next to the dark .railnav sidebar. In marketing-mode the
+   sidebar is hidden and .stage spans the full viewport, so without explicit
+   centering the box just hugs the left edge, leaving a large dead gap on
+   the right — the "left aligned" look the client flagged. Centering it
+   here matches the rest of the public shell (nav, footer, marketing pages)
+   without touching the authenticated app's own use of .screen. */
+body.marketing-mode .screen.public-shell{ margin: 0 auto; }
+
 /* Colour tune (1 Oct 2026) — the public-facing experience (marketing pages
    PLUS the sign-in/sign-up/2FA screens, which are the entry point from
    them — see the isPublicShell logic in goToScreen()) now uses the exact
