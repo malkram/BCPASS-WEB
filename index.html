@@ -373,6 +373,7 @@ ul{ margin:0; padding:0; list-style:none; }
 
 /* ============ PASS / MASKING ============ */
 .mask-options, .consult-options{ display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
+.pass-preview + .mask-options{ margin-top:28px; }
 .mask-option{ display:flex; gap:12px; align-items:flex-start; border:1px solid var(--line); border-radius: var(--radius); padding:14px 16px; background: var(--paper-raise); cursor:pointer; transition: box-shadow .15s ease; }
 .mask-option:hover{ box-shadow: 0 2px 10px rgba(16,40,33,0.08); }
 .mask-option.selected, .mask-option:has(input:checked){ border-color: var(--accent); background: var(--accent-soft); }
@@ -410,38 +411,46 @@ ul{ margin:0; padding:0; list-style:none; }
 .pass-live-preview{ margin-top:14px; }
 .pass-live-preview .pass-field span{ color:#9FB2A6; }
 
-/* ---- "Business card" style shareable Pass (1 Oct) — a static, always-
-   visible summary card on the owner's own screen-pass, separate from the
+/* ---- "Business card" style shareable Pass (1-2 Oct) — a static,
+   always-visible card on the owner's own screen-pass, separate from the
    detailed tiered share link below it. Shows only business-card-level
-   fields (company, brief description, contact person/position/phone/
+   fields (company, Location/Products, contact person/position/phone/
    email, Pass type, BCPASS mark) regardless of which tier is selected —
-   the tier only controls what the *link* reveals — and reuses the SAME
-   QR image renderPassLinkBox() already fetches from generate-qr (set
-   into #bc-card-qr there) rather than requesting a second one. Dark
-   theme to match this screen's existing .pass-card; distinct .bc-card-*
-   classnames so this never collides with .pass-card here or with the
-   marketing homepage's own .mkt-pass-* sample card. ---- */
-.bc-card{ background: var(--ink); color:#E8EEE9; border-radius: var(--radius); overflow:hidden; }
-.bc-card-top{ display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid rgba(255,255,255,0.12); }
-.bc-card-brand{ display:flex; align-items:center; gap:7px; font-family: var(--font-display); font-size:0.92rem; font-weight:600; letter-spacing:0.01em; }
-.bc-card-brand .brand-mark{ color: var(--accent); }
-.bc-card-tier{ font-size:0.66rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9FB2A6; background:rgba(255,255,255,0.08); padding:4px 10px; border-radius:999px; }
-.bc-card-main{ display:flex; gap:20px; align-items:flex-start; padding:20px; }
-.bc-card-text{ flex:1; min-width:0; }
-.bc-card-company{ font-family: var(--font-display); font-size:1.25rem; font-weight:600; color:#fff; line-height:1.25; }
-.bc-card-desc{ font-size:0.83rem; color:#9FB2A6; margin:6px 0 0; line-height:1.45; }
-.bc-card-divider{ border-top:1px dashed rgba(255,255,255,0.18); margin:14px 0; }
-.bc-card-contact-name{ font-size:0.9rem; font-weight:600; color:#fff; }
-.bc-card-contact-role{ font-size:0.78rem; color:#9FB2A6; margin-top:2px; }
-.bc-card-contact-line{ font-size:0.82rem; color:#D7E1DB; margin-top:6px; }
-.bc-card-qr{ flex-shrink:0; width:104px; height:104px; background:#fff; border-radius:10px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+   the tier only controls what the *link* reveals. Reuses the SAME QR
+   image renderPassLinkBox() already fetches from generate-qr (set into
+   #bc-card-qr there, and cached in lastPassQrDataUrl for the download/
+   share actions below) rather than requesting a second one. Light,
+   rounded, actual business-card proportions (1.75:1, same ratio as a
+   standard 3.5x2in card) per the client's reference mockup — distinct
+   .bc-card-* classnames so this never collides with .pass-card here or
+   with the marketing homepage's own .mkt-pass-* sample card. ---- */
+.bc-card-wrap{ display:flex; justify-content:center; }
+.bc-card{ width:100%; max-width:420px; aspect-ratio:1.75/1; display:flex; flex-direction:column; justify-content:space-between; background: var(--paper-raise); color: var(--ink); border:1px solid var(--line); border-radius:20px; overflow:hidden; box-shadow:0 20px 44px -28px rgba(16,40,33,0.28); }
+.bc-card-top{ display:flex; align-items:center; justify-content:space-between; padding:14px 18px 0; }
+.bc-card-brand{ display:flex; align-items:center; gap:6px; font-family: var(--font-display); font-size:0.8rem; font-weight:600; letter-spacing:0.01em; color: var(--ink); }
+.bc-card-brand .brand-mark{ color: var(--accent); font-size:1rem; }
+.bc-card-tier{ font-size:0.6rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color: var(--accent); background:rgba(31,122,92,0.12); padding:3px 9px; border-radius:999px; white-space:nowrap; }
+.bc-card-body{ padding:8px 18px 0; min-width:0; }
+.bc-card-company{ font-family: var(--font-display); font-size:1.05rem; font-weight:600; color: var(--ink); line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bc-card-meta{ font-size:0.72rem; color: var(--muted); margin:3px 0 0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* Perforated "ticket" divider — same visual technique as the marketing
+   homepage's .mkt-perf (dashed line + punched-circle cutouts), kept as
+   its own rule so this card's circles always match .bc-card's own
+   background rather than .mkt-pass's. */
+.bc-perf{ position:relative; height:1px; margin:10px -1px 0; border-top:2px dashed var(--line-strong); flex-shrink:0; }
+.bc-perf::before, .bc-perf::after{ content:""; position:absolute; top:-9px; width:18px; height:18px; border-radius:50%; background: var(--paper); }
+.bc-perf::before{ left:-9px; }
+.bc-perf::after{ right:-9px; }
+.bc-card-bottom{ display:flex; align-items:flex-end; justify-content:space-between; gap:12px; padding:10px 18px 14px; }
+.bc-card-contact{ min-width:0; }
+.bc-card-contact-name{ font-size:0.82rem; font-weight:600; color: var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bc-card-contact-role{ font-size:0.68rem; color: var(--muted); margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bc-card-contact-line{ font-size:0.68rem; color: var(--ink-soft); margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bc-card-qr{ flex-shrink:0; width:68px; height:68px; background:#fff; border-radius:8px; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; overflow:hidden; }
 .bc-card-qr img{ display:block; width:100%; height:100%; }
-@media (max-width: 720px){
-  .bc-card-main{ flex-direction:column; }
-  .bc-card-qr{ width:120px; height:120px; align-self:center; }
-}
+.bc-card-actions{ display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:14px; }
 
-.pass-preview-link-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:18px; padding-top:16px; border-top:1px solid var(--line); }
+.pass-preview-link-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:4px; padding-top:16px; border-top:1px solid var(--line); }
 .pass-preview-link-row .side-title{ margin-bottom:0; }
 
 /* ============ APPOINTMENTS ============ */
@@ -1534,30 +1543,37 @@ body.marketing-mode .site-footer{ display:block; }
 
       <div id="pass-content" class="split" style="display:none">
         <div class="split-main">
-          <div class="mask-options" id="pass-tier-options"><!-- rendered by renderPassTierOptions() --></div>
-
           <div class="pass-preview">
-            <p class="side-title">Your BCPASS business card</p>
-            <div class="bc-card" id="bc-card">
-              <div class="bc-card-top">
-                <span class="bc-card-brand"><span class="brand-mark">◈</span> BCPASS</span>
-                <span class="bc-card-tier" id="bc-card-tier">—</span>
-              </div>
-              <div class="bc-card-main">
-                <div class="bc-card-text">
-                  <div class="bc-card-company" id="bc-card-company">—</div>
-                  <p class="bc-card-desc" id="bc-card-desc"></p>
-                  <div class="bc-card-divider"></div>
-                  <div class="bc-card-contact-name" id="bc-card-contact-name"></div>
-                  <div class="bc-card-contact-role" id="bc-card-contact-role"></div>
-                  <div class="bc-card-contact-line" id="bc-card-contact-phone"></div>
-                  <div class="bc-card-contact-line" id="bc-card-contact-email"></div>
+            <div class="bc-card-wrap">
+              <div class="bc-card" id="bc-card">
+                <div class="bc-card-top">
+                  <span class="bc-card-brand"><span class="brand-mark">◈</span> BCPASS</span>
+                  <span class="bc-card-tier" id="bc-card-tier">—</span>
                 </div>
-                <div class="bc-card-qr" id="bc-card-qr"><p class="side-note" style="margin:0;font-size:0.68rem">QR loading…</p></div>
+                <div class="bc-card-body">
+                  <div class="bc-card-company" id="bc-card-company">—</div>
+                  <p class="bc-card-meta" id="bc-card-meta"></p>
+                </div>
+                <div class="bc-perf"></div>
+                <div class="bc-card-bottom">
+                  <div class="bc-card-contact">
+                    <div class="bc-card-contact-name" id="bc-card-contact-name"></div>
+                    <div class="bc-card-contact-role" id="bc-card-contact-role"></div>
+                    <div class="bc-card-contact-line" id="bc-card-contact-phone"></div>
+                    <div class="bc-card-contact-line" id="bc-card-contact-email"></div>
+                  </div>
+                  <div class="bc-card-qr" id="bc-card-qr"><p class="side-note" style="margin:0;font-size:0.6rem">QR…</p></div>
+                </div>
               </div>
             </div>
-            <p class="pass-caption">A ready-to-share summary of your pass — print it, drop it in an email signature, or show the QR code in person. It always points to the same share link and QR code below, at whatever level you've set.</p>
+            <div class="bc-card-actions">
+              <button class="btn btn-ghost btn-small" id="bc-card-download">Download as image ⬇</button>
+              <button class="btn btn-ghost btn-small" id="bc-card-share">Share ↗</button>
+            </div>
+            <p class="pass-caption">A ready-to-share summary of your pass — print it, drop it in an email signature, or share it straight to WhatsApp, WeChat, or any app. It always points to the same share link and QR code below, at whatever level you've set.</p>
           </div>
+
+          <div class="mask-options" id="pass-tier-options"><!-- rendered by renderPassTierOptions() --></div>
 
           <div class="pass-preview-link-row">
             <p class="side-title">What they'll see</p>
@@ -3617,6 +3633,7 @@ const PASS_TIERS = [
 ];
 
 let currentPassLink = null; // { link_id, share_token, pass_tier, enabled, expires_at } or null, set by loadPassLinkForCase()
+let lastPassQrDataUrl = null; // the most recent generate-qr PNG data URL, cached here so the business card's download/share actions (below) can reuse it without a second edge-function call
 
 async function loadPassLinkForCase(){
   const kickerEl = document.getElementById('pass-company-kicker');
@@ -3750,6 +3767,7 @@ function renderPassLinkBox(){
     if(bcQrWrap) bcQrWrap.innerHTML = '<p class="side-note" style="margin:0;font-size:0.68rem">QR loading…</p>';
     callFunction('generate-qr', { text: shareUrl }).then(({ data_url }) => {
       if(!data_url) throw new Error('No QR image returned.');
+      lastPassQrDataUrl = data_url;
       qrWrap.innerHTML = `<img src="${data_url}" width="180" height="180" alt="QR code for this pass link">`;
       if(bcQrWrap) bcQrWrap.innerHTML = `<img src="${data_url}" alt="QR code for this pass link">`;
     }).catch((err) => {
@@ -3818,10 +3836,11 @@ document.querySelectorAll('.pass-recipient-link-btn').forEach(btn => {
 });
 
 // Static "business card" version of the Pass (screen-pass) — company
-// name, a brief description, contact details, the current Pass type,
-// and the QR code already fetched by renderPassLinkBox() (reused via
-// #bc-card-qr, not requested a second time from generate-qr). Unlike
-// the share link itself, this card always shows the same small,
+// name, Location/Products (not the full business-activity description —
+// too long for a card this size), contact details, the current Pass
+// type, and the QR code already fetched by renderPassLinkBox() (reused
+// via #bc-card-qr, not requested a second time from generate-qr).
+// Unlike the share link itself, this card always shows the same small,
 // business-card-appropriate field set regardless of which tier is
 // selected — the tier only changes what the *link* reveals, not what
 // this card shows. Full name/position come from the signed-in owner's
@@ -3831,7 +3850,7 @@ document.querySelectorAll('.pass-recipient-link-btn').forEach(btn => {
 async function renderBusinessCard(){
   const tierEl = document.getElementById('bc-card-tier');
   const companyEl = document.getElementById('bc-card-company');
-  const descEl = document.getElementById('bc-card-desc');
+  const metaEl = document.getElementById('bc-card-meta');
   const nameEl = document.getElementById('bc-card-contact-name');
   const roleEl = document.getElementById('bc-card-contact-role');
   const phoneEl = document.getElementById('bc-card-contact-phone');
@@ -3841,7 +3860,11 @@ async function renderBusinessCard(){
   const tierMeta = PASS_TIERS.find(t => t.key === currentPassLink?.pass_tier);
   if(tierEl) tierEl.textContent = tierMeta?.name ?? '—';
   if(companyEl) companyEl.textContent = kycProfile.legal_entity_name?.trim() || 'Your company';
-  if(descEl) descEl.textContent = kycProfile.description_of_business?.trim() || '';
+  if(metaEl){
+    const location = kycProfile.registration_country?.trim();
+    const products = kycProfile.products_sold?.trim();
+    metaEl.textContent = [location, products].filter(Boolean).join(' · ');
+  }
   if(phoneEl) phoneEl.textContent = kycProfile.contact_phone_number?.trim() || '';
   if(emailEl) emailEl.textContent = kycProfile.contact_email?.trim() || '';
 
@@ -3856,6 +3879,224 @@ async function renderBusinessCard(){
     }
   }
 }
+
+// ---- Business card: download as image / share (2 Oct) ----
+// Draws the card onto an offscreen <canvas> from scratch rather than
+// depending on a DOM-to-image library — corporate security tooling has
+// already been seen (23 Sept, see generate-qr above) to block
+// third-party CDN scripts outright, so this avoids that risk entirely
+// using only the native Canvas 2D API. Rendered at a true business-card
+// pixel size (1050x600 = 3.5in x 2in at 300dpi, the same 1.75:1 ratio
+// as the on-screen .bc-card) so the download/share image is print-
+// ready, not just a screenshot of the smaller on-screen version.
+function bcTruncateToWidth(ctx, text, maxWidth){
+  if(!text) return '';
+  if(ctx.measureText(text).width <= maxWidth) return text;
+  let t = text;
+  while(t.length > 1 && ctx.measureText(t + '…').width > maxWidth){
+    t = t.slice(0, -1);
+  }
+  return t + '…';
+}
+function bcLoadImage(src){
+  return new Promise((resolve) => {
+    if(!src){ resolve(null); return; }
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+function bcCanvasToBlob(canvas, type, quality){
+  return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+}
+
+async function buildBusinessCardCanvas(){
+  const W = 1050, H = 600, pad = 44, radius = 48;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  function roundRectPath(x, y, w, h, r){
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  try { await document.fonts.ready; } catch {}
+
+  // card background + border
+  roundRectPath(1, 1, W - 2, H - 2, radius);
+  ctx.fillStyle = '#F7F8F5'; // --paper-raise
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#D3D9D0'; // --line
+  ctx.stroke();
+  ctx.save();
+  roundRectPath(1, 1, W - 2, H - 2, radius);
+  ctx.clip();
+
+  // top row: BCPASS mark + wordmark (left), Pass tier pill (right)
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#1F7A5C'; // --accent
+  ctx.font = '700 36px Arial, sans-serif'; // a generic sans so the ◈ glyph is reliably available
+  ctx.fillText('◈', pad, pad + 32);
+  ctx.fillStyle = '#102821'; // --ink
+  ctx.font = '600 34px Fraunces, serif';
+  ctx.fillText('BCPASS', pad + 42, pad + 30);
+
+  const tierText = (document.getElementById('bc-card-tier')?.textContent || '').trim();
+  if(tierText){
+    ctx.font = '700 22px "IBM Plex Sans", sans-serif';
+    const padX = 24;
+    const tw = ctx.measureText(tierText).width;
+    const pillW = tw + padX * 2, pillH = 48, pillX = W - pad - pillW, pillY = pad;
+    roundRectPath(pillX, pillY, pillW, pillH, pillH / 2);
+    ctx.fillStyle = 'rgba(31,122,92,0.12)';
+    ctx.fill();
+    ctx.fillStyle = '#1F7A5C';
+    ctx.fillText(tierText, pillX + padX, pillY + 32);
+  }
+
+  // company name + "Location · Products" meta line
+  const company = (document.getElementById('bc-card-company')?.textContent || '').trim();
+  ctx.fillStyle = '#102821';
+  ctx.font = '600 50px Fraunces, serif';
+  ctx.fillText(bcTruncateToWidth(ctx, company, W - pad * 2), pad, 168);
+
+  const meta = (document.getElementById('bc-card-meta')?.textContent || '').trim();
+  ctx.fillStyle = '#6B776E'; // --muted
+  ctx.font = '400 26px "IBM Plex Sans", sans-serif';
+  ctx.fillText(bcTruncateToWidth(ctx, meta, W - pad * 2), pad, 206);
+
+  // perforated "ticket" divider — dashed line + punched-circle cutouts,
+  // same technique as the on-screen .bc-perf / the marketing homepage's
+  // .mkt-perf
+  const perfY = 244;
+  ctx.strokeStyle = '#B7C0B3'; // --line-strong
+  ctx.lineWidth = 3;
+  ctx.setLineDash([12, 10]);
+  ctx.beginPath();
+  ctx.moveTo(0, perfY);
+  ctx.lineTo(W, perfY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#EEF1EC'; // --paper (the punch-hole color)
+  ctx.beginPath(); ctx.arc(0, perfY, 26, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(W, perfY, 26, 0, Math.PI * 2); ctx.fill();
+
+  // QR code (bottom-right) — reuses the already-fetched data_url
+  const qrSize = 184;
+  const qrX = W - pad - qrSize, qrY = H - pad - qrSize;
+  const qrImg = await bcLoadImage(lastPassQrDataUrl);
+  if(qrImg){
+    roundRectPath(qrX, qrY, qrSize, qrSize, 14);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.drawImage(qrImg, qrX + 10, qrY + 10, qrSize - 20, qrSize - 20);
+  }
+
+  // contact block (bottom-left), bottom-aligned with the QR box
+  const name = (document.getElementById('bc-card-contact-name')?.textContent || '').trim();
+  const role = (document.getElementById('bc-card-contact-role')?.textContent || '').trim();
+  const phone = (document.getElementById('bc-card-contact-phone')?.textContent || '').trim();
+  const email = (document.getElementById('bc-card-contact-email')?.textContent || '').trim();
+  const contactMaxWidth = qrX - pad - 30;
+  const rows = [];
+  if(name) rows.push({ text: name, size: 36, weight: 600, color: '#102821' });
+  if(role) rows.push({ text: role, size: 28, weight: 400, color: '#6B776E' });
+  if(phone) rows.push({ text: phone, size: 28, weight: 400, color: '#24382F' });
+  if(email) rows.push({ text: email, size: 28, weight: 400, color: '#24382F' });
+  const rowGap = 14;
+  const totalHeight = rows.reduce((sum, r) => sum + r.size + rowGap, 0);
+  let cy = (qrY + qrSize) - totalHeight;
+  rows.forEach((r) => {
+    ctx.font = `${r.weight} ${r.size}px "IBM Plex Sans", sans-serif`;
+    ctx.fillStyle = r.color;
+    cy += r.size;
+    ctx.fillText(bcTruncateToWidth(ctx, r.text, contactMaxWidth), pad, cy);
+    cy += rowGap;
+  });
+
+  ctx.restore();
+  return canvas;
+}
+
+document.getElementById('bc-card-download')?.addEventListener('click', async (e) => {
+  const btn = e.currentTarget;
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Preparing…';
+  try {
+    const canvas = await buildBusinessCardCanvas();
+    const blob = await bcCanvasToBlob(canvas, 'image/jpeg', 0.95);
+    if(!blob) throw new Error('Could not create the image.');
+    const slug = (kycProfile.legal_entity_name || 'bcpass-card').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'bcpass-card';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${slug}-bcpass-card.jpg`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  } catch(err) {
+    console.error('Could not build the business card image:', err);
+    alert("Could not create the card image: " + (err.message || err));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+});
+
+document.getElementById('bc-card-share')?.addEventListener('click', async (e) => {
+  const btn = e.currentTarget;
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Preparing…';
+  try {
+    const canvas = await buildBusinessCardCanvas();
+    const blob = await bcCanvasToBlob(canvas, 'image/jpeg', 0.95);
+    if(!blob) throw new Error('Could not create the image.');
+    const companyName = kycProfile.legal_entity_name?.trim() || 'our company';
+    const shareUrl = document.getElementById('pass-share-url')?.value || '';
+    const file = new File([blob], 'bcpass-card.jpg', { type: 'image/jpeg' });
+
+    // Web Share API with a file: on a phone this hands the image straight
+    // to whatever's installed — WhatsApp, WeChat, Messages, AirDrop, email
+    // — exactly like the native share sheet. Most desktop browsers don't
+    // support sharing files this way, so they fall through to the
+    // WhatsApp web-link fallback below.
+    if(navigator.canShare && navigator.canShare({ files: [file] })){
+      await navigator.share({
+        files: [file],
+        title: `${companyName} — BCPASS`,
+        text: `${companyName}'s BCPASS pass: ${shareUrl}`,
+      });
+      return;
+    }
+    // Fallback for browsers with no file-sharing support (most desktop
+    // browsers): WhatsApp's web link can open pre-filled with text, but
+    // not an attached image, so this opens a chat picker with the card's
+    // link — the client attaches the downloaded image themselves. WeChat
+    // has no equivalent public web-share link, so there's no reliable
+    // one-click fallback to offer for it outside the native share sheet.
+    const waText = encodeURIComponent(`${companyName}'s BCPASS pass: ${shareUrl}`);
+    window.open(`https://wa.me/?text=${waText}`, '_blank');
+    alert("Your browser can't share the image file directly, so WhatsApp opened with the link instead — use “Download as image” first to attach the card itself, or to share it via WeChat.");
+  } catch(err) {
+    if(err?.name !== 'AbortError'){
+      console.error('Could not share the business card:', err);
+      alert("Could not share the card: " + (err.message || err));
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+});
 
 function goToScreen(name){
   // TODO (production, not testing phase): the Documents screen should not be
