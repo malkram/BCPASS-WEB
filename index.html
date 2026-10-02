@@ -410,6 +410,40 @@ ul{ margin:0; padding:0; list-style:none; }
 .pass-live-preview{ margin-top:14px; }
 .pass-live-preview .pass-field span{ color:#9FB2A6; }
 
+/* ---- "Business card" style shareable Pass (1 Oct) — a static, always-
+   visible summary card on the owner's own screen-pass, separate from the
+   detailed tiered share link below it. Shows only business-card-level
+   fields (company, brief description, contact person/position/phone/
+   email, Pass type, BCPASS mark) regardless of which tier is selected —
+   the tier only controls what the *link* reveals — and reuses the SAME
+   QR image renderPassLinkBox() already fetches from generate-qr (set
+   into #bc-card-qr there) rather than requesting a second one. Dark
+   theme to match this screen's existing .pass-card; distinct .bc-card-*
+   classnames so this never collides with .pass-card here or with the
+   marketing homepage's own .mkt-pass-* sample card. ---- */
+.bc-card{ background: var(--ink); color:#E8EEE9; border-radius: var(--radius); overflow:hidden; }
+.bc-card-top{ display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid rgba(255,255,255,0.12); }
+.bc-card-brand{ display:flex; align-items:center; gap:7px; font-family: var(--font-display); font-size:0.92rem; font-weight:600; letter-spacing:0.01em; }
+.bc-card-brand .brand-mark{ color: var(--accent); }
+.bc-card-tier{ font-size:0.66rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9FB2A6; background:rgba(255,255,255,0.08); padding:4px 10px; border-radius:999px; }
+.bc-card-main{ display:flex; gap:20px; align-items:flex-start; padding:20px; }
+.bc-card-text{ flex:1; min-width:0; }
+.bc-card-company{ font-family: var(--font-display); font-size:1.25rem; font-weight:600; color:#fff; line-height:1.25; }
+.bc-card-desc{ font-size:0.83rem; color:#9FB2A6; margin:6px 0 0; line-height:1.45; }
+.bc-card-divider{ border-top:1px dashed rgba(255,255,255,0.18); margin:14px 0; }
+.bc-card-contact-name{ font-size:0.9rem; font-weight:600; color:#fff; }
+.bc-card-contact-role{ font-size:0.78rem; color:#9FB2A6; margin-top:2px; }
+.bc-card-contact-line{ font-size:0.82rem; color:#D7E1DB; margin-top:6px; }
+.bc-card-qr{ flex-shrink:0; width:104px; height:104px; background:#fff; border-radius:10px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.bc-card-qr img{ display:block; width:100%; height:100%; }
+@media (max-width: 720px){
+  .bc-card-main{ flex-direction:column; }
+  .bc-card-qr{ width:120px; height:120px; align-self:center; }
+}
+
+.pass-preview-link-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:18px; padding-top:16px; border-top:1px solid var(--line); }
+.pass-preview-link-row .side-title{ margin-bottom:0; }
+
 /* ============ APPOINTMENTS ============ */
 .slot-grid{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:10px; max-width: 420px; }
 .slot{ padding:12px; border:1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper-raise); font-weight:500; font-size:0.9rem; }
@@ -1191,6 +1225,14 @@ body.marketing-mode .site-footer{ display:block; }
 
         <form class="auth-form" id="signup-form">
           <label class="field">
+            <span>Full name</span>
+            <input type="text" id="signup-full-name" placeholder="e.g. Jane Tan" autocomplete="name">
+          </label>
+          <label class="field">
+            <span>Position / job title</span>
+            <input type="text" id="signup-position" placeholder="e.g. Finance Director" autocomplete="organization-title">
+          </label>
+          <label class="field">
             <span>Work email</span>
             <input type="email" id="signup-email" placeholder="cfo@yourcompany.com" autocomplete="email">
           </label>
@@ -1494,10 +1536,32 @@ body.marketing-mode .site-footer{ display:block; }
         <div class="split-main">
           <div class="mask-options" id="pass-tier-options"><!-- rendered by renderPassTierOptions() --></div>
 
-          <div class="pass-preview pass-live-preview">
-            <p class="side-title" id="pass-preview-title">What they'll see</p>
-            <div class="pass-card" id="pass-preview-card"><p class="pass-field"><span>Loading preview…</span></p></div>
-            <p class="pass-caption">Exactly what a bank, partner, or institution sees at this level — including your business diagram, when it's included, so they can understand your structure at a glance.</p>
+          <div class="pass-preview">
+            <p class="side-title">Your BCPASS business card</p>
+            <div class="bc-card" id="bc-card">
+              <div class="bc-card-top">
+                <span class="bc-card-brand"><span class="brand-mark">◈</span> BCPASS</span>
+                <span class="bc-card-tier" id="bc-card-tier">—</span>
+              </div>
+              <div class="bc-card-main">
+                <div class="bc-card-text">
+                  <div class="bc-card-company" id="bc-card-company">—</div>
+                  <p class="bc-card-desc" id="bc-card-desc"></p>
+                  <div class="bc-card-divider"></div>
+                  <div class="bc-card-contact-name" id="bc-card-contact-name"></div>
+                  <div class="bc-card-contact-role" id="bc-card-contact-role"></div>
+                  <div class="bc-card-contact-line" id="bc-card-contact-phone"></div>
+                  <div class="bc-card-contact-line" id="bc-card-contact-email"></div>
+                </div>
+                <div class="bc-card-qr" id="bc-card-qr"><p class="side-note" style="margin:0;font-size:0.68rem">QR loading…</p></div>
+              </div>
+            </div>
+            <p class="pass-caption">A ready-to-share summary of your pass — print it, drop it in an email signature, or show the QR code in person. It always points to the same share link and QR code below, at whatever level you've set.</p>
+          </div>
+
+          <div class="pass-preview-link-row">
+            <p class="side-title">What they'll see</p>
+            <button class="btn btn-ghost btn-small pass-recipient-link-btn" id="pass-preview-link-2">Preview as recipient ↗</button>
           </div>
         </div>
 
@@ -1510,7 +1574,7 @@ body.marketing-mode .site-footer{ display:block; }
           </div>
           <div class="pass-link-actions">
             <button class="btn btn-ghost btn-small" id="pass-copy-link">Copy link</button>
-            <button class="btn btn-ghost btn-small" id="pass-preview-link">Open as recipient ↗</button>
+            <button class="btn btn-ghost btn-small pass-recipient-link-btn" id="pass-preview-link">Open as recipient ↗</button>
           </div>
 
           <div class="pass-qr-wrap" id="pass-qr-wrap"><p class="side-note" style="margin:0">Generating QR code…</p></div>
@@ -2375,9 +2439,16 @@ if(signupForm){
       errorEl.style.display = 'block';
       return;
     }
+    const fullName = document.getElementById('signup-full-name').value.trim();
+    const position = document.getElementById('signup-position').value.trim();
     const email = document.getElementById('signup-email').value.trim();
     const password = document.getElementById('signup-password').value;
     const passwordConfirm = document.getElementById('signup-password-confirm').value;
+    if(!fullName){
+      errorEl.textContent = "Enter your full name.";
+      errorEl.style.display = 'block';
+      return;
+    }
     if(!email || !password){
       errorEl.textContent = "Enter your work email and a password.";
       errorEl.style.display = 'block';
@@ -2396,7 +2467,7 @@ if(signupForm){
     const submitBtn = document.getElementById('signup-submit-btn');
     submitBtn.disabled = true;
     try {
-      const { data, error } = await supabaseClient.auth.signUp({ email, password });
+      const { data, error } = await supabaseClient.auth.signUp({ email, password, options: { data: { full_name: fullName, position } } });
       if(error) throw error;
       if(!data.session){
         // This Supabase project has "confirm email" turned on in its auth
@@ -3584,7 +3655,7 @@ async function loadPassLinkForCase(){
   renderPassTierOptions();
   renderPassLinkBox();
   renderPassStatusBanner();
-  refreshPassLivePreview();
+  renderBusinessCard();
 }
 
 document.getElementById('pass-generate-btn')?.addEventListener('click', async (e) => {
@@ -3630,7 +3701,7 @@ document.getElementById('pass-tier-options')?.addEventListener('change', async (
   document.querySelectorAll('#pass-tier-options .mask-option').forEach(el => el.classList.remove('selected'));
   e.target.closest('.mask-option').classList.add('selected');
   await updatePassLink({ pass_tier: newTier });
-  refreshPassLivePreview();
+  renderBusinessCard();
 });
 
 async function updatePassLink(patch){
@@ -3669,14 +3740,22 @@ function renderPassLinkBox(){
   // (renderPassLinkBox isn't awaited by its caller) — both success and
   // failure update the box directly once the call resolves.
   const qrWrap = document.getElementById('pass-qr-wrap');
+  // The business card's QR (screen-pass's new .bc-card) shows the exact
+  // same code as this share-link box — it's the same link either way —
+  // so it's populated from this same generate-qr response rather than
+  // making a second call for it.
+  const bcQrWrap = document.getElementById('bc-card-qr');
   if(qrWrap){
     qrWrap.innerHTML = '<p class="side-note" style="margin:0">Generating QR code…</p>';
+    if(bcQrWrap) bcQrWrap.innerHTML = '<p class="side-note" style="margin:0;font-size:0.68rem">QR loading…</p>';
     callFunction('generate-qr', { text: shareUrl }).then(({ data_url }) => {
       if(!data_url) throw new Error('No QR image returned.');
       qrWrap.innerHTML = `<img src="${data_url}" width="180" height="180" alt="QR code for this pass link">`;
+      if(bcQrWrap) bcQrWrap.innerHTML = `<img src="${data_url}" alt="QR code for this pass link">`;
     }).catch((err) => {
       console.error('QR code generation failed:', err);
       qrWrap.innerHTML = `<p class="side-note" style="margin:0">Could not generate the QR code: ${escapeHtml(err.message || String(err))}</p>`;
+      if(bcQrWrap) bcQrWrap.innerHTML = `<p class="side-note" style="margin:0;font-size:0.68rem">QR unavailable</p>`;
     });
   }
 }
@@ -3726,80 +3805,56 @@ document.getElementById('pass-copy-link')?.addEventListener('click', async () =>
   }
 });
 
-document.getElementById('pass-preview-link')?.addEventListener('click', () => {
-  const urlInput = document.getElementById('pass-share-url');
-  if(urlInput?.value) window.open(urlInput.value, '_blank');
+// Both "open the pass the way a recipient would" buttons — the one next
+// to the share link, and the one under the simplified "What they'll see"
+// row above the business card — do exactly the same thing: open the
+// live share link in a new tab. One delegated-by-class listener covers
+// both rather than duplicating the handler.
+document.querySelectorAll('.pass-recipient-link-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const urlInput = document.getElementById('pass-share-url');
+    if(urlInput?.value) window.open(urlInput.value, '_blank');
+  });
 });
 
-// Calls the REAL public get-pass function rather than re-implementing the
-// tier field logic client-side — a second implementation of the same
-// whitelist would risk drifting out of sync with get-pass-index.ts (the
-// one that actually matters, since it's what an institution sees), the
-// same class of bug this whole project has hit before whenever two
-// places were trusted to independently agree on a shape. What the owner
-// sees in this preview is exactly, byte-for-byte, what get-pass returns.
-async function refreshPassLivePreview(){
-  const titleEl = document.getElementById('pass-preview-title');
-  const cardEl = document.getElementById('pass-preview-card');
-  if(!currentPassLink || !cardEl) return;
-  const tierMeta = PASS_TIERS.find(t => t.key === currentPassLink.pass_tier);
-  if(titleEl) titleEl.textContent = `What they'll see — ${tierMeta?.name ?? currentPassLink.pass_tier}`;
-  cardEl.innerHTML = `<p class="pass-field"><span>Loading preview…</span></p>`;
-  try {
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/get-pass`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ share_token: currentPassLink.share_token }),
-    });
-    const result = await response.json();
-    if(!response.ok) throw new Error(result?.error || 'Preview failed');
-    cardEl.innerHTML = renderPassFieldsHtml(result.pass);
-  } catch(err) {
-    cardEl.innerHTML = `<p class="pass-field"><span>${escapeHtml(err.message)}</span></p>`;
-  }
-}
+// Static "business card" version of the Pass (screen-pass) — company
+// name, a brief description, contact details, the current Pass type,
+// and the QR code already fetched by renderPassLinkBox() (reused via
+// #bc-card-qr, not requested a second time from generate-qr). Unlike
+// the share link itself, this card always shows the same small,
+// business-card-appropriate field set regardless of which tier is
+// selected — the tier only changes what the *link* reveals, not what
+// this card shows. Full name/position come from the signed-in owner's
+// own account (Supabase Auth user_metadata, set at signup — see
+// #signup-full-name/#signup-position), since BCPASS has no separate
+// per-user profile table.
+async function renderBusinessCard(){
+  const tierEl = document.getElementById('bc-card-tier');
+  const companyEl = document.getElementById('bc-card-company');
+  const descEl = document.getElementById('bc-card-desc');
+  const nameEl = document.getElementById('bc-card-contact-name');
+  const roleEl = document.getElementById('bc-card-contact-role');
+  const phoneEl = document.getElementById('bc-card-contact-phone');
+  const emailEl = document.getElementById('bc-card-contact-email');
+  if(!companyEl) return;
 
-// Generic label:value renderer. The field SET differs per tier (see
-// get-pass-index.ts's five buildXTier functions), so rather than
-// hand-writing five separate preview layouts that could quietly drift
-// from the real whitelist, this just walks whatever the function
-// actually returned. Not the polished final institution-facing design
-// (that's pass-viewer.html, task #33) — this is the owner's own rough
-// preview, and correctness (showing exactly what's included, nothing
-// more) matters far more here than visual polish.
-function humanizePassKey(key){
-  return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-}
-function formatPassValue(v){
-  if(v === null || v === undefined || v === '') return '—';
-  if(Array.isArray(v)){
-    if(v.length === 0) return '—';
-    if(typeof v[0] === 'object' && v[0] !== null){
-      return v.map(x => x.country ? `${x.country}${x.percentage != null ? ' ' + x.percentage + '%' : ''}` : JSON.stringify(x)).join(', ');
+  const tierMeta = PASS_TIERS.find(t => t.key === currentPassLink?.pass_tier);
+  if(tierEl) tierEl.textContent = tierMeta?.name ?? '—';
+  if(companyEl) companyEl.textContent = kycProfile.legal_entity_name?.trim() || 'Your company';
+  if(descEl) descEl.textContent = kycProfile.description_of_business?.trim() || '';
+  if(phoneEl) phoneEl.textContent = kycProfile.contact_phone_number?.trim() || '';
+  if(emailEl) emailEl.textContent = kycProfile.contact_email?.trim() || '';
+
+  if(supabaseClient && (nameEl || roleEl)){
+    try {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      const meta = user?.user_metadata || {};
+      if(nameEl) nameEl.textContent = meta.full_name?.trim() || '';
+      if(roleEl) roleEl.textContent = meta.position?.trim() || '';
+    } catch(err) {
+      console.error('Could not load account details for business card:', err);
     }
-    return v.join(', ');
   }
-  if(typeof v === 'object') return Object.entries(v).map(([k, val]) => `${k}: ${val}`).join(', ');
-  return String(v);
-}
-function renderPassFieldsHtml(pass){
-  if(!pass) return `<p class="pass-field"><span>No data.</span></p>`;
-  // These carry either nested structure or need more than a single
-  // label:value line — summarized separately below instead of via the
-  // generic per-field loop.
-  const SPECIAL_KEYS = new Set(['kyb_summary_plain_text', 'business_diagram', 'discrepancies', 'third_party_flags']);
-  const rows = Object.entries(pass)
-    .filter(([k]) => !SPECIAL_KEYS.has(k))
-    .map(([k, v]) => `<p class="pass-field"><span>${escapeHtml(humanizePassKey(k))}</span><b>${escapeHtml(formatPassValue(v))}</b></p>`)
-    .join('');
-  let extras = '';
-  if(pass.business_diagram) extras += `<p class="pass-field"><span>Business diagram</span><b>Included</b></p>`;
-  if(Array.isArray(pass.discrepancies) && pass.discrepancies.length) extras += `<p class="pass-field"><span>Open discrepancies</span><b>${pass.discrepancies.length}</b></p>`;
-  if(Array.isArray(pass.third_party_flags) && pass.third_party_flags.length) extras += `<p class="pass-field"><span>Open review flags</span><b>${pass.third_party_flags.length}</b></p>`;
-  const summary = pass.kyb_summary_plain_text
-    ? `<div class="pass-field" style="display:block;border-bottom:none"><span>Summary</span><p style="color:#E8EEE9;font-weight:400;white-space:pre-wrap;margin-top:6px">${escapeHtml(pass.kyb_summary_plain_text)}</p></div>`
-    : '';
-  return (rows + extras + summary) || `<p class="pass-field"><span>No data.</span></p>`;
 }
 
 function goToScreen(name){
