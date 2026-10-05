@@ -380,6 +380,32 @@ ul{ margin:0; padding:0; list-style:none; }
 .pass-list{ display:flex; flex-direction:column; gap:8px; }
 .pass-list-item{ display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; text-align:left; background: var(--paper-raise); border:1px solid var(--line); border-radius: var(--radius); padding:11px 14px; cursor:pointer; font:inherit; color:inherit; }
 .pass-list-item:hover{ border-color: var(--line-strong); }
+.match-areas{ display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 0; }
+.match-area-tag{ font-size:0.76rem; padding:3px 10px; border-radius:999px; background: var(--accent-soft, #E4EFE9); color: var(--accent); font-weight:600; }
+.match-run-row{ display:flex; flex-wrap:wrap; align-items:center; gap:14px; margin:22px 0 6px; }
+.match-updated{ font-size:0.8rem; color: var(--muted); }
+.match-card{ background: var(--paper-raise); border:1px solid var(--line); border-radius: var(--radius); padding:18px 20px; margin-top:18px; }
+.match-card h2{ font-size:0.95rem; margin:0 0 6px; }
+.match-card p{ margin:0 0 8px; font-size:0.9rem; color: var(--ink-soft); }
+.mx-list{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+.mx-row{ display:grid; grid-template-columns: 34px 1fr auto; align-items:center; gap:14px; background: var(--paper-raise); border:1px solid var(--line); border-radius: var(--radius); padding:14px 16px; }
+.match-rank{ width:30px; height:30px; border-radius:50%; background: var(--paper); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:0.82rem; font-weight:700; color: var(--ink-soft); }
+.match-name{ font-weight:600; font-size:1rem; color: var(--ink); margin-bottom:7px; }
+.match-bar{ height:6px; border-radius:6px; background: var(--line); overflow:hidden; }
+.match-bar > span{ display:block; height:100%; border-radius:6px; background: var(--accent); }
+.match-bar.mid > span{ background: var(--amber); }
+.match-bar.low > span{ background: var(--muted); }
+.match-score{ text-align:right; min-width:104px; }
+.match-score b{ display:block; font-family: var(--font-display); font-size:1.5rem; font-weight:600; color: var(--ink); line-height:1.1; }
+.match-chip{ display:inline-block; margin-top:3px; font-size:0.64rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; padding:3px 9px; border-radius:999px; background:rgba(31,122,92,0.12); color: var(--accent); }
+.match-chip.mid{ background: var(--amber-soft); color: var(--amber); }
+.match-chip.low{ background: var(--paper); color: var(--muted); border:1px solid var(--line); }
+.match-gaps{ margin:6px 0 12px 18px; padding:0; font-size:0.9rem; color: var(--ink-soft); }
+.match-locked{ position:relative; border-style:dashed; background: var(--paper); }
+.match-locked ul{ margin:6px 0 12px 18px; padding:0; font-size:0.88rem; color: var(--ink-soft); }
+.match-locked .match-soon{ display:inline-block; font-size:0.7rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; padding:3px 10px; border-radius:999px; background: var(--paper-raise); border:1px solid var(--line-strong); color: var(--ink-soft); }
+.match-fineprint{ font-size:0.78rem; color: var(--muted); margin-top:22px; max-width:70ch; }
+@media (max-width:560px){ .mx-row{ grid-template-columns: 28px 1fr; } .match-score{ grid-column: 2; text-align:left; display:flex; align-items:baseline; gap:10px; } .match-score b{ font-size:1.3rem; } }
 .pass-list-count{ font-size:0.76rem; color: var(--muted); margin:-4px 0 10px; }
 .pass-pager{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:12px; }
 .pass-pager-btn{ font:inherit; font-size:0.82rem; min-width:34px; padding:6px 10px; background: var(--paper-raise); border:1px solid var(--line); border-radius: 999px; color: var(--ink); cursor:pointer; }
@@ -503,7 +529,7 @@ ul{ margin:0; padding:0; list-style:none; }
     padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
     z-index: 20; border-top:1px solid rgba(255,255,255,0.1);
   }
-  .tab-btn{ flex:1; background:none; border:none; color:#93A79C; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:0.66rem; padding:4px 2px; }
+  .tab-btn{ flex:1; min-width:0; background:none; border:none; color:#93A79C; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:0.6rem; padding:4px 0; }
   .tab-btn.active{ color:#fff; }
   .tab-ic{ font-size:1rem; }
   .company-list{ grid-template-columns: 1fr; }
@@ -808,6 +834,7 @@ body.marketing-mode .site-footer{ display:block; }
       <li><button class="rail-btn" data-screen="build">Your company profile</button></li>
       <li><button class="rail-btn" data-screen="documents">Documents</button></li>
       <li><button class="rail-btn" data-screen="summary">Summary</button></li>
+      <li><button class="rail-btn" data-screen="matching">Matching</button></li>
       <li><button class="rail-btn" data-screen="pass">Share pass</button></li>
       <li><button class="rail-btn" data-screen="appointments">Appointments</button></li>
       <li><button class="rail-btn" data-screen="institution">Institution view</button></li>
@@ -1670,6 +1697,37 @@ body.marketing-mode .site-footer{ display:block; }
       </div>
     </section>
 
+    <!-- ---------- 6b. MATCHING (Maisy Part A, free "generic" tier) ---------- -->
+    <section class="screen" id="screen-matching">
+      <header class="screen-head hero">
+        <div>
+          <p class="kicker" id="matching-company-kicker">Company profile</p>
+          <h1>Your matches</h1>
+        </div>
+      </header>
+      <p class="lede">We compare your company profile with what banks and finance providers say they look for, and show who looks like a good fit. It saves you from approaching institutions that were never going to be right for you.</p>
+      <div class="match-areas" id="matching-areas"></div>
+
+      <div class="match-run-row" id="matching-run-row">
+        <button class="btn btn-primary" id="matching-run-btn">Find my matches →</button>
+        <span class="match-updated" id="matching-updated"></span>
+      </div>
+      <div id="matching-body"><!-- rendered by renderMatching() --></div>
+
+      <div class="match-card match-locked" id="matching-locked">
+        <h2>Comprehensive matching <span class="match-soon">Coming soon</span></h2>
+        <p>Want to go deeper on any institution? The comprehensive version will add:</p>
+        <ul>
+          <li>Details about the institution and whether it's a verified BCPASS partner</li>
+          <li>An estimate of the kind of product and amount you could be eligible for</li>
+          <li>Potential savings or benefit compared with what you use today</li>
+          <li>How each match was worked out, point by point</li>
+        </ul>
+      </div>
+
+      <p class="match-fineprint">Match percentages are an estimate of how closely your profile fits each institution's published criteria. They are not a prediction that an application will be approved, and they are not financial advice. Institutions make their own decisions, and the information we hold about them comes from public sources, so it may be incomplete or out of date.</p>
+    </section>
+
     <!-- ---------- 7. APPOINTMENTS ---------- -->
     <section class="screen" id="screen-appointments">
       <header class="screen-head">
@@ -1767,6 +1825,7 @@ body.marketing-mode .site-footer{ display:block; }
   <button class="tab-btn" data-screen="build"><span class="tab-ic">●</span>Build</button>
   <button class="tab-btn" data-screen="documents"><span class="tab-ic">▤</span>Docs</button>
   <button class="tab-btn" data-screen="summary"><span class="tab-ic">✓</span>Summary</button>
+  <button class="tab-btn" data-screen="matching"><span class="tab-ic">⇄</span>Match</button>
   <button class="tab-btn" data-screen="pass"><span class="tab-ic">◐</span>Pass</button>
 </nav>
 
@@ -4390,6 +4449,126 @@ document.getElementById('summary-generate-pass-btn')?.addEventListener('click', 
   }
 });
 
+// ---- Matching screen (Maisy Part A, free tier) ----
+// Results come from the get-matches edge function, which returns ONLY the
+// client-safe subset (institution name + estimated match %); the per-field
+// logic and any exclusion reasons never reach the browser. Results are held
+// in memory per case for the session; "Find my matches" re-runs the
+// (deterministic, no-AI) comparison and so always reflects the latest profile.
+const matchingByCase = {}; // case_id -> { status, data, error, ranAt }
+
+function matchTier(pct){ return pct >= 75 ? '' : pct >= 50 ? 'mid' : 'low'; }
+
+function initMatchingScreen(){
+  const kicker = document.getElementById('matching-company-kicker');
+  if(kicker) kicker.textContent = kycProfile.legal_entity_name?.trim() || 'Company profile';
+  renderMatching();
+}
+
+function renderMatching(){
+  const body = document.getElementById('matching-body');
+  const btn = document.getElementById('matching-run-btn');
+  const updated = document.getElementById('matching-updated');
+  const areasEl = document.getElementById('matching-areas');
+  const runRow = document.getElementById('matching-run-row');
+  if(!body || !btn) return;
+
+  if(!currentCaseId){
+    if(runRow) runRow.style.display = 'none';
+    if(areasEl) areasEl.innerHTML = '';
+    body.innerHTML = `<div class="match-card"><h2>Choose a company first</h2><p>Matches are worked out for one company at a time.</p><button class="btn btn-ghost btn-small" id="matching-goto-companies">Go to your companies</button></div>`;
+    return;
+  }
+  if(runRow) runRow.style.display = '';
+
+  const st = matchingByCase[currentCaseId] || { status: 'idle' };
+  const data = st.data;
+  const areas = data?.areas_of_interest
+    || (Array.isArray(kycProfile.areas_of_interest) ? kycProfile.areas_of_interest : []);
+  if(areasEl) areasEl.innerHTML = areas.length
+    ? `<span class="match-updated" style="margin-right:4px">Looking for:</span>` + areas.map(a => `<span class="match-area-tag">${escapeHtml(a)}</span>`).join('')
+    : '';
+
+  btn.disabled = st.status === 'loading';
+  btn.textContent = st.status === 'loading' ? 'Finding matches…' : (data && !data.gated ? 'Refresh my matches' : 'Find my matches →');
+  if(updated) updated.textContent = st.ranAt && st.status === 'done' && data && !data.gated ? `Updated ${st.ranAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : '';
+
+  const gapsHtml = (gaps) => (gaps && gaps.length) ? `
+    <div class="match-card">
+      <h2>Make your matches sharper</h2>
+      <p>These answers help us compare you properly. Add them to your profile and run the match again:</p>
+      <ul class="match-gaps">${gaps.map(g => `<li>${escapeHtml(g.label)}</li>`).join('')}</ul>
+      <button class="btn btn-ghost btn-small matching-goto-profile">Update my profile →</button>
+    </div>` : '';
+
+  if(st.status === 'loading'){ body.innerHTML = `<p class="side-note">Comparing your profile with the institutions we cover…</p>`; return; }
+  if(st.status === 'error'){
+    body.innerHTML = `<div class="match-card"><h2>We couldn't find your matches</h2><p>${escapeHtml(st.error || 'Something went wrong.')} Please try again in a moment.</p></div>`;
+    return;
+  }
+  if(!data){
+    body.innerHTML = `<p class="side-note" style="margin-top:14px">Press <b>Find my matches</b> to see which institutions fit what you told us in your profile.</p>`;
+    return;
+  }
+  if(data.gated){
+    body.innerHTML = `
+      <div class="match-card">
+        <h2>Tell us what you're looking for</h2>
+        <p>We only look for matches once you've told us which services you're interested in (loans, financing, FX, cards and so on). Pick them in your company profile under "Areas of interest", then come back.</p>
+        <button class="btn btn-primary btn-small matching-goto-profile">Go to my profile →</button>
+      </div>` + gapsHtml(data.profile_gaps);
+    return;
+  }
+
+  const matches = data.matches || [];
+  if(matches.length === 0){
+    body.innerHTML = `
+      <div class="match-card">
+        <h2>No clear matches yet</h2>
+        <p>None of the institutions we currently cover look like a fit for your profile as it stands. We're adding more all the time, so it's worth checking again.</p>
+      </div>` + gapsHtml(data.profile_gaps);
+    return;
+  }
+  body.innerHTML = `
+    <div class="mx-list">
+      ${matches.map(m => {
+        const t = matchTier(m.match_percent);
+        return `
+        <div class="mx-row">
+          <div class="match-rank">${m.rank}</div>
+          <div>
+            <div class="match-name">${escapeHtml(m.name)}</div>
+            <div class="match-bar ${t}"><span style="width:${Math.max(3, Math.min(100, m.match_percent))}%"></span></div>
+          </div>
+          <div class="match-score"><b>${m.match_percent}%</b><span class="match-chip ${t}">${escapeHtml(m.label || 'Match')}</span></div>
+        </div>`;
+      }).join('')}
+    </div>
+    <p class="side-note" style="margin-top:12px">Compared with ${matches.length + (data.not_enough_data_count || 0)} institution${matches.length + (data.not_enough_data_count || 0) === 1 ? '' : 's'}${data.not_enough_data_count ? ` — ${data.not_enough_data_count} couldn't be scored because we need more detail from your profile` : ''}.</p>
+    ${gapsHtml(data.profile_gaps)}`;
+}
+
+async function runMatching(){
+  if(!currentCaseId) return;
+  const caseId = currentCaseId;
+  matchingByCase[caseId] = { ...(matchingByCase[caseId] || {}), status: 'loading' };
+  renderMatching();
+  try {
+    const data = await callFunction('get-matches', { case_id: caseId });
+    matchingByCase[caseId] = { status: 'done', data, ranAt: new Date() };
+  } catch(err) {
+    console.error('get-matches failed:', err);
+    matchingByCase[caseId] = { status: 'error', error: err.message || String(err) };
+  }
+  if(currentCaseId === caseId) renderMatching();
+}
+
+document.getElementById('matching-run-btn')?.addEventListener('click', runMatching);
+document.getElementById('screen-matching')?.addEventListener('click', (e) => {
+  if(e.target.closest('.matching-goto-profile')) goToScreen('build');
+  if(e.target.closest('#matching-goto-companies')) goToScreen('dashboard');
+});
+
 function goToScreen(name){
   // TODO (production, not testing phase): the Documents screen should not be
   // reachable at all until the client has signed off on their Build KYB
@@ -4430,6 +4609,7 @@ function goToScreen(name){
   if(name === 'documents') loadDocumentsForCase();
   if(name === 'summary') loadSummaryForCase();
   if(name === 'pass') loadPassLinkForCase();
+  if(name === 'matching') initMatchingScreen();
   if(name === 'mfa-enroll') startMfaEnrollment();
   if(name === 'mfa-challenge') startMfaChallenge();
 
