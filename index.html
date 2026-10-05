@@ -1535,7 +1535,8 @@ body.marketing-mode .site-footer{ display:block; }
               <li>Review the generated summary for accuracy</li>
               <li>Confirm you're signing on behalf of the company</li>
             </ul>
-            <button class="btn btn-primary btn-block" style="margin-top:20px" data-goto="pass">Generate PASS →</button>
+            <button class="btn btn-primary btn-block" style="margin-top:20px" id="summary-generate-pass-btn">Generate sample PASS →</button>
+            <p class="side-note" style="margin-top:12px">This creates a one-off sample of your Full Document Pass, so you can see everything BCPASS has produced for you. To share your profile with a bank or partner, create a pass of your own on the next screen.</p>
           </aside>
         </div>
       </div>
@@ -3672,7 +3673,8 @@ const PASS_TIERS = [
   { key: 'basic', name: 'Basic Pass', desc: "Adds more detail on what you do, turnover band, and your major markets/suppliers by country — enough for a bank, partner, or institution to judge if they can help." },
   { key: 'standard', name: 'Standard Pass', desc: "Adds transaction information and business model detail, plus exact market/supplier percentages." },
   { key: 'full', name: 'Full Pass', desc: "Your full profile as you've described it — ownership structure, funding sources, history — without document verification." },
-  { key: 'full_document', name: 'Full Document Pass', desc: "Everything above, plus MAX's document-verified summary and diagram — the same output you see on your own Summary screen." },
+  // Not offered in the "Create a new pass" form (sample:true): the Full Document level exists to show the client everything the system has produced for them, so it is only ever issued as ONE sample pass per company, by "Generate PASS" on the Summary screen (see generateSamplePass()). badge = the short text used on the business card's pill.
+  { key: 'full_document', name: 'Full Document Sample Pass', badge: 'Full Document · Sample', sample: true, desc: "A one-off sample of everything BCPASS has produced for you, including the document-verified summary and diagram. It's for you to review — passes to share with banks and partners are created from Your Pass." },
 ];
 
 // Multiple passes per company (5 Oct): a company can hold many
@@ -3689,6 +3691,7 @@ const PASS_TIERS = [
 let passLinks = [];          // every pass for the current company, newest first
 let currentPassLink = null;  // the one selected in the list — shown on the card and in the share box
 let newPassTier = 'introduction'; // level currently chosen in the "Create a new pass" form
+let pendingPassSelectId = null; // set by generateSamplePass() so the Pass screen opens on the sample pass it just created/found
 let lastPassQrDataUrl = null; // the selected pass's generate-qr PNG data URL, cached here so the business card's download/share actions (below) can reuse it without a second edge-function call
 
 function passStatus(link){
@@ -3729,7 +3732,8 @@ async function loadPassLinkForCase(selectLinkId){
   }
 
   passLinks = data || [];
-  const keepId = selectLinkId || currentPassLink?.link_id;
+  const keepId = selectLinkId || pendingPassSelectId || currentPassLink?.link_id;
+  pendingPassSelectId = null;
   currentPassLink = passLinks.find(l => l.link_id === keepId) || passLinks[0] || null;
 
   if(contentEl) contentEl.style.display = 'grid'; // .split's own display value — see CSS
@@ -3752,7 +3756,9 @@ function showSelectedPass(){
 
   const tier = PASS_TIERS.find(t => t.key === currentPassLink.pass_tier);
   const levelEl = document.getElementById('pass-selected-level');
-  if(levelEl) levelEl.textContent = `${tier?.name ?? currentPassLink.pass_tier}${currentPassLink.label?.trim() ? ' — ' + currentPassLink.label.trim() : ''} · level is fixed for this pass`;
+  if(levelEl) levelEl.textContent = tier?.sample
+    ? `${tier.name} · a one-off sample for you to review — create a separate pass to share with someone`
+    : `${tier?.name ?? currentPassLink.pass_tier}${currentPassLink.label?.trim() ? ' — ' + currentPassLink.label.trim() : ''} · level is fixed for this pass`;
 
   renderPassLinkBox();
   renderPassStatusBanner();
@@ -3798,7 +3804,7 @@ document.getElementById('pass-list')?.addEventListener('click', (e) => {
 function renderPassTierOptions(){
   const wrap = document.getElementById('pass-tier-options');
   if(!wrap) return;
-  wrap.innerHTML = PASS_TIERS.map(t => `
+  wrap.innerHTML = PASS_TIERS.filter(t => !t.sample).map(t => `
     <label class="mask-option ${t.key === newPassTier ? 'selected' : ''}">
       <input type="radio" name="pass-tier" value="${t.key}" ${t.key === newPassTier ? 'checked' : ''}>
       <div class="mask-body">
@@ -4023,7 +4029,7 @@ async function renderBusinessCard(){
   if(!companyEl) return;
 
   const tierMeta = PASS_TIERS.find(t => t.key === currentPassLink?.pass_tier);
-  if(tierEl) tierEl.textContent = tierMeta?.name ?? '—';
+  if(tierEl) tierEl.textContent = tierMeta?.badge ?? tierMeta?.name ?? '—';
   if(companyEl) companyEl.textContent = kycProfile.legal_entity_name?.trim() || 'Your company';
   if(metaEl){
     const location = kycProfile.registration_country?.trim();
@@ -4257,6 +4263,51 @@ document.getElementById('bc-card-share')?.addEventListener('click', async (e) =>
       console.error('Could not share the business card:', err);
       alert("Could not share the card: " + (err.message || err));
     }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+});
+
+// "Generate sample PASS" on the Summary screen: issues the company's ONE
+// sample Full Document pass (or reopens it if it already exists) and shows
+// it. Short expiry because it's only a sample for the client to review.
+// One per company is enforced here: Full Document is only ever issued this
+// way (it is not offered in the Create form), and an existing one is reused.
+const SAMPLE_PASS_EXPIRY_DAYS = 7;
+document.getElementById('summary-generate-pass-btn')?.addEventListener('click', async (e) => {
+  const btn = e.currentTarget;
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Preparing…';
+  try {
+    if(!supabaseClient || !currentCaseId) throw new Error('Not ready yet — try again in a moment.');
+    const { data: existing, error: findErr } = await supabaseClient
+      .from('kyb_pass_links')
+      .select('link_id')
+      .eq('case_id', currentCaseId)
+      .eq('pass_tier', 'full_document')
+      .order('created_at', { ascending: true })
+      .limit(1);
+    if(findErr) throw findErr;
+    let linkId = existing?.[0]?.link_id;
+    if(!linkId){
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if(!user) throw new Error('Not logged in.');
+      const when = new Date();
+      when.setDate(when.getDate() + SAMPLE_PASS_EXPIRY_DAYS);
+      const { data: created, error } = await supabaseClient
+        .from('kyb_pass_links')
+        .insert({ case_id: currentCaseId, user_id: user.id, pass_tier: 'full_document', enabled: true, expires_at: when.toISOString() })
+        .select('link_id')
+        .single();
+      if(error) throw error;
+      linkId = created.link_id;
+    }
+    pendingPassSelectId = linkId;
+    goToScreen('pass');
+  } catch(err) {
+    alert("Could not create your sample pass: " + (err.message || err));
   } finally {
     btn.disabled = false;
     btn.textContent = original;
