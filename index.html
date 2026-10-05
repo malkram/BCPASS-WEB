@@ -380,6 +380,15 @@ ul{ margin:0; padding:0; list-style:none; }
 .pass-list{ display:flex; flex-direction:column; gap:8px; }
 .pass-list-item{ display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; text-align:left; background: var(--paper-raise); border:1px solid var(--line); border-radius: var(--radius); padding:11px 14px; cursor:pointer; font:inherit; color:inherit; }
 .pass-list-item:hover{ border-color: var(--line-strong); }
+.pass-list-count{ font-size:0.76rem; color: var(--muted); margin:-4px 0 10px; }
+.pass-pager{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:12px; }
+.pass-pager-btn{ font:inherit; font-size:0.82rem; min-width:34px; padding:6px 10px; background: var(--paper-raise); border:1px solid var(--line); border-radius: 999px; color: var(--ink); cursor:pointer; }
+.pass-pager-btn:hover:not(:disabled){ border-color: var(--line-strong); }
+.pass-pager-btn.active{ background: var(--accent); border-color: var(--accent); color:#fff; font-weight:600; }
+.pass-pager-btn:disabled{ opacity:0.4; cursor:default; }
+.pass-delete-row{ margin-top:18px; padding-top:14px; border-top:1px solid var(--line); }
+.pass-delete-btn{ color:#9B2C2C; border-color:#E7C3C3; }
+.pass-delete-btn:hover{ background:#FDECEC; }
 .pass-list-item.selected{ border-color: var(--accent); background:#E4EFE9; }
 .pass-list-name{ font-size:0.9rem; font-weight:600; color: var(--ink); }
 .pass-list-sub{ font-size:0.76rem; color: var(--muted); margin-top:2px; }
@@ -1596,7 +1605,9 @@ body.marketing-mode .site-footer{ display:block; }
 
           <div class="pass-list-section" id="pass-list-section" style="display:none">
             <p class="side-title">Your passes</p>
+            <p class="pass-list-count" id="pass-list-count"></p>
             <div class="pass-list" id="pass-list"><!-- rendered by renderPassList() --></div>
+            <div class="pass-pager" id="pass-pager"><!-- page tabs, rendered by renderPassList() --></div>
           </div>
 
           <div class="pass-create">
@@ -1650,6 +1661,11 @@ body.marketing-mode .site-footer{ display:block; }
           </div>
 
           <p class="side-note">Turning this pass off or changing its expiry takes effect immediately for anyone who already has it — nothing to re-share. Your other passes are not affected.</p>
+
+          <div class="pass-delete-row">
+            <button class="btn btn-ghost btn-small pass-delete-btn" id="pass-delete-btn">Delete this pass</button>
+            <p class="side-note" style="margin-top:8px">Deleting is permanent — its link and QR code stop working for good and it disappears from your list. To pause it instead, switch it off above.</p>
+          </div>
         </aside>
       </div>
     </section>
@@ -3705,6 +3721,16 @@ function passStatus(link){
 }
 const PASS_STATUS_LABELS = { active: 'Active', off: 'Off', expired: 'Expired' };
 
+// The list shows the 5 most recent passes at a time; older ones are one
+// page-tab away (newest first), so the list never grows into a long scroll.
+const PASS_PAGE_SIZE = 5;
+let passListPage = 0;
+function passPageCount(){ return Math.max(1, Math.ceil(passLinks.length / PASS_PAGE_SIZE)); }
+function showPageOfSelected(){
+  const idx = currentPassLink ? passLinks.findIndex(l => l.link_id === currentPassLink.link_id) : -1;
+  passListPage = idx >= 0 ? Math.floor(idx / PASS_PAGE_SIZE) : 0;
+}
+
 function formatPassDate(iso){
   return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 }
@@ -3741,6 +3767,7 @@ async function loadPassLinkForCase(selectLinkId){
   currentPassLink = passLinks.find(l => l.link_id === keepId) || passLinks[0] || null;
 
   if(contentEl) contentEl.style.display = 'grid'; // .split's own display value — see CSS
+  showPageOfSelected();
   renderPassTierOptions();
   renderPassList();
   showSelectedPass();
@@ -3774,7 +3801,23 @@ function renderPassList(){
   const list = document.getElementById('pass-list');
   if(!section || !list) return;
   section.style.display = passLinks.length ? '' : 'none';
-  list.innerHTML = passLinks.map(l => {
+  const pages = passPageCount();
+  passListPage = Math.min(Math.max(0, passListPage), pages - 1);
+  const first = passListPage * PASS_PAGE_SIZE;
+  const visible = passLinks.slice(first, first + PASS_PAGE_SIZE);
+  const countEl = document.getElementById('pass-list-count');
+  if(countEl) countEl.textContent = passLinks.length > PASS_PAGE_SIZE
+    ? `Showing ${first + 1}–${first + visible.length} of ${passLinks.length} passes, newest first`
+    : '';
+  const pager = document.getElementById('pass-pager');
+  if(pager){
+    pager.innerHTML = pages <= 1 ? '' :
+      `<button type="button" class="pass-pager-btn" data-page="${passListPage - 1}" ${passListPage === 0 ? 'disabled' : ''} aria-label="Newer passes">‹</button>` +
+      Array.from({ length: pages }, (_, i) =>
+        `<button type="button" class="pass-pager-btn ${i === passListPage ? 'active' : ''}" data-page="${i}" aria-label="Page ${i + 1}">${i + 1}</button>`).join('') +
+      `<button type="button" class="pass-pager-btn" data-page="${passListPage + 1}" ${passListPage >= pages - 1 ? 'disabled' : ''} aria-label="Older passes">›</button>`;
+  }
+  list.innerHTML = visible.map(l => {
     const tier = PASS_TIERS.find(t => t.key === l.pass_tier);
     const tierName = tier?.name ?? l.pass_tier;
     const label = l.label?.trim();
@@ -3791,6 +3834,13 @@ function renderPassList(){
       </button>`;
   }).join('');
 }
+
+document.getElementById('pass-pager')?.addEventListener('click', (e) => {
+  const btn = e.target.closest('.pass-pager-btn');
+  if(!btn || btn.disabled) return;
+  passListPage = Number(btn.dataset.page);
+  renderPassList();
+});
 
 document.getElementById('pass-list')?.addEventListener('click', (e) => {
   const item = e.target.closest('.pass-list-item');
@@ -3965,6 +4015,40 @@ function renderPassStatusBanner(){
     wrap.innerHTML = '';
   }
 }
+
+// Permanently deletes the selected pass. Needs the owner-delete policy from
+// 12_pass_links_delete.sql: without it Supabase quietly deletes nothing (RLS)
+// and returns zero rows, which is detected below and explained to the user.
+document.getElementById('pass-delete-btn')?.addEventListener('click', async (e) => {
+  if(!currentPassLink) return;
+  const btn = e.currentTarget;
+  const tier = PASS_TIERS.find(t => t.key === currentPassLink.pass_tier);
+  const name = currentPassLink.label?.trim() || tier?.name || 'this pass';
+  if(!confirm(`Delete "${name}"?\n\nIts link and QR code will stop working immediately and this can't be undone. Anyone who has it will no longer be able to open it.`)) return;
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  try {
+    const { data, error } = await supabaseClient
+      .from('kyb_pass_links')
+      .delete()
+      .eq('link_id', currentPassLink.link_id)
+      .select('link_id');
+    if(error) throw error;
+    if(!data || data.length === 0){
+      throw new Error('Your database doesn\'t allow deleting passes yet. Run the one-off update 12_pass_links_delete.sql in the Supabase SQL editor, then try again.');
+    }
+    const idx = passLinks.findIndex(l => l.link_id === currentPassLink.link_id);
+    passLinks.splice(idx, 1);
+    currentPassLink = passLinks[Math.min(idx, passLinks.length - 1)] || null;
+    showPageOfSelected();
+    renderPassList();
+    showSelectedPass();
+  } catch(err) {
+    alert('Could not delete the pass: ' + (err.message || err));
+  } finally {
+    btn.disabled = false; btn.textContent = original;
+  }
+});
 
 document.getElementById('pass-enabled-toggle')?.addEventListener('change', (e) => {
   updatePassLink({ enabled: e.target.checked });
