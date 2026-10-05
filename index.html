@@ -373,7 +373,23 @@ ul{ margin:0; padding:0; list-style:none; }
 
 /* ============ PASS / MASKING ============ */
 .mask-options, .consult-options{ display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
-.pass-preview + .mask-options{ margin-top:28px; }
+/* Multiple passes per company (5 Oct) — list of existing passes + the
+   "create a new pass" form. Status chips mirror the existing
+   .pass-status-banner colours (green = live, red = off/expired). */
+.pass-list-section{ margin-top:28px; }
+.pass-list{ display:flex; flex-direction:column; gap:8px; }
+.pass-list-item{ display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; text-align:left; background: var(--paper-raise); border:1px solid var(--line); border-radius: var(--radius); padding:11px 14px; cursor:pointer; font:inherit; color:inherit; }
+.pass-list-item:hover{ border-color: var(--line-strong); }
+.pass-list-item.selected{ border-color: var(--accent); background:#E4EFE9; }
+.pass-list-name{ font-size:0.9rem; font-weight:600; color: var(--ink); }
+.pass-list-sub{ font-size:0.76rem; color: var(--muted); margin-top:2px; }
+.pass-chip{ font-size:0.64rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; padding:3px 9px; border-radius:999px; white-space:nowrap; flex-shrink:0; }
+.pass-chip-active{ background:rgba(31,122,92,0.12); color: var(--accent); }
+.pass-chip-off, .pass-chip-expired{ background:#FDECEC; color:#9B2C2C; }
+.pass-create{ margin-top:30px; padding-top:22px; border-top:1px solid var(--line); }
+.pass-create .field{ margin-bottom:14px; max-width:380px; }
+.pass-new-expiry-row{ margin:4px 0 18px; }
+.pass-new-expiry-row select{ width:auto; flex:0 0 220px; }
 .mask-option{ display:flex; gap:12px; align-items:flex-start; border:1px solid var(--line); border-radius: var(--radius); padding:14px 16px; background: var(--paper-raise); cursor:pointer; transition: box-shadow .15s ease; }
 .mask-option:hover{ box-shadow: 0 2px 10px rgba(16,40,33,0.08); }
 .mask-option.selected, .mask-option:has(input:checked){ border-color: var(--accent); background: var(--accent-soft); }
@@ -1533,16 +1549,15 @@ body.marketing-mode .site-footer{ display:block; }
           <h1>Your Pass</h1>
         </div>
       </header>
-      <p class="lede">Choose how much a bank, partner, or institution sees before you've spoken to them. One link and QR code per company — raise or lower the level, or turn it off, any time. They'll still run their own checks — this just means they're not starting from zero.</p>
+      <p class="lede">Create a separate pass for each person or institution you share with. Every pass has its own QR code, its own level of detail, and its own expiry — so you stay in control of exactly who sees what, and can switch any one of them off without touching the others. They'll still run their own checks — this just means they're not starting from zero.</p>
 
       <div id="pass-loading" class="side-note">Loading…</div>
-      <div id="pass-generate-wrap" style="display:none">
-        <p class="side-note" style="margin-bottom:14px">No pass link exists yet for this company.</p>
-        <button class="btn btn-primary" id="pass-generate-btn">Generate my pass link →</button>
-      </div>
 
       <div id="pass-content" class="split" style="display:none">
         <div class="split-main">
+          <p id="pass-empty" class="side-note" style="display:none">You haven't created a pass for this company yet — choose a level below and create your first one.</p>
+
+          <div id="pass-selected-area" style="display:none">
           <div class="pass-preview">
             <div class="bc-card-wrap">
               <div class="bc-card" id="bc-card">
@@ -1570,19 +1585,47 @@ body.marketing-mode .site-footer{ display:block; }
               <button class="btn btn-ghost btn-small" id="bc-card-download">Download as image ⬇</button>
               <button class="btn btn-ghost btn-small" id="bc-card-share">Share ↗</button>
             </div>
-            <p class="pass-caption">A ready-to-share summary of your pass — print it, drop it in an email signature, or share it straight to WhatsApp, WeChat, or any app. It always points to the same share link and QR code below, at whatever level you've set.</p>
+            <p class="pass-caption">A ready-to-share summary of this pass — print it, drop it in an email signature, or share it straight to WhatsApp, WeChat, or any app. Its QR code opens only this pass, at the level shown on the card.</p>
           </div>
-
-          <div class="mask-options" id="pass-tier-options"><!-- rendered by renderPassTierOptions() --></div>
 
           <div class="pass-preview-link-row">
             <p class="side-title">What they'll see</p>
             <button class="btn btn-ghost btn-small pass-recipient-link-btn" id="pass-preview-link-2">Preview as recipient ↗</button>
           </div>
+          </div>
+
+          <div class="pass-list-section" id="pass-list-section" style="display:none">
+            <p class="side-title">Your passes</p>
+            <div class="pass-list" id="pass-list"><!-- rendered by renderPassList() --></div>
+          </div>
+
+          <div class="pass-create">
+            <p class="side-title">Create a new pass</p>
+            <label class="field">
+              <span>Name (optional — only you see this, e.g. "HSBC intro")</span>
+              <input type="text" id="pass-new-label" maxlength="60" placeholder="e.g. Meeting with ABC Bank">
+            </label>
+            <div class="mask-options" id="pass-tier-options"><!-- rendered by renderPassTierOptions() --></div>
+            <div class="pass-expiry-row pass-new-expiry-row">
+              <label for="pass-new-expiry">Expires</label>
+              <select id="pass-new-expiry" class="field-text">
+                <option value="7">in 1 week</option>
+                <option value="30" selected>in 1 month</option>
+                <option value="90">in 3 months</option>
+                <option value="180">in 6 months</option>
+                <option value="never">Never</option>
+                <option value="custom">On a date I choose…</option>
+              </select>
+              <input type="date" class="field-text" id="pass-new-expiry-date" style="display:none">
+            </div>
+            <button class="btn btn-primary" id="pass-create-btn">Create pass →</button>
+            <p class="side-note" style="margin-top:12px">Each pass gets its own link and QR code. The level is fixed once a pass is created — to share a different level, create another pass.</p>
+          </div>
         </div>
 
-        <aside class="split-side">
+        <aside class="split-side" id="pass-side" style="display:none">
           <p class="side-title">Share this pass</p>
+          <p class="side-note" id="pass-selected-level" style="margin-top:-4px"></p>
           <div id="pass-status-banner-wrap"></div>
 
           <div class="pass-link-row">
@@ -1597,7 +1640,7 @@ body.marketing-mode .site-footer{ display:block; }
 
           <label class="pass-toggle-row">
             <input type="checkbox" id="pass-enabled-toggle">
-            <span>Link is active — anyone with the link or QR code can view your pass at the level shown above</span>
+            <span>Pass is active — anyone with this link or QR code can view it, at the level shown on the card</span>
           </label>
 
           <div class="pass-expiry-row">
@@ -1606,7 +1649,7 @@ body.marketing-mode .site-footer{ display:block; }
             <button class="btn btn-ghost btn-small" id="pass-clear-expiry">No expiry</button>
           </div>
 
-          <p class="side-note">Turning the link off or changing its level/expiry takes effect immediately — anyone who already has the link is blocked or sees the new level on their very next view, nothing to re-share.</p>
+          <p class="side-note">Turning this pass off or changing its expiry takes effect immediately for anyone who already has it — nothing to re-share. Your other passes are not affected.</p>
         </aside>
       </div>
     </section>
@@ -3632,72 +3675,132 @@ const PASS_TIERS = [
   { key: 'full_document', name: 'Full Document Pass', desc: "Everything above, plus MAX's document-verified summary and diagram — the same output you see on your own Summary screen." },
 ];
 
-let currentPassLink = null; // { link_id, share_token, pass_tier, enabled, expires_at } or null, set by loadPassLinkForCase()
-let lastPassQrDataUrl = null; // the most recent generate-qr PNG data URL, cached here so the business card's download/share actions (below) can reuse it without a second edge-function call
+// Multiple passes per company (5 Oct): a company can hold many
+// independent passes, each its own kyb_pass_links row — so each has its
+// own share_token (=> its own QR code), its own level, its own expiry and
+// its own on/off switch. The client creates a separate pass for each
+// person/institution they share with, rather than reusing one QR that
+// could be forwarded (email, WhatsApp...) to people it was never meant
+// for. A pass's level is fixed at creation (only expiry and on/off can
+// change afterwards) so a QR already in someone's hands can never be
+// silently upgraded. get-pass already works purely from the token, so it
+// needed no change. Requires 11_pass_links_multiple.sql (drops the old
+// UNIQUE(case_id) and adds the optional `label` column).
+let passLinks = [];          // every pass for the current company, newest first
+let currentPassLink = null;  // the one selected in the list — shown on the card and in the share box
+let newPassTier = 'introduction'; // level currently chosen in the "Create a new pass" form
+let lastPassQrDataUrl = null; // the selected pass's generate-qr PNG data URL, cached here so the business card's download/share actions (below) can reuse it without a second edge-function call
 
-async function loadPassLinkForCase(){
+function passStatus(link){
+  if(!link.enabled) return 'off';
+  if(link.expires_at && new Date(link.expires_at).getTime() < Date.now()) return 'expired';
+  return 'active';
+}
+const PASS_STATUS_LABELS = { active: 'Active', off: 'Off', expired: 'Expired' };
+
+function formatPassDate(iso){
+  return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+async function loadPassLinkForCase(selectLinkId){
   const kickerEl = document.getElementById('pass-company-kicker');
   if(kickerEl) kickerEl.textContent = kycProfile.legal_entity_name?.trim() || 'Company profile';
 
   const loadingEl = document.getElementById('pass-loading');
-  const generateWrap = document.getElementById('pass-generate-wrap');
   const contentEl = document.getElementById('pass-content');
   if(loadingEl){ loadingEl.style.display = 'block'; loadingEl.textContent = 'Loading…'; }
-  if(generateWrap) generateWrap.style.display = 'none';
   if(contentEl) contentEl.style.display = 'none';
 
   if(!supabaseClient || !currentCaseId) return;
 
+  // select('*') rather than a column list so this keeps working whether or
+  // not the optional `label` column has been added yet.
   const { data, error } = await supabaseClient
     .from('kyb_pass_links')
-    .select('link_id, share_token, pass_tier, enabled, expires_at')
+    .select('*')
     .eq('case_id', currentCaseId)
-    .maybeSingle();
+    .order('created_at', { ascending: false });
 
   if(loadingEl) loadingEl.style.display = 'none';
 
   if(error){
-    if(loadingEl){ loadingEl.style.display = 'block'; loadingEl.textContent = 'Could not load your pass link: ' + error.message; }
+    if(loadingEl){ loadingEl.style.display = 'block'; loadingEl.textContent = 'Could not load your passes: ' + error.message; }
     return;
   }
 
-  if(!data){
-    currentPassLink = null;
-    if(generateWrap) generateWrap.style.display = 'block';
-    return;
-  }
+  passLinks = data || [];
+  const keepId = selectLinkId || currentPassLink?.link_id;
+  currentPassLink = passLinks.find(l => l.link_id === keepId) || passLinks[0] || null;
 
-  currentPassLink = data;
   if(contentEl) contentEl.style.display = 'grid'; // .split's own display value — see CSS
   renderPassTierOptions();
+  renderPassList();
+  showSelectedPass();
+}
+
+// Shows/hides the card + share box depending on whether a pass is
+// selected, and re-renders them for the selected one.
+function showSelectedPass(){
+  const has = !!currentPassLink;
+  const area = document.getElementById('pass-selected-area');
+  const side = document.getElementById('pass-side');
+  const empty = document.getElementById('pass-empty');
+  if(area) area.style.display = has ? '' : 'none';
+  if(side) side.style.display = has ? '' : 'none';
+  if(empty) empty.style.display = has ? 'none' : '';
+  if(!has){ lastPassQrDataUrl = null; return; }
+
+  const tier = PASS_TIERS.find(t => t.key === currentPassLink.pass_tier);
+  const levelEl = document.getElementById('pass-selected-level');
+  if(levelEl) levelEl.textContent = `${tier?.name ?? currentPassLink.pass_tier}${currentPassLink.label?.trim() ? ' — ' + currentPassLink.label.trim() : ''} · level is fixed for this pass`;
+
   renderPassLinkBox();
   renderPassStatusBanner();
   renderBusinessCard();
 }
 
-document.getElementById('pass-generate-btn')?.addEventListener('click', async (e) => {
-  const btn = e.target;
-  btn.disabled = true;
-  try {
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if(!user) throw new Error("Not logged in.");
-    const { error } = await supabaseClient
-      .from('kyb_pass_links')
-      .insert({ case_id: currentCaseId, user_id: user.id, pass_tier: 'introduction', enabled: true });
-    if(error) throw error;
-    await loadPassLinkForCase();
-  } catch(err) {
-    alert("Could not generate a pass link: " + err.message);
-    btn.disabled = false;
-  }
+function renderPassList(){
+  const section = document.getElementById('pass-list-section');
+  const list = document.getElementById('pass-list');
+  if(!section || !list) return;
+  section.style.display = passLinks.length ? '' : 'none';
+  list.innerHTML = passLinks.map(l => {
+    const tier = PASS_TIERS.find(t => t.key === l.pass_tier);
+    const tierName = tier?.name ?? l.pass_tier;
+    const label = l.label?.trim();
+    const status = passStatus(l);
+    const expiry = l.expires_at ? `Expires ${formatPassDate(l.expires_at)}` : 'No expiry';
+    const sub = `${label ? tierName + ' · ' : ''}Created ${formatPassDate(l.created_at)} · ${expiry}`;
+    return `
+      <button type="button" class="pass-list-item ${currentPassLink?.link_id === l.link_id ? 'selected' : ''}" data-link-id="${l.link_id}">
+        <div>
+          <div class="pass-list-name">${escapeHtml(label || tierName)}</div>
+          <div class="pass-list-sub">${escapeHtml(sub)}</div>
+        </div>
+        <span class="pass-chip pass-chip-${status}">${PASS_STATUS_LABELS[status]}</span>
+      </button>`;
+  }).join('');
+}
+
+document.getElementById('pass-list')?.addEventListener('click', (e) => {
+  const item = e.target.closest('.pass-list-item');
+  if(!item) return;
+  const picked = passLinks.find(l => l.link_id === item.dataset.linkId);
+  if(!picked || picked === currentPassLink) return;
+  currentPassLink = picked;
+  renderPassList();
+  showSelectedPass();
+  document.getElementById('pass-selected-area')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
+// The tier options are now the "create a new pass" form's level picker
+// (no longer a control on an existing pass) — see header comment above.
 function renderPassTierOptions(){
   const wrap = document.getElementById('pass-tier-options');
-  if(!wrap || !currentPassLink) return;
+  if(!wrap) return;
   wrap.innerHTML = PASS_TIERS.map(t => `
-    <label class="mask-option ${t.key === currentPassLink.pass_tier ? 'selected' : ''}">
-      <input type="radio" name="pass-tier" value="${t.key}" ${t.key === currentPassLink.pass_tier ? 'checked' : ''}>
+    <label class="mask-option ${t.key === newPassTier ? 'selected' : ''}">
+      <input type="radio" name="pass-tier" value="${t.key}" ${t.key === newPassTier ? 'checked' : ''}>
       <div class="mask-body">
         <span class="mask-name">${t.name}</span>
         <span class="mask-desc">${t.desc}</span>
@@ -3707,18 +3810,75 @@ function renderPassTierOptions(){
 }
 
 // Delegated listener on the static wrapper, not a per-element one — this
-// element's innerHTML is fully rebuilt every load by renderPassTierOptions()
-// above, so a listener attached once at page-load time (the way the old
-// static-mockup's generic .mask-option handler worked) would never reach
-// these dynamically-created options. Same reasoning as wizardPanel's own
+// element's innerHTML is rebuilt by renderPassTierOptions() above, so a
+// listener attached once at page-load time would never reach these
+// dynamically-created options. Same reasoning as wizardPanel's own
 // delegated listeners elsewhere in this file.
-document.getElementById('pass-tier-options')?.addEventListener('change', async (e) => {
+document.getElementById('pass-tier-options')?.addEventListener('change', (e) => {
   if(!e.target.matches('input[name="pass-tier"]')) return;
-  const newTier = e.target.value;
+  newPassTier = e.target.value;
   document.querySelectorAll('#pass-tier-options .mask-option').forEach(el => el.classList.remove('selected'));
   e.target.closest('.mask-option').classList.add('selected');
-  await updatePassLink({ pass_tier: newTier });
-  renderBusinessCard();
+});
+
+document.getElementById('pass-new-expiry')?.addEventListener('change', (e) => {
+  const dateInput = document.getElementById('pass-new-expiry-date');
+  if(dateInput) dateInput.style.display = e.target.value === 'custom' ? '' : 'none';
+});
+
+// Reads the "Expires" choice in the create form: null = never expires.
+function readNewPassExpiry(){
+  const choice = document.getElementById('pass-new-expiry')?.value;
+  if(choice === 'never') return null;
+  if(choice === 'custom'){
+    const d = document.getElementById('pass-new-expiry-date')?.value;
+    if(!d) throw new Error('Choose an expiry date, or pick a different option.');
+    const when = new Date(d + 'T23:59:59');
+    if(when.getTime() <= Date.now()) throw new Error('The expiry date must be in the future.');
+    return when.toISOString();
+  }
+  const when = new Date();
+  when.setDate(when.getDate() + Number(choice));
+  return when.toISOString();
+}
+
+document.getElementById('pass-create-btn')?.addEventListener('click', async (e) => {
+  const btn = e.currentTarget;
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Creating…';
+  try {
+    if(!supabaseClient || !currentCaseId) throw new Error('Not ready yet — try again in a moment.');
+    const expires_at = readNewPassExpiry();
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(!user) throw new Error('Not logged in.');
+    const label = document.getElementById('pass-new-label')?.value.trim();
+    const row = { case_id: currentCaseId, user_id: user.id, pass_tier: newPassTier, enabled: true, expires_at };
+    if(label) row.label = label;
+    const { data: created, error } = await supabaseClient
+      .from('kyb_pass_links')
+      .insert(row)
+      .select('link_id')
+      .single();
+    if(error){
+      // 23505 = the old one-pass-per-company UNIQUE(case_id) rule is still
+      // in the database; the `label` message = the new column isn't there
+      // yet. Either way the fix is the same one-off SQL file.
+      if(error.code === '23505' || /label/i.test(error.message || '')){
+        throw new Error('Your database still needs the one-off update that allows several passes per company (11_pass_links_multiple.sql). Run it in the Supabase SQL editor, then try again.');
+      }
+      throw error;
+    }
+    const labelInput = document.getElementById('pass-new-label');
+    if(labelInput) labelInput.value = '';
+    await loadPassLinkForCase(created.link_id);
+    document.getElementById('pass-selected-area')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch(err) {
+    alert("Could not create the pass: " + (err.message || err));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
 });
 
 async function updatePassLink(patch){
@@ -3727,9 +3887,10 @@ async function updatePassLink(patch){
     .from('kyb_pass_links')
     .update({ ...patch, updated_at: new Date().toISOString() })
     .eq('link_id', currentPassLink.link_id);
-  if(error){ alert("Could not update your pass link: " + error.message); return; }
+  if(error){ alert("Could not update your pass: " + error.message); return; }
   Object.assign(currentPassLink, patch);
   renderPassStatusBanner();
+  renderPassList();
 }
 
 function renderPassLinkBox(){
@@ -3765,12 +3926,16 @@ function renderPassLinkBox(){
   if(qrWrap){
     qrWrap.innerHTML = '<p class="side-note" style="margin:0">Generating QR code…</p>';
     if(bcQrWrap) bcQrWrap.innerHTML = '<p class="side-note" style="margin:0;font-size:0.68rem">QR loading…</p>';
+    lastPassQrDataUrl = null;
+    const requestedToken = currentPassLink.share_token;
     callFunction('generate-qr', { text: shareUrl }).then(({ data_url }) => {
+      if(currentPassLink?.share_token !== requestedToken) return; // user switched to another pass meanwhile
       if(!data_url) throw new Error('No QR image returned.');
       lastPassQrDataUrl = data_url;
       qrWrap.innerHTML = `<img src="${data_url}" width="180" height="180" alt="QR code for this pass link">`;
       if(bcQrWrap) bcQrWrap.innerHTML = `<img src="${data_url}" alt="QR code for this pass link">`;
     }).catch((err) => {
+      if(currentPassLink?.share_token !== requestedToken) return;
       console.error('QR code generation failed:', err);
       qrWrap.innerHTML = `<p class="side-note" style="margin:0">Could not generate the QR code: ${escapeHtml(err.message || String(err))}</p>`;
       if(bcQrWrap) bcQrWrap.innerHTML = `<p class="side-note" style="margin:0;font-size:0.68rem">QR unavailable</p>`;
@@ -3783,9 +3948,9 @@ function renderPassStatusBanner(){
   if(!wrap || !currentPassLink) return;
   const isExpired = currentPassLink.expires_at && new Date(currentPassLink.expires_at).getTime() < Date.now();
   if(!currentPassLink.enabled){
-    wrap.innerHTML = `<p class="pass-status-banner pass-status-off">This link is currently turned off — no one can view it.</p>`;
+    wrap.innerHTML = `<p class="pass-status-banner pass-status-off">This pass is currently turned off — no one can view it.</p>`;
   } else if(isExpired){
-    wrap.innerHTML = `<p class="pass-status-banner pass-status-expired">This link's expiry date has passed — no one can view it until you clear or extend it.</p>`;
+    wrap.innerHTML = `<p class="pass-status-banner pass-status-expired">This pass has expired — no one can view it until you clear or extend its expiry.</p>`;
   } else {
     wrap.innerHTML = '';
   }
@@ -4038,7 +4203,7 @@ document.getElementById('bc-card-download')?.addEventListener('click', async (e)
     const slug = (kycProfile.legal_entity_name || 'bcpass-card').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'bcpass-card';
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `${slug}-bcpass-card.jpg`;
+    a.download = `${slug}-bcpass-${currentPassLink?.pass_tier || 'card'}.jpg`;
     document.body.appendChild(a);
     a.click();
     a.remove();
