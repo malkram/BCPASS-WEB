@@ -536,6 +536,31 @@ ul{ margin:0; padding:0; list-style:none; }
   .display{ font-size: 2rem; }
 }
 
+/* ---- Sidebar: "Your pass" group, brand-as-button (5 Oct 2026) ---- */
+.brand-btn{ background:none; border:none; cursor:pointer; text-align:left; width:100%; border-radius: var(--radius); }
+.brand-btn:hover .brand-name{ color: var(--accent-soft, #cfe6dc); }
+.brand-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.rail-group{ display:flex; flex-direction:column; gap:2px; }
+.rail-group.in-group > .rail-parent{ color:#fff; font-weight:500; }
+.rail-sub{ display:flex; flex-direction:column; gap:1px; margin:0 0 4px 16px; padding:0 0 0 10px; border-left:1px solid rgba(255,255,255,0.14); list-style:none; }
+.rail-sub .rail-btn{ width:100%; padding:7px 10px; font-size:0.86rem; }
+.rail-btn{ width:100%; }
+
+/* "Your pass" step strip — only shown on small screens, where the sidebar sub-list isn't */
+.pass-steps{ display:none; }
+@media (max-width: 720px){
+  .pass-steps{ display:flex; gap:6px; overflow-x:auto; margin:-6px 0 18px; padding-bottom:2px; }
+  .pass-step{ flex:0 0 auto; background: var(--paper-raise, #fff); border:1px solid var(--line); color: var(--ink-soft); font-size:0.8rem; padding:6px 12px; border-radius:999px; }
+  .pass-step.active{ background: var(--ink); color:#fff; border-color: var(--ink); }
+}
+
+/* Next-step card (Share pass → Matching) */
+.next-step-card{ display:flex; align-items:center; justify-content:space-between; gap:22px; flex-wrap:wrap; margin-top:34px; padding:22px 24px; border:1px solid var(--line); border-left:4px solid var(--accent); border-radius: var(--radius); background: var(--paper-raise, #fff); }
+.next-step-text{ flex:1 1 320px; min-width:0; }
+.next-step-text h2{ font-size:1.25rem; margin:2px 0 6px; }
+.next-step-text p{ margin:0 0 4px; color: var(--ink-soft); font-size:0.92rem; }
+.next-step-kicker{ font-size:0.72rem !important; text-transform:uppercase; letter-spacing:.08em; color: var(--accent) !important; font-weight:700; }
+
 /* ============ PHASE 1 WIZARD ============ */
 .score-badge{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
 .score-num{ font-family: var(--font-display); font-size:1.9rem; font-weight:600; color: var(--ink); line-height:1; }
@@ -824,18 +849,23 @@ body.marketing-mode .site-footer{ display:block; }
 
   <!-- ============ SIDE / TOP NAV ============ -->
   <nav class="railnav" aria-label="Primary">
-    <div class="brand">
+    <button class="brand brand-btn" data-goto="home" aria-label="BCPASS — back to the home page" title="Back to the home page">
       <span class="brand-mark">◈</span>
       <span class="brand-name">BCPASS</span>
-    </div>
+    </button>
     <ul class="rail-list">
       <li><button class="rail-btn active" data-screen="login">Sign in</button></li>
       <li><button class="rail-btn" data-screen="dashboard">Companies</button></li>
-      <li><button class="rail-btn" data-screen="build">Your company profile</button></li>
-      <li><button class="rail-btn" data-screen="documents">Documents</button></li>
-      <li><button class="rail-btn" data-screen="summary">Summary</button></li>
+      <li class="rail-group" data-group="build documents summary pass">
+        <button class="rail-btn rail-parent" data-screen="build">Your pass</button>
+        <ul class="rail-sub">
+          <li><button class="rail-btn rail-sub-btn" data-screen="build">Company profile</button></li>
+          <li><button class="rail-btn rail-sub-btn" data-screen="documents">Documents</button></li>
+          <li><button class="rail-btn rail-sub-btn" data-screen="summary">Summary</button></li>
+          <li><button class="rail-btn rail-sub-btn" data-screen="pass">Share pass</button></li>
+        </ul>
+      </li>
       <li><button class="rail-btn" data-screen="matching">Matching</button></li>
-      <li><button class="rail-btn" data-screen="pass">Share pass</button></li>
       <li><button class="rail-btn" data-screen="appointments">Appointments</button></li>
       <li><button class="rail-btn" data-screen="institution">Institution view</button></li>
     </ul>
@@ -1695,6 +1725,16 @@ body.marketing-mode .site-footer{ display:block; }
           </div>
         </aside>
       </div>
+
+      <div class="next-step-card" id="pass-next-matching">
+        <div class="next-step-text">
+          <p class="next-step-kicker">Next step</p>
+          <h2>See who matches you</h2>
+          <p id="pass-next-body">Go next to see your AI matching — we compare your company profile with what banks and finance providers say they look for.</p>
+          <div class="match-areas" id="pass-next-areas"></div>
+        </div>
+        <button class="btn btn-primary" id="pass-next-btn" data-screen="matching">See my matches →</button>
+      </div>
     </section>
 
     <!-- ---------- 6b. MATCHING (Maisy Part A, free "generic" tier) ---------- -->
@@ -1822,11 +1862,9 @@ body.marketing-mode .site-footer{ display:block; }
 <nav class="tabbar" aria-label="Primary mobile">
   <button class="tab-btn active" data-screen="login"><span class="tab-ic">◈</span>Sign in</button>
   <button class="tab-btn" data-screen="dashboard"><span class="tab-ic">▦</span>Companies</button>
-  <button class="tab-btn" data-screen="build"><span class="tab-ic">●</span>Build</button>
-  <button class="tab-btn" data-screen="documents"><span class="tab-ic">▤</span>Docs</button>
-  <button class="tab-btn" data-screen="summary"><span class="tab-ic">✓</span>Summary</button>
-  <button class="tab-btn" data-screen="matching"><span class="tab-ic">⇄</span>Match</button>
-  <button class="tab-btn" data-screen="pass"><span class="tab-ic">◐</span>Pass</button>
+  <button class="tab-btn" data-screen="build" data-group="build documents summary pass"><span class="tab-ic">●</span>Your pass</button>
+  <button class="tab-btn" data-screen="matching"><span class="tab-ic">⇄</span>Matching</button>
+  <button class="tab-btn" data-screen="appointments"><span class="tab-ic">◷</span>Appts</button>
 </nav>
 
 <!-- ============ PUBLIC SITE FOOTER (marketing pages only) ============ -->
@@ -4569,6 +4607,50 @@ document.getElementById('screen-matching')?.addEventListener('click', (e) => {
   if(e.target.closest('#matching-goto-companies')) goToScreen('dashboard');
 });
 
+// ---- "Your pass" step strip (small screens only; the sidebar carries it on desktop) ----
+(function buildPassSteps(){
+  const steps = [['build','Company profile'],['documents','Documents'],['summary','Summary'],['pass','Share pass']];
+  steps.forEach(([screen]) => {
+    const sec = document.getElementById('screen-' + screen);
+    if(!sec) return;
+    const nav = document.createElement('nav');
+    nav.className = 'pass-steps';
+    nav.setAttribute('aria-label', 'Your pass');
+    nav.innerHTML = steps.map(([k,l]) => `<button type="button" class="pass-step${k===screen?' active':''}" data-screen="${k}">${l}</button>`).join('');
+    sec.insertBefore(nav, sec.firstChild);
+  });
+})();
+
+// ---- Share pass → Matching hand-off card ----
+function renderPassNextCard(){
+  const areasEl = document.getElementById('pass-next-areas');
+  const bodyEl = document.getElementById('pass-next-body');
+  if(!areasEl || !bodyEl) return;
+  const areas = Array.isArray(kycProfile.areas_of_interest) ? kycProfile.areas_of_interest : [];
+  if(areas.length){
+    bodyEl.textContent = "You've shown interest in the following — go next to see your AI matching, and who looks like a good fit.";
+    areasEl.innerHTML = areas.map(a => `<span class="match-area-tag">${escapeHtml(a)}</span>`).join('');
+  } else {
+    bodyEl.textContent = "Go next to see your AI matching. Tell us which services you're interested in on your company profile first, so the matches are relevant to you.";
+    areasEl.innerHTML = '';
+  }
+}
+
+// ---- Public site nav: show "My account" instead of Sign in / Join us once signed in ----
+async function refreshPublicNavAuth(){
+  const box = document.querySelector('.site-nav-actions');
+  if(!box) return;
+  let signedIn = false;
+  try{ signedIn = !!(await getAccessToken()); }catch(_){ signedIn = false; }
+  if(box.dataset.signedIn === String(signedIn)) return;
+  box.dataset.signedIn = String(signedIn);
+  box.innerHTML = signedIn
+    ? '<a class="btn btn-primary btn-small" data-screen="dashboard">Go to my account →</a>'
+    : '<a class="btn btn-ghost btn-small" data-goto="login">Sign in</a><a class="btn btn-primary btn-small" data-goto="signup">Join us</a>';
+  box.querySelectorAll('[data-screen]').forEach(b => b.addEventListener('click', e => { e.preventDefault(); goToScreen(b.dataset.screen); }));
+  box.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', e => { e.preventDefault(); goToScreen(b.dataset.goto); }));
+}
+
 function goToScreen(name){
   // TODO (production, not testing phase): the Documents screen should not be
   // reachable at all until the client has signed off on their Build KYB
@@ -4602,8 +4684,12 @@ function goToScreen(name){
   document.body.classList.toggle('marketing-mode', isPublicShell);
   document.querySelectorAll('.site-links a, .site-footer-links a').forEach(a => a.classList.toggle('current', a.dataset.goto === name));
 
-  document.querySelectorAll('.rail-btn').forEach(b => b.classList.toggle('active', b.dataset.screen === name));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.screen === name));
+  document.querySelectorAll('.rail-btn:not(.rail-parent)').forEach(b => b.classList.toggle('active', b.dataset.screen === name));
+  document.querySelectorAll('.rail-group').forEach(g => g.classList.toggle('in-group', (g.dataset.group || '').split(' ').includes(name)));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', (b.dataset.group || b.dataset.screen).split(' ').includes(name)));
+  document.querySelectorAll('.pass-step').forEach(b => b.classList.toggle('active', b.dataset.screen === name));
+  if(isPublicShell) refreshPublicNavAuth();
+  if(name === 'pass') renderPassNextCard();
 
   if(name === 'dashboard') loadDashboardCases();
   if(name === 'documents') loadDocumentsForCase();
@@ -4622,6 +4708,7 @@ document.querySelectorAll('[data-screen]').forEach(btn => {
 document.querySelectorAll('[data-goto]').forEach(btn => {
   btn.addEventListener('click', (e) => { e.preventDefault(); goToScreen(btn.dataset.goto); });
 });
+refreshPublicNavAuth();
 
 // ---- Phase 1: structured KYB wizard (internal variable names still say "KYC_SCHEMA" — see note) ----
 // Schema mirrors the summarization agent prompt's field list & tiers exactly,
