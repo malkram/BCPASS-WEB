@@ -405,6 +405,42 @@ ul{ margin:0; padding:0; list-style:none; }
 .match-locked ul{ margin:6px 0 12px 18px; padding:0; font-size:0.88rem; color: var(--ink-soft); }
 .match-locked .match-soon{ display:inline-block; font-size:0.7rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; padding:3px 10px; border-radius:999px; background: var(--paper-raise); border:1px solid var(--line-strong); color: var(--ink-soft); }
 .match-fineprint{ font-size:0.78rem; color: var(--muted); margin-top:22px; max-width:70ch; }
+/* Matching assistant (chat) */
+.mchat-card{ margin-top:22px; }
+.mchat-lede{ margin:0 0 10px !important; }
+.mchat-lanes{ display:flex; flex-wrap:wrap; gap:8px; margin:4px 0 10px; }
+.mchat-lane{ font:inherit; font-size:0.84rem; padding:6px 13px; border-radius:999px; border:1px solid var(--line); background: var(--paper); color: var(--ink); cursor:pointer; }
+.mchat-lane:hover{ border-color: var(--line-strong); }
+.mchat-lane.active{ background: var(--ink); border-color: var(--ink); color:#fff; }
+.mchat-lane small{ opacity:0.75; margin-left:6px; font-size:0.74rem; }
+.mchat-progress{ font-size:0.8rem !important; color: var(--muted) !important; margin:0 0 8px !important; }
+.mchat-saved{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.mchat-saved-chip{ display:inline-flex; align-items:center; gap:6px; font-size:0.78rem; padding:4px 6px 4px 11px; border-radius:999px; background: var(--accent-soft, #E4EFE9); color: var(--ink); }
+.mchat-saved-chip b{ font-weight:600; }
+.mchat-saved-chip button{ font:inherit; line-height:1; width:20px; height:20px; border-radius:50%; border:none; background:rgba(0,0,0,0.08); color: var(--ink-soft); cursor:pointer; }
+.mchat-saved-chip button:hover{ background:rgba(0,0,0,0.16); }
+.mchat-start{ margin:4px 0 4px; }
+.mchat-log{ display:flex; flex-direction:column; gap:9px; max-height:380px; overflow-y:auto; padding:2px; margin:6px 0 10px; }
+.mchat-log:empty{ display:none; }
+.mchat-msg{ max-width:88%; padding:9px 13px; border-radius:14px; font-size:0.92rem; line-height:1.45; white-space:pre-wrap; overflow-wrap:anywhere; }
+.mchat-msg.bot{ align-self:flex-start; background: var(--paper); border:1px solid var(--line); color: var(--ink); border-bottom-left-radius:4px; }
+.mchat-msg.me{ align-self:flex-end; background: var(--accent); color:#fff; border-bottom-right-radius:4px; }
+.mchat-msg.note{ align-self:center; max-width:100%; background:none; font-size:0.8rem; color: var(--muted); padding:2px 4px; }
+.mchat-msg.typing{ color: var(--muted); font-style:italic; }
+.mchat-confirm:empty, .mchat-suggest:empty{ display:none; }
+.mchat-confirm{ border:1px solid var(--accent); background:#EEF6F2; border-radius: var(--radius); padding:12px 14px; margin:4px 0 10px; }
+.mchat-confirm h3{ font-size:0.85rem; margin:0 0 6px; }
+.mchat-confirm ul{ margin:0 0 10px 0; padding:0; list-style:none; font-size:0.88rem; }
+.mchat-confirm li{ margin:0 0 4px; color: var(--ink); }
+.mchat-confirm li span{ display:block; font-size:0.76rem; color: var(--muted); }
+.mchat-confirm-actions{ display:flex; flex-wrap:wrap; gap:8px; }
+.mchat-suggest{ display:flex; flex-wrap:wrap; gap:6px; margin:2px 0 10px; }
+.mchat-chip{ font:inherit; font-size:0.84rem; padding:6px 12px; border-radius:999px; border:1px solid var(--line-strong); background: var(--paper-raise); color: var(--ink); cursor:pointer; }
+.mchat-chip:hover{ border-color: var(--accent); color: var(--accent); }
+.mchat-form{ display:flex; gap:8px; }
+.mchat-form input{ flex:1; min-width:0; }
+.mchat-error{ font-size:0.84rem; color:#9B2C2C; margin:2px 0 10px; }
+.mchat-fine{ font-size:0.74rem !important; color: var(--muted) !important; margin:12px 0 0 !important; }
 @media (max-width:560px){ .mx-row{ grid-template-columns: 28px 1fr; } .match-score{ grid-column: 2; text-align:left; display:flex; align-items:baseline; gap:10px; } .match-score b{ font-size:1.3rem; } }
 .pass-list-count{ font-size:0.76rem; color: var(--muted); margin:-4px 0 10px; }
 .pass-pager{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:12px; }
@@ -1753,6 +1789,24 @@ body.marketing-mode .site-footer{ display:block; }
         <span class="match-updated" id="matching-updated"></span>
       </div>
       <div id="matching-body"><!-- rendered by renderMatching() --></div>
+
+      <!-- Matching assistant (match-chat): scoped chat that collects the extra details a sharper comparison needs. Hidden until the match-chat function reports lanes for this company. -->
+      <div class="match-card mchat-card" id="mchat" style="display:none">
+        <h2>Help us match you better</h2>
+        <p class="mchat-lede">Answer a few quick questions about what you're looking for. You confirm every answer before it's saved.</p>
+        <div class="mchat-lanes" id="mchat-lanes"></div>
+        <p class="mchat-progress" id="mchat-progress"></p>
+        <div class="mchat-saved" id="mchat-saved"></div>
+        <div class="mchat-start" id="mchat-start"></div>
+        <div class="mchat-log" id="mchat-log" aria-live="polite"></div>
+        <div class="mchat-confirm" id="mchat-confirm"></div>
+        <div class="mchat-suggest" id="mchat-suggest"></div>
+        <form class="mchat-form" id="mchat-form" autocomplete="off" style="display:none">
+          <input type="text" class="field-text" id="mchat-input" maxlength="600" placeholder="Type your answer…" aria-label="Your answer">
+          <button type="submit" class="btn btn-primary btn-small" id="mchat-send">Send</button>
+        </form>
+        <p class="mchat-fine">This assistant only collects details. It can't recommend providers or say whether an application would be approved. Nothing is saved until you confirm it, and you can remove an answer at any time.</p>
+      </div>
 
       <div class="match-card match-locked" id="matching-locked">
         <h2>Comprehensive matching <span class="match-soon">Coming soon</span></h2>
@@ -4501,6 +4555,7 @@ function initMatchingScreen(){
   const kicker = document.getElementById('matching-company-kicker');
   if(kicker) kicker.textContent = kycProfile.legal_entity_name?.trim() || 'Company profile';
   renderMatching();
+  initMchat();
 }
 
 function renderMatching(){
@@ -4605,6 +4660,195 @@ document.getElementById('matching-run-btn')?.addEventListener('click', runMatchi
 document.getElementById('screen-matching')?.addEventListener('click', (e) => {
   if(e.target.closest('.matching-goto-profile')) goToScreen('build');
   if(e.target.closest('#matching-goto-companies')) goToScreen('dashboard');
+});
+
+// ============ Matching assistant (match-chat edge function) ============
+// A scoped chat that collects the details a sharper comparison needs, one
+// product "lane" (lending, FX & payments, ...) at a time. The model only
+// PROPOSES answers; they are saved only when the client taps "Save these"
+// (action: confirm). If the function isn't deployed yet the card simply
+// stays hidden.
+const mchat = {}; // case_id -> { status, lanes, active, byLane }
+
+function mchatState(){
+  if(!currentCaseId) return null;
+  if(!mchat[currentCaseId]) mchat[currentCaseId] = { status:'idle', lanes:[], active:null, byLane:{} };
+  return mchat[currentCaseId];
+}
+function mchatLane(st, id){
+  if(!st.byLane[id]) st.byLane[id] = { messages:[], view:[], pending:{}, suggested:[], busy:false, error:null, started:false, done:false };
+  return st.byLane[id];
+}
+
+async function initMchat(){
+  const st = mchatState();
+  const box = document.getElementById('mchat');
+  if(!box) return;
+  if(!st){ box.style.display = 'none'; return; }
+  if(st.status === 'idle'){
+    const caseId = currentCaseId;
+    st.status = 'loading';
+    try{
+      const r = await callFunction('match-chat', { action:'status', case_id: caseId });
+      st.lanes = r.lanes || [];
+      st.status = 'ready';
+      if(!st.active || !st.lanes.some(l => l.id === st.active)) st.active = st.lanes[0]?.id || null;
+    }catch(err){
+      console.warn('match-chat status unavailable:', err?.message || err);
+      st.status = 'unavailable';
+    }
+    if(currentCaseId !== caseId) return;
+  }
+  renderMchat();
+}
+
+function renderMchat(){
+  const st = mchatState();
+  const box = document.getElementById('mchat');
+  if(!box) return;
+  if(!st || st.status !== 'ready' || st.lanes.length === 0){ box.style.display = 'none'; return; }
+  box.style.display = '';
+  const lane = st.lanes.find(l => l.id === st.active) || st.lanes[0];
+  st.active = lane.id;
+  const ls = mchatLane(st, lane.id);
+
+  // Lane chips (only when there is more than one)
+  document.getElementById('mchat-lanes').innerHTML = st.lanes.length > 1
+    ? st.lanes.map(l => `<button type="button" class="mchat-lane${l.id===lane.id?' active':''}" data-mchat-lane="${escapeHtml(l.id)}">${escapeHtml(l.label)}<small>${l.done}/${l.total}</small></button>`).join('')
+    : '';
+  document.getElementById('mchat-progress').textContent =
+    `${lane.label}: ${lane.done} of ${lane.total} details shared`;
+
+  // Saved answers, each removable
+  const saved = lane.fields.filter(f => f.confirmed);
+  document.getElementById('mchat-saved').innerHTML = saved.map(f =>
+    `<span class="mchat-saved-chip"><span>${escapeHtml(f.label)}: <b>${escapeHtml(f.display)}</b></span><button type="button" data-mchat-remove="${escapeHtml(f.key)}" aria-label="Remove ${escapeHtml(f.label)}" title="Remove">×</button></span>`).join('');
+
+  // Start / continue button
+  const allDone = lane.done >= lane.total;
+  const startEl = document.getElementById('mchat-start');
+  startEl.innerHTML = ls.started ? '' :
+    `<button type="button" class="btn btn-primary btn-small" data-mchat-start="1">${allDone ? 'Review my answers' : (lane.done > 0 ? 'Continue' : 'Start')} →</button>`;
+
+  // Conversation
+  const logEl = document.getElementById('mchat-log');
+  logEl.innerHTML = ls.view.map(m => `<div class="mchat-msg ${m.kind}">${escapeHtml(m.text)}</div>`).join('')
+    + (ls.busy ? '<div class="mchat-msg bot typing">Typing…</div>' : '');
+  logEl.scrollTop = logEl.scrollHeight;
+
+  // Confirm card
+  const pend = Object.values(ls.pending);
+  document.getElementById('mchat-confirm').innerHTML = pend.length ? `
+    <h3>Here's what I've got — is this right?</h3>
+    <ul>${pend.map(u => `<li><b>${escapeHtml(u.label)}:</b> ${escapeHtml(u.display)}${u.basis === 'inferred' ? `<span>From your profile: ${escapeHtml(u.evidence || '')}</span>` : ''}</li>`).join('')}</ul>
+    <div class="mchat-confirm-actions">
+      <button type="button" class="btn btn-primary btn-small" data-mchat-confirm="1"${ls.busy ? ' disabled' : ''}>Save these</button>
+      <button type="button" class="btn btn-ghost btn-small" data-mchat-notquite="1"${ls.busy ? ' disabled' : ''}>Not quite</button>
+    </div>` : '';
+
+  // Suggested replies + error + input
+  const sug = (!ls.busy && ls.suggested.length)
+    ? ls.suggested.map(t => `<button type="button" class="mchat-chip" data-mchat-reply="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('')
+    : '';
+  const errHtml = ls.error ? `<div class="mchat-error">${escapeHtml(ls.error)} <button type="button" class="btn btn-ghost btn-small" data-mchat-retry="1">Try again</button></div>` : '';
+  document.getElementById('mchat-suggest').innerHTML = errHtml + sug;
+  document.getElementById('mchat-suggest').style.display = (errHtml || sug) ? '' : 'none';
+  const form = document.getElementById('mchat-form');
+  form.style.display = ls.started ? '' : 'none';
+  document.getElementById('mchat-input').disabled = ls.busy;
+  document.getElementById('mchat-send').disabled = ls.busy;
+}
+
+async function mchatTurn(userText){
+  const st = mchatState();
+  if(!st) return;
+  const caseId = currentCaseId, laneId = st.active;
+  const ls = mchatLane(st, laneId);
+  if(ls.busy) return;
+  if(userText){
+    ls.messages.push({ role:'user', content: userText });
+    ls.view.push({ kind:'me', text: userText });
+  }
+  ls.started = true; ls.busy = true; ls.error = null; ls.suggested = [];
+  renderMchat();
+  try{
+    const r = await callFunction('match-chat', { action:'chat', case_id: caseId, lane: laneId, messages: ls.messages.slice(-24) });
+    ls.messages.push({ role:'assistant', content: r.assistant_message });
+    ls.view.push({ kind:'bot', text: r.assistant_message });
+    ls.suggested = r.suggested_replies || [];
+    for(const u of (r.proposed_updates || [])) ls.pending[u.field] = u;
+    ls.done = !!r.done;
+    st.lanes = r.lanes || st.lanes;
+  }catch(err){
+    ls.error = err?.message || 'Something went wrong.';
+  }
+  ls.busy = false;
+  if(currentCaseId === caseId) renderMchat();
+}
+
+async function mchatConfirm(){
+  const st = mchatState();
+  if(!st) return;
+  const caseId = currentCaseId, laneId = st.active;
+  const ls = mchatLane(st, laneId);
+  const updates = Object.values(ls.pending).map(u => ({ field: u.field, value: u.value, basis: u.basis }));
+  if(!updates.length || ls.busy) return;
+  ls.busy = true; ls.error = null; renderMchat();
+  try{
+    const r = await callFunction('match-chat', { action:'confirm', case_id: caseId, lane: laneId, updates });
+    st.lanes = r.lanes || st.lanes;
+    const names = Object.values(ls.pending).filter(u => (r.saved || []).includes(u.field)).map(u => u.label);
+    ls.pending = {};
+    ls.view.push({ kind:'note', text: `Saved: ${names.join(', ')}.` });
+    const lane = st.lanes.find(l => l.id === laneId);
+    if(lane && lane.done >= lane.total){
+      ls.done = true; ls.suggested = [];
+      ls.view.push({ kind:'bot', text: "Thanks, that's everything for this section. We'll use these details when we compare you with providers." });
+    }
+  }catch(err){
+    ls.error = err?.message || 'Could not save that just now.';
+  }
+  ls.busy = false;
+  if(currentCaseId === caseId) renderMchat();
+}
+
+async function mchatRemove(field){
+  const st = mchatState();
+  if(!st) return;
+  const caseId = currentCaseId;
+  try{
+    const r = await callFunction('match-chat', { action:'remove', case_id: caseId, field });
+    st.lanes = r.lanes || st.lanes;
+    for(const l of Object.values(st.byLane)) l.done = false;
+  }catch(err){
+    const ls = mchatLane(st, st.active); ls.error = err?.message || 'Could not remove that just now.';
+  }
+  if(currentCaseId === caseId) renderMchat();
+}
+
+document.getElementById('mchat')?.addEventListener('click', (e) => {
+  const st = mchatState();
+  if(!st) return;
+  const t = e.target.closest('button');
+  if(!t) return;
+  if(t.dataset.mchatLane){ st.active = t.dataset.mchatLane; renderMchat(); return; }
+  if(t.dataset.mchatStart){ mchatTurn(null); return; }
+  if(t.dataset.mchatConfirm){ mchatConfirm(); return; }
+  if(t.dataset.mchatNotquite){
+    const ls = mchatLane(st, st.active); ls.pending = {};
+    mchatTurn("That's not quite right. Can we go over it again?"); return;
+  }
+  if(t.dataset.mchatReply !== undefined){ mchatTurn(t.dataset.mchatReply); return; }
+  if(t.dataset.mchatRetry){ mchatTurn(null); return; }
+  if(t.dataset.mchatRemove){ mchatRemove(t.dataset.mchatRemove); return; }
+});
+document.getElementById('mchat-form')?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const input = document.getElementById('mchat-input');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  mchatTurn(text);
 });
 
 // ---- "Your pass" step strip (small screens only; the sidebar carries it on desktop) ----
