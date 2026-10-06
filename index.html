@@ -4772,18 +4772,22 @@ async function mchatTurn(userText){
   ls.started = true; ls.busy = true; ls.error = null; ls.suggested = [];
   renderMchat();
   try{
-    const r = await callFunction('match-chat', { action:'chat', case_id: caseId, lane: laneId, messages: ls.messages.slice(-24) });
+    const r = await callFunction('match-chat', { action:'chat', case_id: caseId, lane: laneId, messages: ls.messages.slice(-24), pending_fields: Object.keys(ls.pending) });
     ls.messages.push({ role:'assistant', content: r.assistant_message });
     ls.view.push({ kind:'bot', text: r.assistant_message });
     ls.suggested = r.suggested_replies || [];
     for(const u of (r.proposed_updates || [])) ls.pending[u.field] = u;
     ls.done = !!r.done;
     st.lanes = r.lanes || st.lanes;
+    ls.nudgeSave = ls.done && Object.keys(ls.pending).length > 0;
   }catch(err){
     ls.error = err?.message || 'Something went wrong.';
   }
   ls.busy = false;
-  if(currentCaseId === caseId) renderMchat();
+  if(currentCaseId === caseId){
+    renderMchat();
+    if(ls.nudgeSave){ ls.nudgeSave = false; document.getElementById('mchat-confirm')?.scrollIntoView({ behavior:'smooth', block:'nearest' }); }
+  }
 }
 
 async function mchatConfirm(){
