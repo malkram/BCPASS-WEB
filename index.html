@@ -400,6 +400,14 @@ ul{ margin:0; padding:0; list-style:none; }
 .match-chip{ display:inline-block; margin-top:3px; font-size:0.64rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; padding:3px 9px; border-radius:999px; background:rgba(31,122,92,0.12); color: var(--accent); }
 .match-chip.mid{ background: var(--amber-soft); color: var(--amber); }
 .match-chip.low{ background: var(--paper); color: var(--muted); border:1px solid var(--line); }
+.match-chip.limited{ background: var(--paper); color: var(--ink-soft); border:1px dashed var(--line-strong); }
+.mx-tabs{ display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 12px; }
+.mx-tab{ font:inherit; font-size:0.86rem; padding:7px 14px; border-radius:999px; border:1px solid var(--line); background: var(--paper); color: var(--ink); cursor:pointer; }
+.mx-tab:hover{ border-color: var(--line-strong); }
+.mx-tab.active{ background: var(--ink); border-color: var(--ink); color:#fff; }
+.mx-tab small{ opacity:0.75; margin-left:6px; font-size:0.74rem; }
+.mx-basis{ font-size:0.74rem; color: var(--muted); margin-top:6px; }
+.mx-lane-hint{ font-size:0.86rem; color: var(--ink-soft); background: var(--paper); border:1px solid var(--line); border-radius: var(--radius); padding:10px 14px; margin:0 0 12px; }
 .match-gaps{ margin:6px 0 12px 18px; padding:0; font-size:0.9rem; color: var(--ink-soft); }
 .match-locked{ position:relative; border-style:dashed; background: var(--paper); }
 .match-locked ul{ margin:6px 0 12px 18px; padding:0; font-size:0.88rem; color: var(--ink-soft); }
@@ -4613,31 +4621,54 @@ function renderMatching(){
     return;
   }
 
-  const matches = data.matches || [];
+  const lanes = Array.isArray(data.lanes) ? data.lanes : [];
+  const overall = data.matches || [];
+  // Tabs: one per product lane the client ticked, plus an overall list when it adds something.
+  let tab = st.tab;
+  const tabIds = lanes.map(l => l.id).concat(overall.length ? ['all'] : []);
+  if(!tabIds.includes(tab)) tab = tabIds[0] || 'all';
+  const laneObj = lanes.find(l => l.id === tab);
+  const matches = laneObj ? laneObj.matches : overall;
+  const isLane = !!laneObj;
+
+  const tabsHtml = tabIds.length > 1 ? `<div class="mx-tabs">${tabIds.map(id => {
+    const l = lanes.find(x => x.id === id);
+    const label = l ? l.label : 'All institutions';
+    const n = l ? l.matches.length : overall.length;
+    return `<button type="button" class="mx-tab${id === tab ? ' active' : ''}" data-mx-tab="${id}">${escapeHtml(label)}<small>${n}</small></button>`;
+  }).join('')}</div>` : '';
+
   if(matches.length === 0){
-    body.innerHTML = `
+    body.innerHTML = tabsHtml + `
       <div class="match-card">
         <h2>No clear matches yet</h2>
-        <p>None of the institutions we currently cover look like a fit for your profile as it stands. We're adding more all the time, so it's worth checking again.</p>
+        <p>${isLane ? "None of the institutions we currently cover in this area look like a fit for your profile as it stands." : "None of the institutions we currently cover look like a fit for your profile as it stands."} We're adding more all the time, so it's worth checking again.</p>
       </div>` + gapsHtml(data.profile_gaps);
     return;
   }
-  body.innerHTML = `
+  const laneHint = (isLane && (laneObj.chat_answered < laneObj.chat_total || matches.some(m => m.confidence === 'low')))
+    ? `<div class="mx-lane-hint">${laneObj.chat_answered < laneObj.chat_total
+        ? `You've answered ${laneObj.chat_answered} of ${laneObj.chat_total} questions for this area. Finish them in the assistant below to sharpen this list.`
+        : `Some of these rest on limited information about the institution, so they're shown as <b>possible</b> matches. They'll firm up as we add detail.`}</div>` : '';
+  body.innerHTML = tabsHtml + laneHint + `
     <div class="mx-list">
       ${matches.map(m => {
-        const t = matchTier(m.match_percent);
+        const limited = m.confidence === 'low' && m.match_percent >= 50;
+        const t = limited ? 'low' : matchTier(m.match_percent);
+        const basis = (isLane && m.factors_total) ? `<div class="mx-basis">Based on ${m.factors_used} of ${m.factors_total} factors</div>` : '';
         return `
         <div class="mx-row">
           <div class="match-rank">${m.rank}</div>
           <div>
             <div class="match-name">${escapeHtml(m.name)}</div>
             <div class="match-bar ${t}"><span style="width:${Math.max(3, Math.min(100, m.match_percent))}%"></span></div>
+            ${basis}
           </div>
-          <div class="match-score"><b>${m.match_percent}%</b><span class="match-chip ${t}">${escapeHtml(m.label || 'Match')}</span></div>
+          <div class="match-score"><b>${m.match_percent}%</b><span class="match-chip ${limited ? 'limited' : t}">${escapeHtml(m.label || 'Match')}</span></div>
         </div>`;
       }).join('')}
     </div>
-    <p class="side-note" style="margin-top:12px">Compared with ${matches.length + (data.not_enough_data_count || 0)} institution${matches.length + (data.not_enough_data_count || 0) === 1 ? '' : 's'}${data.not_enough_data_count ? ` — ${data.not_enough_data_count} couldn't be scored because we need more detail from your profile` : ''}.</p>
+    <p class="side-note" style="margin-top:12px">Compared with ${(data.matches || []).length + (data.not_enough_data_count || 0)} institution${(data.matches || []).length + (data.not_enough_data_count || 0) === 1 ? '' : 's'}${data.not_enough_data_count ? ` — ${data.not_enough_data_count} couldn't be scored because we need more detail from your profile` : ''}.</p>
     ${gapsHtml(data.profile_gaps)}`;
 }
 
@@ -4648,7 +4679,7 @@ async function runMatching(){
   renderMatching();
   try {
     const data = await callFunction('get-matches', { case_id: caseId });
-    matchingByCase[caseId] = { status: 'done', data, ranAt: new Date() };
+    matchingByCase[caseId] = { status: 'done', data, ranAt: new Date(), tab: matchingByCase[caseId]?.tab };
   } catch(err) {
     console.error('get-matches failed:', err);
     matchingByCase[caseId] = { status: 'error', error: err.message || String(err) };
@@ -4658,6 +4689,8 @@ async function runMatching(){
 
 document.getElementById('matching-run-btn')?.addEventListener('click', runMatching);
 document.getElementById('screen-matching')?.addEventListener('click', (e) => {
+  const tabBtn = e.target.closest('[data-mx-tab]');
+  if(tabBtn && currentCaseId && matchingByCase[currentCaseId]){ matchingByCase[currentCaseId].tab = tabBtn.dataset.mxTab; renderMatching(); return; }
   if(e.target.closest('.matching-goto-profile')) goToScreen('build');
   if(e.target.closest('#matching-goto-companies')) goToScreen('dashboard');
 });
