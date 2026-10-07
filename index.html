@@ -408,6 +408,19 @@ ul{ margin:0; padding:0; list-style:none; }
 .mx-tab small{ opacity:0.75; margin-left:6px; font-size:0.74rem; }
 .mx-basis{ font-size:0.74rem; color: var(--muted); margin-top:6px; }
 .mx-lane-tag{ display:inline-block; margin-left:6px; padding:1px 7px; border:1px solid var(--line); border-radius:999px; font-size:0.68rem; color: var(--ink-soft); background: var(--paper); }
+.mx-more{ font:inherit; font-size:0.8rem; color: var(--ink-soft); background:none; border:none; padding:0; margin-top:8px; cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
+.mx-more:hover{ color: var(--ink); }
+.mx-card{ grid-column: 1 / -1; border-top:1px solid var(--line); margin-top:4px; padding-top:14px; font-size:0.9rem; color: var(--ink); }
+.mx-card h4{ margin:14px 0 6px; font-size:0.78rem; letter-spacing:0.04em; text-transform:uppercase; color: var(--muted); font-weight:700; }
+.mx-card h4:first-child{ margin-top:0; }
+.mx-card p{ margin:0 0 8px; line-height:1.5; }
+.mx-card ul{ margin:0; padding-left:18px; } .mx-card li{ margin:0 0 6px; line-height:1.45; }
+.mx-card .mx-site{ font-size:0.86rem; margin-bottom:10px; }
+.mx-card table{ width:100%; border-collapse:collapse; font-size:0.86rem; }
+.mx-card td{ padding:5px 0; border-bottom:1px solid var(--line); vertical-align:top; }
+.mx-card td:first-child{ color: var(--ink-soft); width:46%; padding-right:10px; }
+.mx-card td a{ color: var(--muted); font-size:0.74rem; margin-left:6px; white-space:nowrap; }
+.mx-card .mx-fine{ font-size:0.76rem; color: var(--muted); margin-top:12px; line-height:1.45; }
 .mx-lane-hint{ font-size:0.86rem; color: var(--ink-soft); background: var(--paper); border:1px solid var(--line); border-radius: var(--radius); padding:10px 14px; margin:0 0 12px; }
 .match-gaps{ margin:6px 0 12px 18px; padding:0; font-size:0.9rem; color: var(--ink-soft); }
 .match-locked{ position:relative; border-style:dashed; background: var(--paper); }
@@ -1821,7 +1834,7 @@ body.marketing-mode .site-footer{ display:block; }
         <h2>Comprehensive matching <span class="match-soon">Coming soon</span></h2>
         <p>Want to go deeper on any institution? The comprehensive version will add:</p>
         <ul>
-          <li>Details about the institution and whether it's a verified BCPASS partner</li>
+          <li>Whether the institution is a verified BCPASS partner, and more detail on how each match compares</li>
           <li>An estimate of the kind of product and amount you could be eligible for</li>
           <li>Potential savings or benefit compared with what you use today</li>
           <li>How each match was worked out, point by point</li>
@@ -4567,6 +4580,31 @@ function initMatchingScreen(){
   initMchat();
 }
 
+// Institution card (data.cards[name]) returned by get-matches. Everything is escaped; links are http(s) only.
+function institutionCardHtml(card){
+  const link = (u, label) => /^https?:\/\//i.test(u || '') ? `<a href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>` : escapeHtml(label);
+  let html = '<div class="mx-card">';
+  if(card.website_url) html += `<div class="mx-site">Website: ${link(card.website_url, (card.website_label || card.website_url) + ' ↗')}</div>`;
+  if(card.about && card.about.overview){
+    html += `<h4>About</h4><p>${escapeHtml(card.about.overview)}</p>`;
+    if(Array.isArray(card.about.products) && card.about.products.length){
+      html += `<h4>What they offer</h4><ul>${card.about.products.map(p => `<li><b>${escapeHtml(p.name)}</b> — ${escapeHtml(p.description)}</li>`).join('')}</ul>`;
+    }
+  }
+  const crit = Array.isArray(card.criteria) ? card.criteria : [];
+  if(crit.length){
+    const groups = [];
+    crit.forEach(c => { let g = groups.find(x => x.label === c.lane_label); if(!g){ g = { label: c.lane_label, rows: [] }; groups.push(g); } g.rows.push(c); });
+    groups.forEach(g => {
+      html += `<h4>Published criteria — ${escapeHtml(g.label)}</h4><table>${g.rows.map(c => `<tr><td>${escapeHtml(c.label)}</td><td>${escapeHtml(c.value)}${c.source_url ? ' ' + link(c.source_url, 'source ↗') : ''}</td></tr>`).join('')}</table>`;
+    });
+  }
+  if(!(card.about && card.about.overview) && !crit.length) html += '<p>We don\'t have published details to show for this institution yet.</p>';
+  const when = card.last_checked ? ` Last checked ${escapeHtml(card.last_checked)}.` : '';
+  html += `<p class="mx-fine">Based on public information, mainly the institution's own website, so it may be out of date or incomplete.${when} Please confirm details with the institution. This is information, not advice, a recommendation or a prediction of approval.</p></div>`;
+  return html;
+}
+
 function renderMatching(){
   const body = document.getElementById('matching-body');
   const btn = document.getElementById('matching-run-btn');
@@ -4658,6 +4696,10 @@ function renderMatching(){
         const limited = m.confidence === 'low' && m.match_percent >= 50;
         const t = limited ? 'low' : matchTier(m.match_percent);
         const basis = m.factors_total ? `<div class="mx-basis">Based on ${m.factors_used} of ${m.factors_total} factors${(!isLane && m.lane_label) ? ` <span class="mx-lane-tag">${escapeHtml(m.lane_label)}</span>` : ''}</div>` : '';
+        const ckey = String(m.name || '').toLowerCase();
+        const card = data.cards && data.cards[ckey];
+        const isOpen = !!(card && st.open && st.open[ckey]);
+        const moreBtn = card ? `<button type="button" class="mx-more" data-mx-card="${escapeHtml(ckey)}" aria-expanded="${isOpen}">${isOpen ? 'Hide details' : 'About this institution'}</button>` : '';
         return `
         <div class="mx-row">
           <div class="match-rank">${m.rank}</div>
@@ -4665,8 +4707,10 @@ function renderMatching(){
             <div class="match-name">${escapeHtml(m.name)}</div>
             <div class="match-bar ${t}"><span style="width:${Math.max(3, Math.min(100, m.match_percent))}%"></span></div>
             ${basis}
+            ${moreBtn}
           </div>
           <div class="match-score"><b>${m.match_percent}%</b><span class="match-chip ${limited ? 'limited' : t}">${escapeHtml(m.label || 'Match')}</span></div>
+          ${isOpen ? institutionCardHtml(card) : ''}
         </div>`;
       }).join('')}
     </div>
@@ -4681,7 +4725,7 @@ async function runMatching(){
   renderMatching();
   try {
     const data = await callFunction('get-matches', { case_id: caseId });
-    matchingByCase[caseId] = { status: 'done', data, ranAt: new Date(), tab: matchingByCase[caseId]?.tab };
+    matchingByCase[caseId] = { status: 'done', data, ranAt: new Date(), tab: matchingByCase[caseId]?.tab, open: matchingByCase[caseId]?.open };
   } catch(err) {
     console.error('get-matches failed:', err);
     matchingByCase[caseId] = { status: 'error', error: err.message || String(err) };
@@ -4693,6 +4737,11 @@ document.getElementById('matching-run-btn')?.addEventListener('click', runMatchi
 document.getElementById('screen-matching')?.addEventListener('click', (e) => {
   const tabBtn = e.target.closest('[data-mx-tab]');
   if(tabBtn && currentCaseId && matchingByCase[currentCaseId]){ matchingByCase[currentCaseId].tab = tabBtn.dataset.mxTab; renderMatching(); return; }
+  const moreBtn = e.target.closest('[data-mx-card]');
+  if(moreBtn && currentCaseId && matchingByCase[currentCaseId]){
+    const st = matchingByCase[currentCaseId]; st.open = st.open || {};
+    const k = moreBtn.dataset.mxCard; st.open[k] = !st.open[k]; renderMatching(); return;
+  }
   if(e.target.closest('.matching-goto-profile')) goToScreen('build');
   if(e.target.closest('#matching-goto-companies')) goToScreen('dashboard');
 });
