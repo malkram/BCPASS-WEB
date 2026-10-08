@@ -407,6 +407,7 @@ ul{ margin:0; padding:0; list-style:none; }
 .mx-tab.active{ background: var(--ink); border-color: var(--ink); color:#fff; }
 .mx-tab small{ opacity:0.75; margin-left:6px; font-size:0.74rem; }
 .mx-basis{ font-size:0.74rem; color: var(--muted); margin-top:6px; }
+.mx-checked{ color: var(--ink-soft); }
 .mx-lane-tag{ display:inline-block; margin-left:6px; padding:1px 7px; border:1px solid var(--line); border-radius:999px; font-size:0.68rem; color: var(--ink-soft); background: var(--paper); }
 .mx-lane-hint{ font-size:0.86rem; color: var(--ink-soft); background: var(--paper); border:1px solid var(--line); border-radius: var(--radius); padding:10px 14px; margin:0 0 12px; }
 .match-gaps{ margin:6px 0 12px 18px; padding:0; font-size:0.9rem; color: var(--ink-soft); }
@@ -4708,7 +4709,8 @@ function renderMatching(){
       ${matches.map(m => {
         const limited = m.confidence === 'low' && m.match_percent >= 50;
         const t = limited ? 'low' : matchTier(m.match_percent);
-        const basis = m.factors_total ? `<div class="mx-basis">Based on ${m.factors_used} of ${m.factors_total} factors${(!isLane && m.lane_label) ? ` <span class="mx-lane-tag">${escapeHtml(m.lane_label)}</span>` : ''}</div>` : '';
+        const checkedN = Math.max(0, Math.min(m.factors_used || 0, Number(m.factors_checked) || 0));
+        const basis = m.factors_total ? `<div class="mx-basis">Based on ${m.factors_used} of ${m.factors_total} factors${checkedN ? ` <span class="mx-checked">&middot; ${checkedN} of these checked against your documents or the public registry</span>` : ''}${(!isLane && m.lane_label) ? ` <span class="mx-lane-tag">${escapeHtml(m.lane_label)}</span>` : ''}</div>` : '';
         return `
         <div class="mx-row">
           <div class="match-rank">${m.rank}</div>
@@ -4721,6 +4723,7 @@ function renderMatching(){
         </div>`;
       }).join('')}
     </div>
+    ${data.profile_check && data.profile_check.accounts_prompt ? `<p class="side-note mx-accounts-prompt" style="margin-top:12px">Your turnover is based on what you told us. Add your latest annual accounts to your company profile and we'll check it for you, so these matches rest on checked figures.</p>` : ''}
     <p class="side-note" style="margin-top:12px">Compared with ${(data.matches || []).length + (data.not_enough_data_count || 0)} institution${(data.matches || []).length + (data.not_enough_data_count || 0) === 1 ? '' : 's'}${data.not_enough_data_count ? ` — ${data.not_enough_data_count} couldn't be scored because we need more detail from your profile` : ''}.</p>
     ${gapsHtml(data.profile_gaps)}`;
 }
