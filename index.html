@@ -2470,9 +2470,41 @@ async function maybeRunConsistencyCheck(){
 
 // Loads a case's saved profile into the wizard and jumps to step 1,
 // refreshing every part of the UI that depends on kycProfile.
-function loadCaseIntoWizard(caseId, nestedProfile){
-  currentCaseId = caseId;
+// Everything the page keeps in memory about the case that is currently open.
+// Called whenever the open case changes (a case is opened from the dashboard,
+// a new one is started, or the user signs out) so nothing from the previous
+// company can show in the form or — worse — be auto-saved into the next one.
+// 8 Oct 2026 fix: "+ Add a company" used to switch to the new case id but
+// leave the previous company's answers in kycProfile, so the new form came up
+// pre-filled and the next auto-save wrote the old company's data into the new case.
+function resetCaseScopedState(){
+  clearTimeout(saveDebounceTimer);
   for(const key of Object.keys(kycProfile)) delete kycProfile[key];
+  lastKnownClientFeedback = null;
+  lastKnownFutureNeedsSignals = null;
+  wizardStep = 0;
+  candyTier2Notes = {};
+  pendingCorrectionsByField = {};
+  pendingCorrectionsUnmapped = [];
+  lastConsistencySnapshot = null;
+  currentBusinessDiagram = null;
+  currentDiscrepancies = [];
+  currentChecksFlags = [];
+  passLinks = [];
+  currentPassLink = null;
+  pendingPassSelectId = null;
+  lastPassQrDataUrl = null;
+  passListPage = 0;
+  summaryPipelineActive = false;
+  const summaryContent = document.getElementById('summary-content');
+  if(summaryContent) summaryContent.style.display = 'none';
+  const summaryError = document.getElementById('summary-error');
+  if(summaryError){ summaryError.style.display = 'none'; summaryError.textContent = ''; }
+}
+
+function loadCaseIntoWizard(caseId, nestedProfile){
+  resetCaseScopedState();
+  currentCaseId = caseId;
   Object.assign(kycProfile, mapCandySchemaToWizardProfile(nestedProfile));
   lastKnownClientFeedback = nestedProfile?.client_feedback ?? null;
   lastKnownFutureNeedsSignals = nestedProfile?.purpose_services_required?.future_needs_signals ?? null;
@@ -2628,6 +2660,8 @@ async function routeAfterAuth(){
 
 async function handleAuthSignOut(){
   if(supabaseClient) await supabaseClient.auth.signOut();
+  currentCaseId = null;
+  resetCaseScopedState();
   pendingEnrollFactorId = null;
   pendingChallengeFactorId = null;
   pendingChallengeId = null;
@@ -2865,9 +2899,13 @@ if(mfaChallengeForm){
 async function startNewProfile(triggerBtn){
   triggerBtn.disabled = true;
   try {
+    // Save anything still waiting in the auto-save timer to the case it belongs to
+    // BEFORE the page switches to the new case.
+    await flushSave();
     const result = await callFunction('create-case', {});
-    currentCaseId = result.case_id;
-    goToScreen('build');
+    // A blank profile for the new case: clears the previous company's answers,
+    // sets currentCaseId, goes to step 1 and re-renders the form.
+    loadCaseIntoWizard(result.case_id, null);
   } catch (err) {
     alert("Could not start a new profile: " + err.message);
   } finally {
