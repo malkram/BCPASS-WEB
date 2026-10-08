@@ -30,6 +30,11 @@
   --amber: #B5622A;
   --amber-soft: #F6E7DA;
   --muted: #6B776E;
+  --lvl-strong: #1F7A5C; --lvl-strong-soft: #DCEFE5;
+  --lvl-mod: #A87408; --lvl-mod-soft: #F8EBC8;
+  --lvl-weak: #C2521F; --lvl-weak-soft: #F8E0D3;
+  --lvl-poor: #A83A3A; --lvl-poor-soft: #F4DADA;
+  --lvl-poss: #3F66A0; --lvl-poss-soft: #E0E8F4;
   --trust: #3F6B56;
   --zone-supplier: #F7EFC7;
   --zone-supplier-line: #E3D48C;
@@ -392,15 +397,20 @@ ul{ margin:0; padding:0; list-style:none; }
 .match-rank{ width:30px; height:30px; border-radius:50%; background: var(--paper); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:0.82rem; font-weight:700; color: var(--ink-soft); }
 .match-name{ font-weight:600; font-size:1rem; color: var(--ink); margin-bottom:7px; }
 .match-bar{ height:6px; border-radius:6px; background: var(--line); overflow:hidden; }
-.match-bar > span{ display:block; height:100%; border-radius:6px; background: var(--accent); }
-.match-bar.mid > span{ background: var(--amber); }
-.match-bar.low > span{ background: var(--muted); }
+.match-bar > span{ display:block; height:100%; border-radius:6px; background: var(--lvl-strong); }
+.match-bar.mid > span{ background: var(--lvl-mod); }
+.match-bar.weak > span{ background: var(--lvl-weak); }
+.match-bar.low > span{ background: var(--lvl-poor); }
+.match-bar.limited > span{ background: repeating-linear-gradient(135deg, var(--lvl-poss) 0 6px, rgba(74,111,165,0.55) 6px 11px); }
 .match-score{ text-align:right; min-width:104px; }
 .match-score b{ display:block; font-family: var(--font-display); font-size:1.5rem; font-weight:600; color: var(--ink); line-height:1.1; }
-.match-chip{ display:inline-block; margin-top:3px; font-size:0.64rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; padding:3px 9px; border-radius:999px; background:rgba(31,122,92,0.12); color: var(--accent); }
-.match-chip.mid{ background: var(--amber-soft); color: var(--amber); }
-.match-chip.low{ background: var(--paper); color: var(--muted); border:1px solid var(--line); }
-.match-chip.limited{ background: var(--paper); color: var(--ink-soft); border:1px dashed var(--line-strong); }
+.match-chip{ display:inline-block; margin-top:3px; font-size:0.64rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; padding:3px 9px; border-radius:999px; background: var(--lvl-strong-soft); color: var(--lvl-strong); }
+.match-chip.mid{ background: var(--lvl-mod-soft); color: var(--lvl-mod); }
+.match-chip.weak{ background: var(--lvl-weak-soft); color: var(--lvl-weak); }
+.match-chip.low{ background: var(--lvl-poor-soft); color: var(--lvl-poor); }
+.match-chip.limited{ background: var(--lvl-poss-soft); color: var(--lvl-poss); border:1px dashed var(--lvl-poss); }
+.mx-legend{ display:flex; flex-wrap:wrap; gap:6px 16px; margin:0 0 12px; font-size:0.76rem; color: var(--ink-soft); }
+.mx-legend i{ display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:-1px; }
 .mx-tabs{ display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 12px; }
 .mx-tab{ font:inherit; font-size:0.86rem; padding:7px 14px; border-radius:999px; border:1px solid var(--line); background: var(--paper); color: var(--ink); cursor:pointer; }
 .mx-tab:hover{ border-color: var(--line-strong); }
@@ -4610,7 +4620,7 @@ document.getElementById('summary-generate-pass-btn')?.addEventListener('click', 
 // (deterministic, no-AI) comparison and so always reflects the latest profile.
 const matchingByCase = {}; // case_id -> { status, data, error, ranAt }
 
-function matchTier(pct){ return pct >= 75 ? '' : pct >= 50 ? 'mid' : 'low'; }
+function matchTier(pct){ return pct >= 75 ? '' : pct >= 50 ? 'mid' : pct >= 25 ? 'weak' : 'low'; }
 
 function initMatchingScreen(){
   const kicker = document.getElementById('matching-company-kicker');
@@ -4705,10 +4715,11 @@ function renderMatching(){
         ? `You've answered ${laneObj.chat_answered} of ${laneObj.chat_total} questions for this area. Finish them in the assistant below to sharpen this list.`
         : `Some of these rest on limited information about the institution, so they're shown as <b>possible</b> matches. They'll firm up as we add detail.`}</div>` : '';
   body.innerHTML = tabsHtml + laneHint + `
+    <div class="mx-legend"><span><i style="background:var(--lvl-strong)"></i>Strong</span><span><i style="background:var(--lvl-mod)"></i>Moderate</span><span><i style="background:var(--lvl-weak)"></i>Weak</span><span><i style="background:var(--lvl-poor)"></i>Poor</span><span><i style="background:var(--lvl-poss)"></i>Possible (limited information)</span></div>
     <div class="mx-list">
       ${matches.map(m => {
         const limited = m.confidence === 'low' && m.match_percent >= 50;
-        const t = limited ? 'low' : matchTier(m.match_percent);
+        const t = limited ? 'limited' : matchTier(m.match_percent);
         const checkedN = Math.max(0, Math.min(m.factors_used || 0, Number(m.factors_checked) || 0));
         const basis = m.factors_total ? `<div class="mx-basis">Based on ${m.factors_used} of ${m.factors_total} factors${checkedN ? ` <span class="mx-checked">&middot; ${checkedN} of these checked against your documents or the public registry</span>` : ''}${(!isLane && m.lane_label) ? ` <span class="mx-lane-tag">${escapeHtml(m.lane_label)}</span>` : ''}</div>` : '';
         return `
@@ -4719,7 +4730,7 @@ function renderMatching(){
             <div class="match-bar ${t}"><span style="width:${Math.max(3, Math.min(100, m.match_percent))}%"></span></div>
             ${basis}
           </div>
-          <div class="match-score"><b>${m.match_percent}%</b><span class="match-chip ${limited ? 'limited' : t}">${escapeHtml(m.label || 'Match')}</span></div>
+          <div class="match-score"><b>${m.match_percent}%</b><span class="match-chip ${t}">${escapeHtml(m.label || 'Match')}</span></div>
         </div>`;
       }).join('')}
     </div>
