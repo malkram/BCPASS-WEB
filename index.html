@@ -415,7 +415,7 @@ ul{ margin:0; padding:0; list-style:none; }
 .mx-tab{ font:inherit; font-size:0.86rem; padding:7px 14px; border-radius:999px; border:1px solid var(--line); background: var(--paper); color: var(--ink); cursor:pointer; }
 .mx-tab:hover{ border-color: var(--line-strong); }
 .mx-tab.active{ background: var(--ink); border-color: var(--ink); color:#fff; }
-.mx-tab small{ opacity:0.75; margin-left:6px; font-size:0.74rem; }
+.mx-tab small{ opacity:1; margin-left:8px; font-size:1.05rem; font-weight:700; }
 .mx-basis{ font-size:0.74rem; color: var(--muted); margin-top:6px; }
 .mx-checked{ color: var(--ink-soft); }
 .mx-lane-tag{ display:inline-block; margin-left:6px; padding:1px 7px; border:1px solid var(--line); border-radius:999px; font-size:0.68rem; color: var(--ink-soft); background: var(--paper); }
@@ -432,7 +432,11 @@ ul{ margin:0; padding:0; list-style:none; }
 .mchat-lane{ font:inherit; font-size:0.84rem; padding:6px 13px; border-radius:999px; border:1px solid var(--line); background: var(--paper); color: var(--ink); cursor:pointer; }
 .mchat-lane:hover{ border-color: var(--line-strong); }
 .mchat-lane.active{ background: var(--ink); border-color: var(--ink); color:#fff; }
-.mchat-lane small{ opacity:0.75; margin-left:6px; font-size:0.74rem; }
+.mchat-lane small{ opacity:1; margin-left:8px; font-size:1.05rem; font-weight:700; }
+.mchat-remind{ font-size:0.84rem; color: var(--ink); margin:0 0 10px; }
+.mchat-refresh:empty{ display:none; }
+.mchat-refresh{ border:1px solid var(--lvl-poss); background: var(--lvl-poss-soft); border-radius: var(--radius); padding:12px 14px; margin:4px 0 10px; }
+.mchat-refresh p{ margin:0 0 8px; font-size:0.88rem; }
 .mchat-progress{ font-size:0.8rem !important; color: var(--muted) !important; margin:0 0 8px !important; }
 .mchat-saved{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
 .mchat-saved-chip{ display:inline-flex; align-items:center; gap:6px; font-size:0.78rem; padding:4px 6px 4px 11px; border-radius:999px; background: var(--accent-soft, #E4EFE9); color: var(--ink); }
@@ -947,6 +951,20 @@ body.marketing-mode #ai-status{ display:none; }
 .chat-form textarea{ flex:1; font:inherit; font-size:0.93rem; padding:10px 12px; border:1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper-raise); color: var(--text); resize:vertical; min-height:44px; max-height:140px; }
 .chat-form textarea:focus{ border-color: var(--accent); }
 .chat-note{ font-size:0.78rem; color: var(--muted); margin:10px 0 0; }
+.chat-reply.skip{ border-style:dashed; color: var(--muted); }
+.chat-hint{ font-size:0.8rem; color: var(--muted); margin:-4px 0 10px; }
+.chat-hint:empty{ display:none; }
+.build-choose{ background: var(--paper-raise); border:1px solid var(--line); border-radius:6px; padding:22px 22px 24px; }
+.build-choose h2{ font-size:1.25rem; margin:0 0 6px; }
+.choose-time{ font-size:0.92rem; color: var(--ink-soft); margin:0 0 16px; }
+.choose-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.choose-card{ position:relative; text-align:left; font:inherit; display:flex; flex-direction:column; gap:6px; padding:18px 18px 20px; border:1px solid var(--line-strong); border-radius:6px; background: var(--paper); color: var(--ink); cursor:pointer; }
+.choose-card b{ font-size:1.05rem; }
+.choose-card span{ font-size:0.88rem; color: var(--ink-soft); line-height:1.4; }
+.choose-card:hover{ border-color: var(--ink); }
+.choose-card.recommended{ border-color: var(--accent); background:#EEF6F2; }
+.choose-card .choose-tag{ align-self:flex-start; font-size:0.72rem; font-weight:600; color:#fff; background: var(--accent); border-radius:999px; padding:2px 10px; }
+@media (max-width:640px){ .choose-grid{ grid-template-columns:1fr; } }
 @media (max-width:560px){ .chat-msg{ max-width:96%; } .chat-form{ flex-direction:column; align-items:stretch; } }
 </style>
 </head>
@@ -1605,7 +1623,7 @@ body.marketing-mode #ai-status{ display:none; }
 
       <div class="mode-switch" id="build-mode-switch" role="group" aria-label="How would you like to fill in your profile?">
         <button type="button" class="mode-btn active" data-mode="form" aria-pressed="true">Fill in the form</button>
-        <button type="button" class="mode-btn" data-mode="chat" aria-pressed="false">Chat with our assistant</button>
+        <button type="button" class="mode-btn" data-mode="chat" aria-pressed="false">Chat with our AI agent</button>
         <span class="mode-hint">Same profile either way. Switch whenever you like.</span>
       </div>
 
@@ -1622,13 +1640,29 @@ body.marketing-mode #ai-status{ display:none; }
 
       <div class="split">
         <div class="split-main">
+          <div class="build-choose" id="build-choose" style="display:none">
+            <h2>How would you like to build your profile?</h2>
+            <p class="choose-time">Either way it takes about 10 minutes. Your answers are saved as you go, and you can switch method at any time.</p>
+            <div class="choose-grid">
+              <button type="button" class="choose-card recommended" data-choose="chat">
+                <span class="choose-tag">Recommended</span>
+                <b>Chat with our AI agent</b>
+                <span>It asks one simple question at a time, mostly tap-to-answer, and only what matters for the services you want.</span>
+              </button>
+              <button type="button" class="choose-card" data-choose="form">
+                <b>Fill in the form</b>
+                <span>See every question in one place and answer in your own order.</span>
+              </button>
+            </div>
+          </div>
           <div class="chat-panel" id="chat-panel" style="display:none">
             <div class="chat-head">
               <span class="chat-progress" id="chat-progress"></span>
               <button type="button" class="btn btn-ghost btn-small" id="chat-to-form">Review in the form →</button>
             </div>
-            <div class="chat-log" id="chat-log" role="log" aria-live="polite" aria-label="Conversation with the profile assistant"></div>
+            <div class="chat-log" id="chat-log" role="log" aria-live="polite" aria-label="Conversation with the AI agent"></div>
             <div class="chat-replies" id="chat-replies"></div>
+            <p class="chat-hint" id="chat-hint"></p>
             <form class="chat-form" id="chat-form">
               <textarea id="chat-text" rows="2" maxlength="2000" placeholder="Type your answer…" aria-label="Your answer"></textarea>
               <button type="submit" class="btn btn-primary" id="chat-send">Send</button>
@@ -1908,12 +1942,13 @@ body.marketing-mode #ai-status{ display:none; }
         <div class="mchat-start" id="mchat-start"></div>
         <div class="mchat-log" id="mchat-log" aria-live="polite"></div>
         <div class="mchat-confirm" id="mchat-confirm"></div>
+        <div class="mchat-refresh" id="mchat-refresh"></div>
         <div class="mchat-suggest" id="mchat-suggest"></div>
         <form class="mchat-form" id="mchat-form" autocomplete="off" style="display:none">
           <input type="text" class="field-text" id="mchat-input" maxlength="600" placeholder="Type your answer…" aria-label="Your answer">
           <button type="submit" class="btn btn-primary btn-small" id="mchat-send">Send</button>
         </form>
-        <p class="mchat-fine">This assistant only collects details. It can't recommend providers or say whether an application would be approved. Nothing is saved until you confirm it, and you can remove an answer at any time.</p>
+        <p class="mchat-fine">This AI agent only collects details. It can't recommend providers or say whether an application would be approved. Nothing is saved until you confirm it, and you can remove an answer at any time.</p>
       </div>
 
       <div class="match-card match-locked" id="matching-locked">
@@ -2119,8 +2154,8 @@ const AI_STEPS = {
   'run-betty':               { run:'Cross-checking everything', done:'Cross-check complete' },
   'run-max':                 { run:'Building your business profile', done:'Business profile ready' },
   'get-matches':             { run:'Comparing you with providers', done:'Matches updated' },
-  'match-chat':              { run:'Assistant is thinking', done:'Assistant replied', only:['chat'] },
-  'profile-chat':            { run:'Assistant is reading your reply', done:'Assistant replied' },
+  'match-chat':              { run:'AI agent is thinking', done:'AI agent replied', only:['chat'] },
+  'profile-chat':            { run:'AI agent is reading your reply', done:'AI agent replied' },
   'get-pass':                { run:'Preparing your pass', done:'Pass ready' },
 };
 const aiStatus = (() => {
@@ -2713,6 +2748,10 @@ function loadCaseIntoWizard(caseId, nestedProfile){
   renderStepNav();
   renderPanel();
   updateSidebar();
+  // A brand-new (empty) profile first asks HOW the client wants to build it (chat recommended); a profile that
+  // already has answers opens in the form, with the switch to chat one tap away.
+  const isFresh = !KYC_SCHEMA.some(sec => sec.fields.some(f => fieldFilled(f)));
+  if(typeof showBuildMode === 'function') showBuildMode(isFresh ? 'choose' : 'form', false);
   // Maisy B2, 2a (29 Sept) — fire-and-forget, same reasoning as
   // maybeRunConsistencyCheck(): never let this delay or block the wizard
   // rendering above.
@@ -4903,7 +4942,7 @@ function renderMatching(){
   }
   const laneHint = (isLane && (laneObj.chat_answered < laneObj.chat_total || matches.some(m => m.confidence === 'low')))
     ? `<div class="mx-lane-hint">${laneObj.chat_answered < laneObj.chat_total
-        ? `You've answered ${laneObj.chat_answered} of ${laneObj.chat_total} questions for this area. Finish them in the assistant below to sharpen this list.`
+        ? `You've answered ${laneObj.chat_answered} of ${laneObj.chat_total} questions for this area. Finish them with the AI agent below to sharpen this list.`
         : `Some of these rest on limited information about the institution, so they're shown as <b>possible</b> matches. They'll firm up as we add detail.`}</div>` : '';
   body.innerHTML = tabsHtml + laneHint + `
     <div class="mx-legend"><span><i style="background:var(--lvl-strong)"></i>Strong</span><span><i style="background:var(--lvl-mod)"></i>Moderate</span><span><i style="background:var(--lvl-weak)"></i>Weak</span><span><i style="background:var(--lvl-poor)"></i>Poor</span><span><i style="background:var(--lvl-poss)"></i>Possible (limited information)</span></div>
@@ -4938,11 +4977,12 @@ async function runMatching(){
   try {
     const data = await callFunction('get-matches', { case_id: caseId });
     matchingByCase[caseId] = { status: 'done', data, ranAt: new Date(), tab: matchingByCase[caseId]?.tab };
+    if(mchat[caseId]) mchat[caseId].needsRefresh = false;
   } catch(err) {
     console.error('get-matches failed:', err);
     matchingByCase[caseId] = { status: 'error', error: err.message || String(err) };
   }
-  if(currentCaseId === caseId) renderMatching();
+  if(currentCaseId === caseId){ renderMatching(); renderMchat(); }
 }
 
 document.getElementById('matching-run-btn')?.addEventListener('click', runMatching);
@@ -4956,7 +4996,7 @@ document.getElementById('screen-matching')?.addEventListener('click', (e) => {
 // ============ Matching assistant (match-chat edge function) ============
 // A scoped chat that collects the details a sharper comparison needs, one
 // product "lane" (lending, FX & payments, ...) at a time. The model only
-// PROPOSES answers; they are saved only when the client taps "Save these"
+// PROPOSES answers; they are saved only when the client taps "Confirm these"
 // (action: confirm). If the function isn't deployed yet the card simply
 // stays hidden.
 const mchat = {}; // case_id -> { status, lanes, active, byLane }
@@ -5033,11 +5073,17 @@ function renderMchat(){
   const pend = Object.values(ls.pending);
   document.getElementById('mchat-confirm').innerHTML = pend.length ? `
     <h3>Here's what I've got — is this right?</h3>
+    <p class="mchat-remind"><b>Next step:</b> tap “Confirm these” to save your answers. Then refresh your matches to see the updated list.</p>
     <ul>${pend.map(u => `<li><b>${escapeHtml(u.label)}:</b> ${escapeHtml(u.display)}${u.basis === 'inferred' ? `<span>From your profile: ${escapeHtml(u.evidence || '')}</span>` : ''}</li>`).join('')}</ul>
     <div class="mchat-confirm-actions">
-      <button type="button" class="btn btn-primary btn-small" data-mchat-confirm="1"${ls.busy ? ' disabled' : ''}>Save these</button>
+      <button type="button" class="btn btn-primary btn-small" data-mchat-confirm="1"${ls.busy ? ' disabled' : ''}>Confirm these</button>
       <button type="button" class="btn btn-ghost btn-small" data-mchat-notquite="1"${ls.busy ? ' disabled' : ''}>Not quite</button>
     </div>` : '';
+
+  // After answers are confirmed (or removed) the list above is out of date until matches are refreshed.
+  const refreshEl = document.getElementById('mchat-refresh');
+  if(refreshEl) refreshEl.innerHTML = (st.needsRefresh && !pend.length)
+    ? `<p><b>Your answers are saved.</b> Refresh your matches to see how they change your list.</p><button type="button" class="btn btn-primary btn-small" data-mchat-refresh="1"${matchingByCase[currentCaseId]?.status === 'loading' ? ' disabled' : ''}>Refresh my matches</button>` : '';
 
   // Suggested replies + error + input
   const sug = (!ls.busy && ls.suggested.length)
@@ -5096,7 +5142,8 @@ async function mchatConfirm(){
     st.lanes = r.lanes || st.lanes;
     const names = Object.values(ls.pending).filter(u => (r.saved || []).includes(u.field)).map(u => u.label);
     ls.pending = {};
-    ls.view.push({ kind:'note', text: `Saved: ${names.join(', ')}.` });
+    ls.view.push({ kind:'note', text: `Confirmed: ${names.join(', ')}.` });
+    st.needsRefresh = true;
     const lane = st.lanes.find(l => l.id === laneId);
     if(lane && lane.done >= lane.total){
       ls.done = true; ls.suggested = [];
@@ -5117,6 +5164,7 @@ async function mchatRemove(field){
     const r = await callFunction('match-chat', { action:'remove', case_id: caseId, field });
     st.lanes = r.lanes || st.lanes;
     for(const l of Object.values(st.byLane)) l.done = false;
+    st.needsRefresh = true;
   }catch(err){
     const ls = mchatLane(st, st.active); ls.error = err?.message || 'Could not remove that just now.';
   }
@@ -5131,6 +5179,7 @@ document.getElementById('mchat')?.addEventListener('click', (e) => {
   if(t.dataset.mchatLane){ st.active = t.dataset.mchatLane; renderMchat(); return; }
   if(t.dataset.mchatStart){ mchatTurn(null); return; }
   if(t.dataset.mchatConfirm){ mchatConfirm(); return; }
+  if(t.dataset.mchatRefresh){ runMatching(); document.getElementById('matching-run-row')?.scrollIntoView({ behavior:'smooth', block:'center' }); return; }
   if(t.dataset.mchatNotquite){
     const ls = mchatLane(st, st.active); ls.pending = {};
     mchatTurn("That's not quite right. Can we go over it again?"); return;
@@ -5975,7 +6024,8 @@ function chatInitState(){
   if(chatLogEl) chatLogEl.innerHTML = '';
   if(chatRepliesEl) chatRepliesEl.innerHTML = '';
   if(chatTextEl) chatTextEl.value = '';
-  chatTextProgress('');
+  chatTextProgress('About 10 minutes in total · saved as you go');
+  const hintEl = document.getElementById('chat-hint'); if(hintEl) hintEl.textContent = '';
 }
 function chatReset(){
   chatInitState();
@@ -5985,18 +6035,20 @@ function chatReset(){
 function showBuildMode(mode, render){
   if(!chatState) chatState = { mode:'form' };
   chatState.mode = mode;
-  const chat = mode === 'chat';
+  const chat = mode === 'chat', choose = mode === 'choose';
   const hide = (el, h) => { if(el) el.style.display = h ? 'none' : ''; };
-  hide(document.querySelector('#screen-build .wizard-progress'), chat);
-  hide(wizardPanel, chat);
-  hide(document.getElementById('wizard-actions'), chat);
+  hide(document.querySelector('#screen-build .wizard-progress'), chat || choose);
+  hide(wizardPanel, chat || choose);
+  hide(document.getElementById('wizard-actions'), chat || choose);
   hide(chatPanelEl, !chat);
+  hide(document.getElementById('build-choose'), !choose);
+  hide(document.getElementById('build-mode-switch'), choose);
   document.querySelectorAll('#build-mode-switch .mode-btn').forEach(b => {
     const on = b.dataset.mode === mode;
     b.classList.toggle('active', on);
     b.setAttribute('aria-pressed', String(on));
   });
-  if(render === false) return;
+  if(render === false || choose) return;
   if(chat) chatEnter();
   else { renderStepNav(); renderPanel(); }
 }
@@ -6012,10 +6064,12 @@ function chatAddBubble(kind, text){
 
 function chatProgressText(){
   const p = chatState.plan;
-  if(!p || !p.areas_chosen){ chatTextProgress(''); return; }
+  if(!p || !p.areas_chosen){ chatTextProgress('About 10 minutes in total · saved as you go'); return; }
   const areas = (Array.isArray(kycProfile.areas_of_interest) ? kycProfile.areas_of_interest : []).filter(a => a !== 'Other');
   const focus = p.mode === 'focused' && areas.length ? ' · focused on ' + areas.slice(0, 4).join(', ') + (areas.length > 4 ? '…' : '') : '';
-  chatTextProgress(`${Math.min(p.answered, p.total)} of ${p.total} questions answered${focus}`);
+  const open = (p.open || []).filter(k => k !== 'additional_comments').length;
+  const mins = Math.max(1, Math.round(open * 18 / 60)); // about 18 seconds a question, so ~10 minutes for the full list
+  chatTextProgress(`${Math.min(p.answered, p.total)} of ${p.total} answered${open ? ` · about ${mins} min left` : ''}${focus}`);
 }
 function chatTextProgress(t){ const el = document.getElementById('chat-progress'); if(el) el.textContent = t; }
 
@@ -6085,14 +6139,16 @@ function chatRenderSaved(applied){
   chatLogEl.scrollTop = chatLogEl.scrollHeight;
 }
 
-function chatRenderReplies(list){
+// Tappable choices. The server returns the wizard's real options for choice questions and says whether more than one
+// may be ticked (multi) and whether the question may be skipped. Ticking is local; nothing is sent until "Send".
+function chatRenderReplies(list, meta){
+  meta = meta || {};
   chatRepliesEl.innerHTML = '';
   chatState.replies = list;
   chatState.picked = new Set();
-  const nextKey = chatState.plan?.next?.[0];
-  const f = nextKey ? FIELDS_BY_KEY[nextKey] : null;
-  const multi = !!f && f.type === 'multiselect';
-  const isOption = (t) => multi && (f.options || []).some(o => o.toLowerCase() === t.toLowerCase());
+  chatState.asking = meta.asking || null;
+  const hint = document.getElementById('chat-hint');
+  const multi = !!meta.multi;
   const goBtn = document.createElement('button');
   goBtn.type = 'button'; goBtn.className = 'chat-reply go'; goBtn.style.display = 'none';
   const refreshGo = () => {
@@ -6102,12 +6158,12 @@ function chatRenderReplies(list){
   };
   goBtn.addEventListener('click', () => {
     const chosen = [...chatState.picked];
-    chatSend(f.key === 'areas_of_interest' ? `I'm interested in: ${chosen.join(', ')}.` : `${chosen.join(', ')}.`);
+    chatSend(meta.asking === 'areas_of_interest' ? `I'm interested in: ${chosen.join(', ')}.` : `${chosen.join(', ')}.`);
   });
   for(const text of list){
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'chat-reply'; b.textContent = text;
-    if(isOption(text) && text !== 'Other'){
+    if(multi && text !== NO_INTEREST_REPLY){
       b.setAttribute('aria-pressed', 'false');
       b.addEventListener('click', () => {
         const on = chatState.picked.has(text);
@@ -6123,6 +6179,24 @@ function chatRenderReplies(list){
     chatRepliesEl.appendChild(b);
   }
   chatRepliesEl.appendChild(goBtn);
+  if(meta.skippable && meta.asking){
+    const sk = document.createElement('button');
+    sk.type = 'button'; sk.className = 'chat-reply skip'; sk.textContent = 'Skip';
+    sk.addEventListener('click', () => chatSkip(meta.asking));
+    chatRepliesEl.appendChild(sk);
+  }
+  if(hint){
+    hint.textContent = multi ? 'Tap all that apply, then press “Send my selection”. Or type your own answer.'
+      : (list.length ? 'Tap one, or type your own answer.' : '')
+      + (meta.skippable ? (list.length ? ' ' : '') + 'Not sure? You can skip this one.' : '');
+  }
+}
+
+// Skip an optional question: remembered for this session so it is not asked again, then the agent moves on.
+function chatSkip(key){
+  if(chatState.busy) return;
+  if(!chatState.declined.includes(key)) chatState.declined.push(key);
+  chatSend('Skip this one.');
 }
 
 // One short note when the chosen areas let the assistant skip detail, so nothing is skipped silently.
@@ -6181,12 +6255,12 @@ async function chatTurn(userText){
     chatRenderSaved(applied);
     chatMaybeNoteSkipped(chatState.plan);
     chatProgressText();
-    chatRenderReplies(res.suggested_replies || []);
+    chatRenderReplies(res.suggested_replies || [], { asking: res.asking, multi: res.multi, skippable: res.skippable });
     if(res.done) chatNote('That covers everything. Use "Review in the form" to check your answers, then sign off.');
   }catch(err){
     if(chatState.caseId !== caseId) return;
     typing.remove();
-    chatAddBubble('err', (err && err.message ? err.message : 'The assistant could not answer just now.') + ' You can try again, or switch to the form.');
+    chatAddBubble('err', (err && err.message ? err.message : 'The AI agent could not answer just now.') + ' You can try again, or switch to the form.');
     // Let the client retry the same message.
     if(userText){ chatState.messages.pop(); chatTextEl.value = userText; }
   }finally{
@@ -6219,6 +6293,10 @@ document.querySelectorAll('#build-mode-switch .mode-btn').forEach(b => {
     await flushSave();
     showBuildMode(mode, true);
   });
+});
+document.getElementById('build-choose')?.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-choose]');
+  if(b) showBuildMode(b.dataset.choose, true);
 });
 document.getElementById('chat-to-form')?.addEventListener('click', async () => { await flushSave(); showBuildMode('form', true); });
 document.getElementById('chat-form')?.addEventListener('submit', (e) => { e.preventDefault(); chatSend(chatTextEl.value); });
