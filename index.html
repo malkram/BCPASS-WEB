@@ -880,6 +880,74 @@ body.marketing-mode .site-footer{ display:block; }
   .site-footer-inner{ padding:0 18px; }
 }
 
+
+/* ============ AI STATUS PANEL (9 Oct 2026) ============
+   Shows the client that the AI is working: real activity reported by the page whenever one of our
+   agents is called, in friendly wording. Never raw results, agent names or error details. */
+#ai-status{ position:fixed; right:18px; bottom:18px; z-index:60; width:300px; max-width:calc(100vw - 36px); font-size:0.84rem; color:var(--ink); }
+body.marketing-mode #ai-status{ display:none; }
+.ais-pill{ display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:var(--ink); color:#fff; border:none; border-radius:999px; padding:9px 15px; box-shadow:0 6px 22px rgba(15,30,24,.28); }
+.ais-pill .ais-dot{ width:9px; height:9px; border-radius:50%; background:#7BD3A8; flex-shrink:0; }
+#ai-status.working .ais-pill .ais-dot{ animation: aisPulse 1.1s ease-in-out infinite; background:#F3C969; }
+.ais-pill .ais-line{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ais-pill .ais-caret{ opacity:.7; font-size:.7rem; }
+.ais-card{ display:none; margin-bottom:8px; background:var(--paper-raise, #fff); border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 30px rgba(15,30,24,.18); overflow:hidden; }
+#ai-status.open .ais-card{ display:block; }
+.ais-head{ padding:12px 14px 8px; border-bottom:1px solid var(--line); }
+.ais-head b{ font-family:var(--font-display); font-weight:500; font-size:1rem; }
+.ais-head small{ display:block; color:var(--ink-soft); margin-top:2px; }
+.ais-list{ max-height:300px; overflow:auto; padding:6px 0; }
+.ais-item{ display:flex; align-items:flex-start; gap:10px; padding:7px 14px; }
+.ais-item .ais-ic{ width:16px; height:16px; flex-shrink:0; margin-top:2px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:.62rem; color:#fff; background:var(--accent); }
+.ais-item.run .ais-ic{ background:none; border:2px solid #E4B84C; border-top-color:transparent; animation: aisSpin .9s linear infinite; }
+.ais-item.retry .ais-ic{ background:#C98A2B; }
+.ais-item .ais-txt{ flex:1; min-width:0; }
+.ais-item .ais-when{ display:block; color:var(--ink-soft); font-size:.74rem; }
+.ais-empty{ padding:12px 14px; color:var(--ink-soft); }
+.ais-foot{ padding:8px 14px 11px; border-top:1px solid var(--line); color:var(--ink-soft); font-size:.74rem; }
+@keyframes aisPulse{ 0%,100%{ opacity:1; transform:scale(1);} 50%{ opacity:.45; transform:scale(.8);} }
+@keyframes aisSpin{ to{ transform:rotate(360deg);} }
+@media (min-width:1620px){
+  /* wide screens: docked open on the right, clear of the content column */
+  #ai-status{ right:24px; top:96px; bottom:auto; width:290px; }
+  #ai-status .ais-pill{ display:none; }
+  #ai-status .ais-card{ display:block; margin:0; }
+}
+@media (max-width:880px){ #ai-status{ bottom:76px; right:12px; } }
+
+/* ============ Build screen: Chat / Form switch and the profile assistant (9 Oct 2026) ============ */
+.mode-switch{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 18px; }
+.mode-btn{ font:inherit; font-size:0.9rem; padding:8px 16px; border-radius:999px; border:1px solid var(--line-strong); background: var(--paper-raise); color: var(--ink); cursor:pointer; }
+.mode-btn:hover{ border-color: var(--ink); }
+.mode-btn.active{ background: var(--ink); border-color: var(--ink); color:#fff; }
+.mode-hint{ font-size:0.8rem; color: var(--muted); margin-left:4px; }
+.chat-panel{ background: var(--paper-raise); border:1px solid var(--line); border-radius:6px; padding:16px 18px 14px; }
+.chat-head{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+.chat-progress{ font-size:0.82rem; color: var(--muted); }
+.chat-log{ display:flex; flex-direction:column; gap:10px; min-height:140px; max-height:460px; overflow-y:auto; padding:4px 2px; margin:4px 0 10px; }
+.chat-msg{ max-width:88%; padding:9px 13px; border-radius:14px; font-size:0.93rem; line-height:1.45; white-space:pre-wrap; overflow-wrap:anywhere; }
+.chat-msg.bot{ align-self:flex-start; background: var(--paper); border:1px solid var(--line); color: var(--ink); border-bottom-left-radius:4px; }
+.chat-msg.me{ align-self:flex-end; background: var(--accent); color:#fff; border-bottom-right-radius:4px; }
+.chat-msg.note{ align-self:stretch; max-width:100%; background: var(--accent-soft); color: var(--ink-soft); font-size:0.85rem; border-radius:6px; }
+.chat-msg.err{ align-self:stretch; max-width:100%; background: var(--lvl-poor-soft); color: var(--lvl-poor); font-size:0.88rem; border-radius:6px; }
+.chat-msg.typing{ color: var(--muted); font-style:italic; }
+.chat-saved{ align-self:flex-start; display:flex; flex-wrap:wrap; gap:6px; max-width:92%; }
+.chat-saved-chip{ display:inline-flex; align-items:center; gap:6px; font-size:0.78rem; padding:4px 6px 4px 11px; border-radius:999px; background: var(--accent-soft); color: var(--ink); }
+.chat-saved-chip b{ font-weight:600; }
+.chat-saved-chip button{ font:inherit; font-size:0.74rem; padding:2px 8px; border-radius:999px; border:none; background:rgba(0,0,0,0.08); color: var(--ink-soft); cursor:pointer; }
+.chat-saved-chip button:hover{ background:rgba(0,0,0,0.16); }
+.chat-saved-chip.undone{ background:#E4E7E1; color: var(--muted); text-decoration:line-through; }
+.chat-replies{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 10px; }
+.chat-replies:empty{ display:none; }
+.chat-reply{ font:inherit; font-size:0.86rem; padding:6px 13px; border-radius:999px; border:1px solid var(--line-strong); background: var(--paper); color: var(--ink); cursor:pointer; }
+.chat-reply:hover{ border-color: var(--ink); }
+.chat-reply.picked{ background: var(--ink); border-color: var(--ink); color:#fff; }
+.chat-reply.go{ background: var(--accent); border-color: var(--accent); color:#fff; }
+.chat-form{ display:flex; gap:10px; align-items:flex-end; }
+.chat-form textarea{ flex:1; font:inherit; font-size:0.93rem; padding:10px 12px; border:1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper-raise); color: var(--text); resize:vertical; min-height:44px; max-height:140px; }
+.chat-form textarea:focus{ border-color: var(--accent); }
+.chat-note{ font-size:0.78rem; color: var(--muted); margin:10px 0 0; }
+@media (max-width:560px){ .chat-msg{ max-width:96%; } .chat-form{ flex-direction:column; align-items:stretch; } }
 </style>
 </head>
 <body class="marketing-mode">
@@ -1535,6 +1603,12 @@ body.marketing-mode .site-footer{ display:block; }
         </div>
       </header>
 
+      <div class="mode-switch" id="build-mode-switch" role="group" aria-label="How would you like to fill in your profile?">
+        <button type="button" class="mode-btn active" data-mode="form" aria-pressed="true">Fill in the form</button>
+        <button type="button" class="mode-btn" data-mode="chat" aria-pressed="false">Chat with our assistant</button>
+        <span class="mode-hint">Same profile either way. Switch whenever you like.</span>
+      </div>
+
       <div class="wizard-progress">
         <div class="wizard-progress-track"><div class="wizard-progress-fill" id="wizard-progress-fill"></div></div>
         <div class="wizard-steps" id="wizard-steps"></div>
@@ -1548,8 +1622,21 @@ body.marketing-mode .site-footer{ display:block; }
 
       <div class="split">
         <div class="split-main">
+          <div class="chat-panel" id="chat-panel" style="display:none">
+            <div class="chat-head">
+              <span class="chat-progress" id="chat-progress"></span>
+              <button type="button" class="btn btn-ghost btn-small" id="chat-to-form">Review in the form →</button>
+            </div>
+            <div class="chat-log" id="chat-log" role="log" aria-live="polite" aria-label="Conversation with the profile assistant"></div>
+            <div class="chat-replies" id="chat-replies"></div>
+            <form class="chat-form" id="chat-form">
+              <textarea id="chat-text" rows="2" maxlength="2000" placeholder="Type your answer…" aria-label="Your answer"></textarea>
+              <button type="submit" class="btn btn-primary" id="chat-send">Send</button>
+            </form>
+            <p class="chat-note">Your answers go into the same profile as the form and are saved as you go. You can undo any answer here, or review and edit everything in the form.</p>
+          </div>
           <div id="wizard-panel"></div>
-          <div class="build-actions">
+          <div class="build-actions" id="wizard-actions">
             <button class="btn btn-ghost" id="wizard-back">← Back</button>
             <button class="btn btn-primary" id="wizard-next">Next →</button>
           </div>
@@ -1933,6 +2020,19 @@ body.marketing-mode .site-footer{ display:block; }
   </main>
 </div>
 
+
+<!-- ============ AI STATUS PANEL ============ -->
+<aside id="ai-status" aria-label="What our AI is doing">
+  <div class="ais-card" id="ais-card">
+    <div class="ais-head"><b>BCPASS AI</b><small id="ais-sub">Here's what's happening behind the scenes.</small></div>
+    <div class="ais-list" id="ais-list" aria-live="polite"></div>
+    <div class="ais-foot">We show progress only, never your information.</div>
+  </div>
+  <button type="button" class="ais-pill" id="ais-pill" aria-expanded="false" aria-controls="ais-card">
+    <span class="ais-dot"></span><span class="ais-line" id="ais-line">AI ready</span><span class="ais-caret">▲</span>
+  </button>
+</aside>
+
 <!-- ============ MOBILE TAB BAR ============ -->
 <nav class="tabbar" aria-label="Primary mobile">
   <button class="tab-btn active" data-screen="login"><span class="tab-ic">◈</span>Sign in</button>
@@ -1983,8 +2083,19 @@ const SUPABASE_URL = "https://mbkcompsyujyucertzet.supabase.co";
 // key — no other code here needs to change.
 const SUPABASE_ANON_KEY = "sb_publishable_DjSIs5FfOIdiJjQ_w1UEGw_Ps-AjzmW";
 
+// 9 Oct 2026 (sign-in bug): the session used to live in localStorage, so it survived closing the browser and the
+// public "Go to my account" button walked straight back into the last login with no password and no 2FA. It now
+// lives in sessionStorage, which the browser discards when the tab / browser is closed, so a fresh visit always
+// starts signed out. (If sessionStorage is blocked the client falls back to an in-memory session: also signed out
+// on every reload.) The second half of the fix is the 2FA gate in goToScreen() below.
+const authStorage = (() => {
+  try { const t = '__bcpass_probe'; window.sessionStorage.setItem(t, '1'); window.sessionStorage.removeItem(t); return window.sessionStorage; }
+  catch(_){ const m = {}; return { getItem: k => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: k => { delete m[k]; } }; }
+})();
+// Clear any session an earlier version left in localStorage, so an old "last login" cannot linger on this device.
+try{ Object.keys(window.localStorage).filter(k => /^sb-.*-auth-token/.test(k)).forEach(k => window.localStorage.removeItem(k)); }catch(_){}
 const supabaseClient = (typeof supabase !== 'undefined' && SUPABASE_ANON_KEY !== "YOUR_ANON_KEY_HERE")
-  ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { storage: authStorage, persistSession: true, autoRefreshToken: true } })
   : null;
 
 let currentCaseId = null; // set once a case is created or loaded
@@ -1995,7 +2106,81 @@ async function getAccessToken(){
   return data?.session?.access_token ?? null;
 }
 
+
+// ---- AI status panel (9 Oct 2026) ----
+// callFunction() below reports every agent call here, so the panel shows REAL activity. Wording is deliberately
+// friendly and generic: no agent names, no data, no error details.
+const AI_STEPS = {
+  'run-candy':               { run:'Reading your answer', done:'Reviewed your answer' },
+  'check-candy-consistency': { run:'Checking your answers fit together', done:'Answers checked' },
+  'run-dexter':              { run:'Reading your document', done:'Document read' },
+  'lookup-companies-house':  { run:'Checking the company register', done:'Register checked' },
+  'run-riley':               { run:'Researching your company', done:'Research complete' },
+  'run-betty':               { run:'Cross-checking everything', done:'Cross-check complete' },
+  'run-max':                 { run:'Building your business profile', done:'Business profile ready' },
+  'get-matches':             { run:'Comparing you with providers', done:'Matches updated' },
+  'match-chat':              { run:'Assistant is thinking', done:'Assistant replied', only:['chat'] },
+  'profile-chat':            { run:'Assistant is reading your reply', done:'Assistant replied' },
+  'get-pass':                { run:'Preparing your pass', done:'Pass ready' },
+};
+const aiStatus = (() => {
+  const items = []; // newest first: { id, label, state:'run'|'done'|'retry', at }
+  let seq = 0, tick = null;
+  const $ = id => document.getElementById(id);
+  const ago = t => { const s = Math.max(0, Math.round((Date.now() - t) / 1000)); return s < 5 ? 'just now' : s < 60 ? s + 's ago' : Math.round(s / 60) + ' min ago'; };
+  function render(){
+    const box = $('ai-status'); if(!box) return;
+    const running = items.filter(i => i.state === 'run');
+    box.classList.toggle('working', running.length > 0);
+    const line = running.length ? running[0].label + '…' : (items[0] ? (items[0].state === 'retry' ? items[0].label + ' · try again' : items[0].label) : 'AI ready');
+    $('ais-line').textContent = line;
+    $('ais-sub').textContent = running.length ? 'Working on your account now.' : "Here's what's happening behind the scenes.";
+    const list = $('ais-list');
+    list.innerHTML = items.length ? items.slice(0, 8).map(i =>
+      `<div class="ais-item ${i.state}"><span class="ais-ic">${i.state === 'done' ? '✓' : i.state === 'retry' ? '!' : ''}</span><span class="ais-txt">${escapeHtml(i.label)}${i.state === 'run' ? '…' : ''}<span class="ais-when">${i.state === 'run' ? 'in progress' : i.state === 'retry' ? 'needs another try' : ago(i.at)}</span></span></div>`).join('')
+      : '<div class="ais-empty">Nothing running right now. We\'ll show activity here as you fill in your profile.</div>';
+    if(!tick && items.length){ tick = setInterval(render, 15000); }
+  }
+  return {
+    start(fn, body){
+      const st = AI_STEPS[fn];
+      if(!st || (st.only && !st.only.includes(body?.action))) return null;
+      const it = { id: ++seq, label: st.run, done: st.done, state:'run', at: Date.now() };
+      items.unshift(it); if(items.length > 30) items.length = 30;
+      render(); return it;
+    },
+    finish(it, ok){
+      if(!it) return;
+      it.state = ok ? 'done' : 'retry'; it.at = Date.now();
+      if(ok) it.label = it.done;
+      render();
+    },
+    clear(){ items.length = 0; render(); },
+    toggle(){
+      const box = $('ai-status'); if(!box) return;
+      const open = box.classList.toggle('open');
+      $('ais-pill')?.setAttribute('aria-expanded', String(open));
+      render();
+    },
+    render,
+  };
+})();
+document.getElementById('ais-pill')?.addEventListener('click', () => aiStatus.toggle());
+aiStatus.render();
+
 async function callFunction(functionName, body){
+  const aiStep = aiStatus.start(functionName, body);
+  try{
+    const out = await callFunctionInner(functionName, body);
+    aiStatus.finish(aiStep, true);
+    return out;
+  }catch(err){
+    aiStatus.finish(aiStep, false);
+    throw err;
+  }
+}
+
+async function callFunctionInner(functionName, body){
   const token = await getAccessToken();
   if(!token) throw new Error("Not logged in — no access token available.");
   const response = await fetch(`${SUPABASE_URL}/functions/v1/${functionName}`, {
@@ -2489,6 +2674,7 @@ async function maybeRunConsistencyCheck(){
 // 8 Oct 2026 fix: "+ Add a company" used to switch to the new case id but
 // leave the previous company's answers in kycProfile, so the new form came up
 // pre-filled and the next auto-save wrote the old company's data into the new case.
+let chatState = null; // profile assistant state, see chatReset()
 function resetCaseScopedState(){
   clearTimeout(saveDebounceTimer);
   for(const key of Object.keys(kycProfile)) delete kycProfile[key];
@@ -2512,11 +2698,13 @@ function resetCaseScopedState(){
   if(summaryContent) summaryContent.style.display = 'none';
   const summaryError = document.getElementById('summary-error');
   if(summaryError){ summaryError.style.display = 'none'; summaryError.textContent = ''; }
+  if(typeof chatReset === 'function' && typeof chatPanelEl !== 'undefined') chatReset(); // chat history and mode belong to one company
 }
 
 function loadCaseIntoWizard(caseId, nestedProfile){
   resetCaseScopedState();
   currentCaseId = caseId;
+  if(chatState) chatState.caseId = caseId;
   Object.assign(kycProfile, mapCandySchemaToWizardProfile(nestedProfile));
   lastKnownClientFeedback = nestedProfile?.client_feedback ?? null;
   lastKnownFutureNeedsSignals = nestedProfile?.purpose_services_required?.future_needs_signals ?? null;
@@ -2656,7 +2844,7 @@ async function deleteCompanyProfile(caseSummary, cardEl, btnEl){
 async function routeAfterAuth(){
   if(!supabaseClient){ goToScreen('dashboard'); return; }
   const { data: aal, error: aalErr } = await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
-  if(aalErr){ console.error('getAuthenticatorAssuranceLevel failed', aalErr); goToScreen('dashboard'); return; }
+  if(aalErr){ console.error('getAuthenticatorAssuranceLevel failed', aalErr); goToScreen('login'); return; } // fail closed
   if(aal.nextLevel === 'aal2' && aal.currentLevel !== aal.nextLevel){
     goToScreen('mfa-challenge');
     return;
@@ -2667,11 +2855,13 @@ async function routeAfterAuth(){
     goToScreen('mfa-enroll');
     return;
   }
-  goToScreen('dashboard');
+  // Only reached with a verified factor and an aal2 session; anything else must not loop through the gate.
+  if(aal.currentLevel === 'aal2') showScreen('dashboard'); else showScreen('login');
 }
 
 async function handleAuthSignOut(){
   if(supabaseClient) await supabaseClient.auth.signOut();
+  aiStatus.clear();
   currentCaseId = null;
   resetCaseScopedState();
   pendingEnrollFactorId = null;
@@ -5002,7 +5192,35 @@ async function refreshPublicNavAuth(){
   box.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', e => { e.preventDefault(); goToScreen(b.dataset.goto); }));
 }
 
+// 9 Oct 2026 (sign-in bug): every screen inside the signed-in app now requires a session that has completed 2FA
+// (aal2). Previously goToScreen('dashboard') had no check at all, so "Go to my account" (and every in-app link) opened
+// the app for anyone holding a session, including one that had only passed the password step. Public screens
+// (marketing pages, sign in / sign up / 2FA) are never gated. The check reads the session's own claims (no network
+// call) and fails closed: no session -> sign in; password only -> the 2FA step (or 2FA set-up if none exists yet);
+// any error -> sign in.
+function isProtectedScreen(name){
+  const t = document.getElementById('screen-' + name);
+  return !!t && !t.classList.contains('screen-marketing') && !t.classList.contains('public-shell');
+}
+async function gateProtectedScreen(name){
+  try{
+    const { data: sess } = await supabaseClient.auth.getSession();
+    if(!sess?.session){ showScreen('login'); return; }
+    const { data: aal, error } = await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
+    if(error){ console.error('2FA check failed', error); showScreen('login'); return; }
+    if(aal.currentLevel === 'aal2'){ showScreen(name); return; }
+    await routeAfterAuth(); // password only: send to the 2FA step, or to set 2FA up
+  }catch(err){
+    console.error('screen gate failed', err);
+    showScreen('login');
+  }
+}
 function goToScreen(name){
+  if(supabaseClient && isProtectedScreen(name)){ gateProtectedScreen(name); return; }
+  showScreen(name);
+}
+
+function showScreen(name){
   // TODO (production, not testing phase): the Documents screen should not be
   // reachable at all until the client has signed off on their Build KYB
   // profile. Right now this screen is freely accessible for testing — add
@@ -5736,6 +5954,278 @@ if(wizardPanel){
   renderPanel();
   updateSidebar();
 }
+
+
+// ============================================================
+// Profile assistant (chat) — 9 Oct 2026. A second way into the SAME profile as the form: answers are applied to
+// kycProfile exactly as the form would write them, then the normal updateSidebar() -> scheduleSave() path stores
+// them. The server (profile-chat) decides what to ask (areas of interest first, then only the questions that matter
+// for those areas) and checks every proposed value against the wizard's own field list; this code only applies what
+// it returns. The form stays the review step.
+// ============================================================
+const chatPanelEl = document.getElementById('chat-panel');
+const chatLogEl = document.getElementById('chat-log');
+const chatRepliesEl = document.getElementById('chat-replies');
+const chatTextEl = document.getElementById('chat-text');
+const NO_INTEREST_REPLY = 'No particular interest yet';
+
+function chatInitState(){
+  chatState = { caseId: currentCaseId, mode: 'form', messages: [], declined: [], plan: null, busy: false, started: false,
+                picked: new Set(), noteKey: '', replies: [], undo: new Map(), seq: 0 };
+  if(chatLogEl) chatLogEl.innerHTML = '';
+  if(chatRepliesEl) chatRepliesEl.innerHTML = '';
+  if(chatTextEl) chatTextEl.value = '';
+  chatTextProgress('');
+}
+function chatReset(){
+  chatInitState();
+  showBuildMode('form', false);
+}
+
+function showBuildMode(mode, render){
+  if(!chatState) chatState = { mode:'form' };
+  chatState.mode = mode;
+  const chat = mode === 'chat';
+  const hide = (el, h) => { if(el) el.style.display = h ? 'none' : ''; };
+  hide(document.querySelector('#screen-build .wizard-progress'), chat);
+  hide(wizardPanel, chat);
+  hide(document.getElementById('wizard-actions'), chat);
+  hide(chatPanelEl, !chat);
+  document.querySelectorAll('#build-mode-switch .mode-btn').forEach(b => {
+    const on = b.dataset.mode === mode;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+  if(render === false) return;
+  if(chat) chatEnter();
+  else { renderStepNav(); renderPanel(); }
+}
+
+function chatAddBubble(kind, text){
+  const el = document.createElement('div');
+  el.className = 'chat-msg ' + kind;
+  el.textContent = text;
+  chatLogEl.appendChild(el);
+  chatLogEl.scrollTop = chatLogEl.scrollHeight;
+  return el;
+}
+
+function chatProgressText(){
+  const p = chatState.plan;
+  if(!p || !p.areas_chosen){ chatTextProgress(''); return; }
+  const areas = (Array.isArray(kycProfile.areas_of_interest) ? kycProfile.areas_of_interest : []).filter(a => a !== 'Other');
+  const focus = p.mode === 'focused' && areas.length ? ' · focused on ' + areas.slice(0, 4).join(', ') + (areas.length > 4 ? '…' : '') : '';
+  chatTextProgress(`${Math.min(p.answered, p.total)} of ${p.total} questions answered${focus}`);
+}
+function chatTextProgress(t){ const el = document.getElementById('chat-progress'); if(el) el.textContent = t; }
+
+// What the server needs to see: the wizard's flat values (it ignores anything that is not a profile field).
+function chatProfileSnapshot(){
+  const out = {};
+  for(const f of Object.values(FIELDS_BY_KEY)){
+    const v = kycProfile[f.key];
+    if(v === undefined || v === null) continue;
+    out[f.key] = v;
+  }
+  return out;
+}
+
+function chatSnapshot(key){
+  const v = kycProfile[key];
+  return { had: key in kycProfile, v: v === undefined ? undefined : JSON.parse(JSON.stringify(v)),
+           hadOther: (key + '__other') in kycProfile, other: kycProfile[key + '__other'] };
+}
+
+// Writes one validated proposal using the same shapes the form uses. Returns the snapshot for undo.
+function chatApply(p){
+  const f = FIELDS_BY_KEY[p.field];
+  if(!f) return null;
+  const snap = chatSnapshot(p.field);
+  kycProfile[p.field] = (p.value && typeof p.value === 'object') ? JSON.parse(JSON.stringify(p.value)) : p.value;
+  if(f.allowOtherText){
+    if(p.other_text) kycProfile[p.field + '__other'] = p.other_text;
+    else delete kycProfile[p.field + '__other'];
+  }
+  return snap;
+}
+
+function chatUndo(id){
+  const u = chatState.undo.get(id);
+  if(!u || u.done) return;
+  const key = u.field;
+  if(u.snap.had) kycProfile[key] = u.snap.v; else delete kycProfile[key];
+  if(u.snap.hadOther) kycProfile[key + '__other'] = u.snap.other; else delete kycProfile[key + '__other'];
+  u.done = true;
+  u.el.classList.add('undone');
+  u.el.querySelector('button')?.remove();
+  updateSidebar();
+  chatNote(`Okay, I've taken out "${u.label}". I'll ask about it again in a moment, or you can fill it in on the form.`);
+}
+
+function chatNote(text){ chatAddBubble('note', text); }
+
+function chatRenderSaved(applied){
+  if(!applied.length) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-saved';
+  for(const a of applied){
+    const id = ++chatState.seq;
+    const chip = document.createElement('span');
+    chip.className = 'chat-saved-chip';
+    const label = document.createElement('b'); label.textContent = a.label + ':';
+    const val = document.createElement('span'); val.textContent = a.display.length > 70 ? a.display.slice(0, 67) + '…' : a.display;
+    const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = 'Undo';
+    btn.setAttribute('aria-label', 'Undo ' + a.label);
+    btn.addEventListener('click', () => chatUndo(id));
+    chip.append(label, val, btn);
+    wrap.appendChild(chip);
+    chatState.undo.set(id, { field: a.field, label: a.label, snap: a.snap, el: chip, done: false });
+  }
+  chatLogEl.appendChild(wrap);
+  chatLogEl.scrollTop = chatLogEl.scrollHeight;
+}
+
+function chatRenderReplies(list){
+  chatRepliesEl.innerHTML = '';
+  chatState.replies = list;
+  chatState.picked = new Set();
+  const nextKey = chatState.plan?.next?.[0];
+  const f = nextKey ? FIELDS_BY_KEY[nextKey] : null;
+  const multi = !!f && f.type === 'multiselect';
+  const isOption = (t) => multi && (f.options || []).some(o => o.toLowerCase() === t.toLowerCase());
+  const goBtn = document.createElement('button');
+  goBtn.type = 'button'; goBtn.className = 'chat-reply go'; goBtn.style.display = 'none';
+  const refreshGo = () => {
+    const n = chatState.picked.size;
+    goBtn.style.display = n ? '' : 'none';
+    goBtn.textContent = `Send my selection (${n})`;
+  };
+  goBtn.addEventListener('click', () => {
+    const chosen = [...chatState.picked];
+    chatSend(f.key === 'areas_of_interest' ? `I'm interested in: ${chosen.join(', ')}.` : `${chosen.join(', ')}.`);
+  });
+  for(const text of list){
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chat-reply'; b.textContent = text;
+    if(isOption(text) && text !== 'Other'){
+      b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', () => {
+        const on = chatState.picked.has(text);
+        if(on) chatState.picked.delete(text); else chatState.picked.add(text);
+        b.classList.toggle('picked', !on);
+        b.setAttribute('aria-pressed', String(!on));
+        refreshGo();
+      });
+    } else {
+      const msg = text === NO_INTEREST_REPLY ? NO_INTEREST_REPLY + ', ask me everything' : text;
+      b.addEventListener('click', () => chatSend(msg));
+    }
+    chatRepliesEl.appendChild(b);
+  }
+  chatRepliesEl.appendChild(goBtn);
+}
+
+// One short note when the chosen areas let the assistant skip detail, so nothing is skipped silently.
+function chatMaybeNoteSkipped(plan){
+  if(!plan || plan.mode !== 'focused' || !plan.skipped?.length){ chatState.noteKey = ''; return; }
+  const key = plan.skipped.join(',');
+  if(key === chatState.noteKey) return;
+  chatState.noteKey = key;
+  const labels = plan.skipped.map(k => FIELDS_BY_KEY[k]?.label).filter(Boolean);
+  const areas = (Array.isArray(kycProfile.areas_of_interest) ? kycProfile.areas_of_interest : []).filter(a => a !== 'Other');
+  chatNote(`Since you're focused on ${areas.join(', ')}, I'll skip these questions: ${labels.join('; ')}. You can add them any time in the form.`);
+}
+
+function chatSetBusy(on){
+  chatState.busy = on;
+  document.getElementById('chat-send').disabled = on;
+  chatTextEl.disabled = on;
+  chatRepliesEl.querySelectorAll('button').forEach(b => b.disabled = on);
+}
+
+async function chatTurn(userText){
+  if(!currentCaseId){ chatAddBubble('err', 'Start or open a company profile first.'); return; }
+  const caseId = currentCaseId;
+  if(userText){
+    chatState.messages.push({ role: 'user', content: userText });
+    chatAddBubble('me', userText);
+  }
+  chatRepliesEl.innerHTML = '';
+  chatSetBusy(true);
+  const typing = chatAddBubble('bot typing', 'Thinking…');
+  try{
+    const res = await callFunction('profile-chat', {
+      action: 'chat', case_id: caseId,
+      messages: chatState.messages.slice(-24),
+      profile: chatProfileSnapshot(),
+      declined: chatState.declined,
+    });
+    if(chatState.caseId !== caseId || currentCaseId !== caseId) return; // client moved to another company meanwhile
+    typing.remove();
+    const applied = [];
+    for(const p of (res.proposed_updates || [])){
+      const snap = chatApply(p);
+      if(snap) applied.push({ field: p.field, label: p.label, display: p.display, snap });
+    }
+    for(const k of (res.declined_fields || [])) if(!chatState.declined.includes(k)) chatState.declined.push(k);
+    chatState.plan = res.plan || chatState.plan;
+    if(applied.length){
+      updateSidebar(); // score, "still need", and the normal debounced save
+      for(const a of applied){
+        const f = FIELDS_BY_KEY[a.field];
+        if(f && f.ai && typeof kycProfile[a.field] === 'string') runCandyOnField(a.field, kycProfile[a.field]);
+      }
+    }
+    chatState.messages.push({ role: 'assistant', content: res.assistant_message });
+    chatAddBubble('bot', res.assistant_message);
+    chatRenderSaved(applied);
+    chatMaybeNoteSkipped(chatState.plan);
+    chatProgressText();
+    chatRenderReplies(res.suggested_replies || []);
+    if(res.done) chatNote('That covers everything. Use "Review in the form" to check your answers, then sign off.');
+  }catch(err){
+    if(chatState.caseId !== caseId) return;
+    typing.remove();
+    chatAddBubble('err', (err && err.message ? err.message : 'The assistant could not answer just now.') + ' You can try again, or switch to the form.');
+    // Let the client retry the same message.
+    if(userText){ chatState.messages.pop(); chatTextEl.value = userText; }
+  }finally{
+    if(chatState.caseId === caseId){ chatSetBusy(false); chatTextEl.focus({ preventScroll: true }); }
+  }
+}
+
+function chatSend(text){
+  const t = (text || '').trim();
+  if(!t || chatState.busy) return;
+  chatTextEl.value = '';
+  chatTurn(t);
+}
+
+function chatEnter(){
+  if(!chatState || chatState.caseId !== currentCaseId) chatInitState();
+  chatState.mode = 'chat';
+  if(!chatState.started){
+    chatState.started = true;
+    chatTurn(''); // opening turn: the server greets and asks the first question (areas of interest, unless already answered)
+  } else {
+    chatTextEl.focus({ preventScroll: true });
+  }
+}
+
+document.querySelectorAll('#build-mode-switch .mode-btn').forEach(b => {
+  b.addEventListener('click', async () => {
+    const mode = b.dataset.mode;
+    if(chatState && chatState.mode === mode) return;
+    await flushSave();
+    showBuildMode(mode, true);
+  });
+});
+document.getElementById('chat-to-form')?.addEventListener('click', async () => { await flushSave(); showBuildMode('form', true); });
+document.getElementById('chat-form')?.addEventListener('submit', (e) => { e.preventDefault(); chatSend(chatTextEl.value); });
+chatTextEl?.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); chatSend(chatTextEl.value); }
+});
+chatReset();
 
 
 
