@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BCPASS — Corporate profiles, verified once</title>
+<link rel="icon" type="image/svg+xml" id="bc-favicon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23102821'/%3E%3Ctext x='32' y='45' text-anchor='middle' font-family='Georgia,serif' font-weight='900' font-size='38' letter-spacing='-6' fill='%23F7F8F5'%3EB%3Ctspan fill='%237FCBA9'%3EC%3C/tspan%3E%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <!-- 23 Sept: the qrcode.min.js CDN script that used to load here was removed —
      it was being blocked outright in testing (Chrome DevTools showed
@@ -982,6 +983,14 @@ body.marketing-mode #ai-status{ display:none; }
 .choose-card .choose-tag{ align-self:flex-start; font-size:0.72rem; font-weight:600; color:#fff; background: var(--accent); border-radius:999px; padding:2px 10px; }
 @media (max-width:640px){ .choose-grid{ grid-template-columns:1fr; } }
 @media (max-width:560px){ .chat-msg{ max-width:96%; } .chat-form{ flex-direction:column; align-items:stretch; } }
+
+/* ---- BC monogram logo (9 Oct 2026): Abril Fatface B + C, C overlapping 28% ---- */
+.bc-mono{ display:inline-flex; align-items:center; font-family:"Abril Fatface", serif; font-weight:400; line-height:1; letter-spacing:0; font-size:1.55em; }
+.bc-mono .bc-b{ color: var(--ink); }
+.bc-mono .bc-c{ color: var(--accent); margin-left:-0.28em; }
+.railnav .bc-mono .bc-b{ color:#fff; }
+.railnav .bc-mono .bc-c{ color:#7FCBA9; }
+.site-brand, .site-footer-brand, .bc-card-brand, .brand{ gap:10px; }
 </style>
 </head>
 <body class="marketing-mode">
@@ -989,7 +998,7 @@ body.marketing-mode #ai-status{ display:none; }
 <!-- ============ PUBLIC SITE NAV (marketing pages only) ============ -->
 <header class="site-nav" id="site-nav">
   <div class="site-nav-inner">
-    <button class="site-brand" data-goto="home"><span class="brand-mark">◈</span> BCPASS</button>
+    <button class="site-brand" data-goto="home"><span class="brand-mark bc-mono" aria-hidden="true"><span class="bc-b">B</span><span class="bc-c">C</span></span> BCPASS</button>
     <nav class="site-links" aria-label="Marketing">
       <a data-goto="home">Home</a>
       <a data-goto="about">About us</a>
@@ -1009,7 +1018,7 @@ body.marketing-mode #ai-status{ display:none; }
   <!-- ============ SIDE / TOP NAV ============ -->
   <nav class="railnav" aria-label="Primary">
     <button class="brand brand-btn" data-goto="home" aria-label="BCPASS — back to the home page" title="Back to the home page">
-      <span class="brand-mark">◈</span>
+      <span class="brand-mark bc-mono" aria-hidden="true"><span class="bc-b">B</span><span class="bc-c">C</span></span>
       <span class="brand-name">BCPASS</span>
     </button>
     <ul class="rail-list">
@@ -1822,7 +1831,7 @@ body.marketing-mode #ai-status{ display:none; }
             <div class="bc-card-wrap">
               <div class="bc-card" id="bc-card">
                 <div class="bc-card-top">
-                  <span class="bc-card-brand"><span class="brand-mark">◈</span> BCPASS</span>
+                  <span class="bc-card-brand"><span class="brand-mark bc-mono" aria-hidden="true"><span class="bc-b">B</span><span class="bc-c">C</span></span> BCPASS</span>
                   <span class="bc-card-tier" id="bc-card-tier">—</span>
                 </div>
                 <div class="bc-card-body">
@@ -2096,7 +2105,7 @@ body.marketing-mode #ai-status{ display:none; }
 <!-- ============ PUBLIC SITE FOOTER (marketing pages only) ============ -->
 <footer class="site-footer" id="site-footer">
   <div class="site-footer-inner">
-    <div class="site-footer-brand"><span class="brand-mark">◈</span> BCPASS</div>
+    <div class="site-footer-brand"><span class="brand-mark bc-mono" aria-hidden="true"><span class="bc-b">B</span><span class="bc-c">C</span></span> BCPASS</div>
     <nav class="site-footer-links" aria-label="Footer">
       <a data-goto="home">Home</a>
       <a data-goto="about">About us</a>
@@ -4676,12 +4685,18 @@ async function buildBusinessCardCanvas(){
 
   // top row: BCPASS mark + wordmark (left), Pass tier pill (right)
   ctx.textBaseline = 'alphabetic';
+  // BC monogram: B in ink, C in accent, C pulled back over the B by 28% of the font size
+  try { await document.fonts.load('48px "Abril Fatface"'); } catch {}
+  ctx.font = '48px "Abril Fatface", Georgia, serif';
+  ctx.fillStyle = '#102821'; // --ink
+  ctx.fillText('B', pad, pad + 36);
+  const bW = ctx.measureText('B').width;
   ctx.fillStyle = '#1F7A5C'; // --accent
-  ctx.font = '700 36px Arial, sans-serif'; // a generic sans so the ◈ glyph is reliably available
-  ctx.fillText('◈', pad, pad + 32);
+  ctx.fillText('C', pad + bW - 48 * 0.28, pad + 36);
+  const monoW = bW - 48 * 0.28 + ctx.measureText('C').width;
   ctx.fillStyle = '#102821'; // --ink
   ctx.font = '600 34px Fraunces, serif';
-  ctx.fillText('BCPASS', pad + 42, pad + 30);
+  ctx.fillText('BCPASS', pad + monoW + 12, pad + 30);
 
   const tierText = (document.getElementById('bc-card-tier')?.textContent || '').trim();
   if(tierText){
@@ -6497,6 +6512,21 @@ document.querySelectorAll('.slot').forEach(slot => {
   });
 });
 
+</script>
+<script>
+// BC favicon drawn in the real Abril Fatface once the web font has loaded (the inline SVG above is the fallback)
+(async function(){
+  try{
+    await document.fonts.load('40px "Abril Fatface"');
+    const c=document.createElement('canvas'); c.width=c.height=64; const x=c.getContext('2d');
+    x.fillStyle='#102821'; x.beginPath(); if(x.roundRect){ x.roundRect(0,0,64,64,14); } else { x.rect(0,0,64,64); } x.fill();
+    x.font='40px "Abril Fatface", Georgia, serif'; x.textBaseline='alphabetic';
+    const bw=x.measureText('B').width, cw=x.measureText('C').width, ov=40*0.28, tw=bw-ov+cw, sx=(64-tw)/2;
+    x.fillStyle='#F7F8F5'; x.fillText('B',sx,46);
+    x.fillStyle='#7FCBA9'; x.fillText('C',sx+bw-ov,46);
+    const l=document.getElementById('bc-favicon'); if(l){ l.type='image/png'; l.href=c.toDataURL('image/png'); }
+  }catch(e){}
+})();
 </script>
 </body>
 </html>
