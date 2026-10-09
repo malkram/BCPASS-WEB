@@ -437,6 +437,7 @@ ul{ margin:0; padding:0; list-style:none; }
 .mchat-saved{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
 .mchat-saved-chip{ display:inline-flex; align-items:center; gap:6px; font-size:0.78rem; padding:4px 6px 4px 11px; border-radius:999px; background: var(--accent-soft, #E4EFE9); color: var(--ink); }
 .mchat-saved-chip b{ font-weight:600; }
+.mchat-saved-chip small{ color: var(--ink-soft); padding-right:5px; }
 .mchat-saved-chip button{ font:inherit; line-height:1; width:20px; height:20px; border-radius:50%; border:none; background:rgba(0,0,0,0.08); color: var(--ink-soft); cursor:pointer; }
 .mchat-saved-chip button:hover{ background:rgba(0,0,0,0.16); }
 .mchat-start{ margin:4px 0 4px; }
@@ -4821,8 +4822,10 @@ function renderMchat(){
 
   // Saved answers, each removable
   const saved = lane.fields.filter(f => f.confirmed);
-  document.getElementById('mchat-saved').innerHTML = saved.map(f =>
-    `<span class="mchat-saved-chip"><span>${escapeHtml(f.label)}: <b>${escapeHtml(f.display)}</b></span><button type="button" data-mchat-remove="${escapeHtml(f.key)}" aria-label="Remove ${escapeHtml(f.label)}" title="Remove">×</button></span>`).join('');
+  // A registry-checked answer (e.g. company type from Companies House) is locked: shown, but not removable.
+  document.getElementById('mchat-saved').innerHTML = saved.map(f => f.locked
+    ? `<span class="mchat-saved-chip"><span>${escapeHtml(f.label)}: <b>${escapeHtml(f.display)}</b> <small title="Taken from the company register, so it cannot be changed here">· from the company register</small></span></span>`
+    : `<span class="mchat-saved-chip"><span>${escapeHtml(f.label)}: <b>${escapeHtml(f.display)}</b></span><button type="button" data-mchat-remove="${escapeHtml(f.key)}" aria-label="Remove ${escapeHtml(f.label)}" title="Remove">×</button></span>`).join('');
 
   // Start / continue button
   const allDone = lane.done >= lane.total;
