@@ -432,6 +432,9 @@ ul{ margin:0; padding:0; list-style:none; }
 .mx-card td:first-child{ color: var(--ink-soft); width:46%; padding-right:10px; }
 .mx-card td a{ color: var(--muted); font-size:0.74rem; margin-left:6px; white-space:nowrap; }
 .mx-card .mx-fine{ font-size:0.76rem; color: var(--muted); margin-top:12px; line-height:1.45; }
+.mx-actions{ grid-column: 1 / -1; display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; border-top:1px solid var(--line); margin-top:2px; padding-top:12px; }
+.mx-actions-hint{ flex-basis:100%; margin:0 0 2px; font-size:0.8rem; color: var(--ink-soft); line-height:1.4; }
+.mx-partner-tag{ display:inline-block; margin-left:8px; padding:2px 9px; border-radius:999px; font-size:0.7rem; font-weight:700; letter-spacing:0.03em; text-transform:uppercase; background:#E4F1EA; color:#1F6B4B; border:1px solid #BCD9C9; vertical-align:middle; }
 .mx-lane-hint{ font-size:0.86rem; color: var(--ink-soft); background: var(--paper); border:1px solid var(--line); border-radius: var(--radius); padding:10px 14px; margin:0 0 12px; }
 .match-gaps{ margin:6px 0 12px 18px; padding:0; font-size:0.9rem; color: var(--ink-soft); }
 .match-locked{ position:relative; border-style:dashed; background: var(--paper); }
@@ -5001,16 +5004,23 @@ function renderMatching(){
         const card = data.cards && data.cards[ckey];
         const isOpen = !!(card && st.open && st.open[ckey]);
         const moreBtn = card ? `<button type="button" class="mx-more" data-mx-card="${escapeHtml(ckey)}" aria-expanded="${isOpen}">${isOpen ? 'Hide details' : 'About this institution'}</button>` : '';
+        // Next steps. A signed BCPASS partner gets a consultant introduction; everyone else can be sent the pass
+        // directly by the client, or the client can talk to a BCPASS specialist about alternatives.
+        const isPartner = !!(data.partners && data.partners[ckey]);
+        const actionsHtml = isPartner
+          ? `<div class="mx-actions"><p class="mx-actions-hint">This is a BCPASS partner. A BCPASS consultant can connect you with them.</p><button type="button" class="btn btn-primary btn-small" data-mx-go="appointments">Connect with a BCPASS consultant</button></div>`
+          : `<div class="mx-actions"><p class="mx-actions-hint">Not a BCPASS partner yet. You can send them your pass yourself, or talk to us about alternatives.</p><button type="button" class="btn btn-ghost btn-small" data-mx-go="pass">Send them my pass</button><button type="button" class="btn btn-ghost btn-small" data-mx-go="appointments">Talk to a BCPASS specialist</button></div>`;
         return `
         <div class="mx-row">
           <div class="match-rank">${m.rank}</div>
           <div>
-            <div class="match-name">${escapeHtml(m.name)}</div>
+            <div class="match-name">${escapeHtml(m.name)}${isPartner ? '<span class="mx-partner-tag">BCPASS partner</span>' : ''}</div>
             <div class="match-bar ${t}"><span style="width:${Math.max(3, Math.min(100, m.match_percent))}%"></span></div>
             ${basis}
             ${moreBtn}
           </div>
           <div class="match-score"><b>${m.match_percent}%</b><span class="match-chip ${t}">${escapeHtml(m.label || 'Match')}</span></div>
+          ${actionsHtml}
           ${isOpen ? institutionCardHtml(card) : ''}
         </div>`;
       }).join('')}
@@ -5040,6 +5050,8 @@ document.getElementById('matching-run-btn')?.addEventListener('click', runMatchi
 document.getElementById('screen-matching')?.addEventListener('click', (e) => {
   const tabBtn = e.target.closest('[data-mx-tab]');
   if(tabBtn && currentCaseId && matchingByCase[currentCaseId]){ matchingByCase[currentCaseId].tab = tabBtn.dataset.mxTab; renderMatching(); return; }
+  const goBtn = e.target.closest('[data-mx-go]');
+  if(goBtn){ goToScreen(goBtn.dataset.mxGo); return; }
   const moreBtn = e.target.closest('[data-mx-card]');
   if(moreBtn && currentCaseId && matchingByCase[currentCaseId]){
     const st = matchingByCase[currentCaseId]; st.open = st.open || {};
