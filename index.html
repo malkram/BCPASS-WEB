@@ -2155,7 +2155,7 @@ const AI_STEPS = {
   'run-max':                 { run:'Building your business profile', done:'Business profile ready' },
   'get-matches':             { run:'Comparing you with providers', done:'Matches updated' },
   'match-chat':              { run:'AI agent is thinking', done:'AI agent replied', only:['chat'] },
-  'profile-chat':            { run:'AI agent is reading your reply', done:'AI agent replied' },
+  'profile-chat':            { run:'AI agent is reading your reply', done:'AI agent replied', only:['chat'] },
   'get-pass':                { run:'Preparing your pass', done:'Pass ready' },
 };
 const aiStatus = (() => {
@@ -2710,6 +2710,9 @@ async function maybeRunConsistencyCheck(){
 // leave the previous company's answers in kycProfile, so the new form came up
 // pre-filled and the next auto-save wrote the old company's data into the new case.
 let chatState = null; // profile assistant state, see chatReset()
+// Remembered for this tab only: a client who picked the form stays on the form when they open another profile.
+function buildModePref(){ try{ return sessionStorage.getItem('bcpass_build_mode') || ''; }catch(e){ return ''; } }
+function rememberBuildMode(m){ try{ sessionStorage.setItem('bcpass_build_mode', m); }catch(e){} }
 function resetCaseScopedState(){
   clearTimeout(saveDebounceTimer);
   for(const key of Object.keys(kycProfile)) delete kycProfile[key];
@@ -2751,7 +2754,11 @@ function loadCaseIntoWizard(caseId, nestedProfile){
   // A brand-new (empty) profile first asks HOW the client wants to build it (chat recommended); a profile that
   // already has answers opens in the form, with the switch to chat one tap away.
   const isFresh = !KYC_SCHEMA.some(sec => sec.fields.some(f => fieldFilled(f)));
-  if(typeof showBuildMode === 'function') showBuildMode(isFresh ? 'choose' : 'form', false);
+  if(typeof showBuildMode === 'function'){
+    if(isFresh) showBuildMode('choose', false);
+    else if(buildModePref() === 'form') showBuildMode('form', false);
+    else showBuildMode('chat', true); // returning client: the chat is the primary way back in (switch to the form any time)
+  }
   // Maisy B2, 2a (29 Sept) — fire-and-forget, same reasoning as
   // maybeRunConsistencyCheck(): never let this delay or block the wizard
   // rendering above.
@@ -6020,7 +6027,8 @@ const NO_INTEREST_REPLY = 'No particular interest yet';
 
 function chatInitState(){
   chatState = { caseId: currentCaseId, mode: 'form', messages: [], declined: [], plan: null, busy: false, started: false,
-                picked: new Set(), noteKey: '', replies: [], undo: new Map(), seq: 0 };
+                picked: new Set(), noteKey: '', replies: [], undo: new Map(), seq: 0,
+                revisit: false, focus: [], reviewIndex: null, lastReview: null };
   if(chatLogEl) chatLogEl.innerHTML = '';
   if(chatRepliesEl) chatRepliesEl.innerHTML = '';
   if(chatTextEl) chatTextEl.value = '';
@@ -6080,6 +6088,8 @@ function chatProfileSnapshot(){
     const v = kycProfile[f.key];
     if(v === undefined || v === null) continue;
     out[f.key] = v;
+    const ot = kycProfile[f.key + '__other'];
+    if(f.allowOtherText && typeof ot === 'string' && ot.trim()) out[f.key + '__other'] = ot;
   }
   return out;
 }
@@ -6113,7 +6123,9 @@ function chatUndo(id){
   u.el.classList.add('undone');
   u.el.querySelector('button')?.remove();
   updateSidebar();
-  chatNote(`Okay, I've taken out "${u.label}". I'll ask about it again in a moment, or you can fill it in on the form.`);
+  chatNote(u.snap.had && u.snap.v !== undefined && !(Array.isArray(u.snap.v) && u.snap.v.length === 0) && u.snap.v !== ''
+    ? `Okay, I've put "${u.label}" back to what it was.`
+    : `Okay, I've taken out "${u.label}". I'll ask about it again in a moment, or you can fill it in on the form.`);
 }
 
 function chatNote(text){ chatAddBubble('note', text); }
@@ -6127,7 +6139,8 @@ function chatRenderSaved(applied){
     const chip = document.createElement('span');
     chip.className = 'chat-saved-chip';
     const label = document.createElement('b'); label.textContent = a.label + ':';
-    const val = document.createElement('span'); val.textContent = a.display.length > 70 ? a.display.slice(0, 67) + '…' : a.display;
+    const shown = a.previous ? `${a.previous.length > 40 ? a.previous.slice(0, 37) + '…' : a.previous} → ${a.display}` : a.display;
+    const val = document.createElement('span'); val.textContent = shown.length > 90 ? shown.slice(0, 87) + '…' : shown;
     const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = 'Undo';
     btn.setAttribute('aria-label', 'Undo ' + a.label);
     btn.addEventListener('click', () => chatUndo(id));
@@ -6233,13 +6246,15 @@ async function chatTurn(userText){
       messages: chatState.messages.slice(-24),
       profile: chatProfileSnapshot(),
       declined: chatState.declined,
+      revisit: chatState.revisit,
+      focus: chatState.focus,
     });
     if(chatState.caseId !== caseId || currentCaseId !== caseId) return; // client moved to another company meanwhile
     typing.remove();
     const applied = [];
     for(const p of (res.proposed_updates || [])){
       const snap = chatApply(p);
-      if(snap) applied.push({ field: p.field, label: p.label, display: p.display, snap });
+      if(snap) applied.push({ field: p.field, label: p.label, display: p.display, previous: p.previous || '', snap });
     }
     for(const k of (res.declined_fields || [])) if(!chatState.declined.includes(k)) chatState.declined.push(k);
     chatState.plan = res.plan || chatState.plan;
@@ -6255,7 +6270,14 @@ async function chatTurn(userText){
     chatRenderSaved(applied);
     chatMaybeNoteSkipped(chatState.plan);
     chatProgressText();
-    chatRenderReplies(res.suggested_replies || [], { asking: res.asking, multi: res.multi, skippable: res.skippable });
+    if(res.menu){
+      // The agent finished a change or a focused set of questions and offers "what next".
+      if(res.reset_focus){ chatState.focus = []; chatState.revisit = true; }
+      if(chatState.reviewIndex !== null){ chatState.focus = []; await chatReview(chatState.reviewIndex, true); }
+      else chatRenderActions(chatMenuItems(res.suggested_replies || []));
+    } else {
+      chatRenderReplies(res.suggested_replies || [], { asking: res.asking, multi: res.multi, skippable: res.skippable });
+    }
     if(res.done) chatNote('That covers everything. Use "Review in the form" to check your answers, then sign off.');
   }catch(err){
     if(chatState.caseId !== caseId) return;
@@ -6265,6 +6287,88 @@ async function chatTurn(userText){
     if(userText){ chatState.messages.pop(); chatTextEl.value = userText; }
   }finally{
     if(chatState.caseId === caseId){ chatSetBusy(false); chatTextEl.focus({ preventScroll: true }); }
+  }
+}
+
+
+// ---- Returning clients (revisit): the chat is the primary way back into an already-filled profile ----
+const MENU_REMAINING = 'Answer the remaining questions';
+const MENU_REVIEW = 'Review my answers';
+const MENU_CHANGE = 'Change a specific answer';
+const MENU_DONE = "That's all for now";
+
+function chatHasAnswers(){
+  const areas = FIELDS_BY_KEY['areas_of_interest'];
+  if(!areas || !fieldFilled(areas)) return false;
+  return Object.values(FIELDS_BY_KEY).some(f => f.key !== 'areas_of_interest' && f.tier !== 'none' && fieldFilled(f));
+}
+
+// Tappable actions that the PAGE handles (menu, review steps). items: [{ text, fn, kind }]
+function chatRenderActions(items){
+  chatRepliesEl.innerHTML = '';
+  chatState.replies = items.map(i => i.text);
+  chatState.picked = new Set();
+  const hint = document.getElementById('chat-hint'); if(hint) hint.textContent = '';
+  for(const it of items){
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chat-reply' + (it.kind ? ' ' + it.kind : ''); b.textContent = it.text;
+    b.addEventListener('click', () => { if(!chatState.busy) it.fn(); });
+    chatRepliesEl.appendChild(b);
+  }
+}
+
+// The server's menu texts mapped to page actions.
+function chatMenuItems(texts){
+  const items = [];
+  for(const t of texts){
+    if(t.startsWith(MENU_REMAINING)) items.push({ text: t, fn: () => { chatState.revisit = false; chatState.focus = []; chatState.reviewIndex = null; chatSend('Yes, let us answer the remaining questions.'); } });
+    else if(t === MENU_REVIEW) items.push({ text: t, fn: () => chatReview(0) });
+    else if(t === MENU_CHANGE) items.push({ text: t, fn: () => { chatState.revisit = true; chatState.focus = []; chatState.reviewIndex = null; chatSend("I'd like to change an answer."); } });
+    else if(t === MENU_DONE) items.push({ text: t, fn: () => chatFinish() });
+  }
+  return items;
+}
+
+function chatFinish(){
+  chatState.reviewIndex = null; chatState.focus = [];
+  chatRepliesEl.innerHTML = '';
+  chatNote('Great. Everything is saved. Use "Review in the form" to look over your profile, then sign off when you are happy.');
+}
+
+function chatMenuAgain(){
+  const p = chatState.plan;
+  const n = p ? (p.open || []).filter(k => k !== 'additional_comments').length : 0;
+  chatRenderActions(chatMenuItems([...(n > 0 ? [`${MENU_REMAINING} (${n})`] : []), MENU_REVIEW, MENU_CHANGE, MENU_DONE]));
+}
+
+// One section at a time, as a plain recap built by the server from what is recorded (no AI involved).
+async function chatReview(index, afterChange){
+  if(!currentCaseId) return;
+  const caseId = currentCaseId;
+  chatState.reviewIndex = index; chatState.revisit = true; chatState.focus = [];
+  chatRepliesEl.innerHTML = '';
+  chatSetBusy(true);
+  try{
+    const res = await callFunction('profile-chat', { action: 'review', case_id: caseId, section: index, profile: chatProfileSnapshot(), declined: chatState.declined });
+    if(chatState.caseId !== caseId || currentCaseId !== caseId) return;
+    const r = res.review;
+    chatState.lastReview = r;
+    const lines = r.items.length ? r.items.map(i => `• ${i.label}: ${i.display}`) : ['Nothing answered in this part yet.'];
+    const miss = r.missing.length ? `\nNot answered yet: ${r.missing.map(m => m.label).join(', ')}` : '';
+    chatAddBubble('bot', `${afterChange ? 'Here it is now. ' : ''}${r.title} (${r.index + 1} of ${r.total})\n${lines.join('\n')}${miss}`);
+    const sectionKeys = r.items.map(i => i.key).concat(r.missing.map(m => m.key));
+    const items = [
+      { text: r.last ? 'Looks right, finish' : 'Looks right, next', kind: 'go', fn: () => { if(r.last){ chatState.reviewIndex = null; chatNote('That is the whole review.'); chatMenuAgain(); } else chatReview(index + 1); } },
+      { text: 'Change something', fn: () => { chatState.revisit = true; chatState.focus = sectionKeys; chatSend("I'd like to change something here."); } },
+    ];
+    if(r.missing.length) items.push({ text: `Answer the missing ones (${r.missing.length})`, fn: () => { chatState.revisit = false; chatState.focus = r.missing.map(m => m.key); chatSend("Let's answer the missing ones."); } });
+    items.push({ text: 'Stop review', kind: 'skip', fn: () => { chatState.reviewIndex = null; chatState.focus = []; chatNote('No problem. Pick what you would like to do next, or type a change.'); chatMenuAgain(); } });
+    chatRenderActions(items);
+  }catch(err){
+    chatAddBubble('err', (err && err.message ? err.message : 'Could not load that part.') + ' You can try again, or switch to the form.');
+    chatMenuAgain();
+  }finally{
+    if(chatState.caseId === caseId) chatSetBusy(false);
   }
 }
 
@@ -6280,6 +6384,8 @@ function chatEnter(){
   chatState.mode = 'chat';
   if(!chatState.started){
     chatState.started = true;
+    // A profile that already has answers (and areas chosen) is a revisit: the agent opens with a welcome and a menu.
+    chatState.revisit = chatHasAnswers();
     chatTurn(''); // opening turn: the server greets and asks the first question (areas of interest, unless already answered)
   } else {
     chatTextEl.focus({ preventScroll: true });
@@ -6290,13 +6396,14 @@ document.querySelectorAll('#build-mode-switch .mode-btn').forEach(b => {
   b.addEventListener('click', async () => {
     const mode = b.dataset.mode;
     if(chatState && chatState.mode === mode) return;
+    rememberBuildMode(mode);
     await flushSave();
     showBuildMode(mode, true);
   });
 });
 document.getElementById('build-choose')?.addEventListener('click', (e) => {
   const b = e.target.closest('[data-choose]');
-  if(b) showBuildMode(b.dataset.choose, true);
+  if(b){ rememberBuildMode(b.dataset.choose); showBuildMode(b.dataset.choose, true); }
 });
 document.getElementById('chat-to-form')?.addEventListener('click', async () => { await flushSave(); showBuildMode('form', true); });
 document.getElementById('chat-form')?.addEventListener('submit', (e) => { e.preventDefault(); chatSend(chatTextEl.value); });
