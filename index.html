@@ -991,9 +991,111 @@ body.marketing-mode #ai-status{ display:none; }
 .railnav .bc-mono .bc-b{ color:#fff; }
 .railnav .bc-mono .bc-c{ color:#7FCBA9; }
 .site-brand, .site-footer-brand, .bc-card-brand, .brand{ gap:10px; }
+
+/* ---- Marketing pages: icons and illustrations (9 Oct 2026) ---- */
+.mkt-ic-tile{ display:inline-flex; align-items:center; justify-content:center; width:46px; height:46px; border-radius:12px; background: var(--accent-soft); color: var(--accent); flex-shrink:0; margin-bottom:14px; }
+.mkt-ic-tile svg, .mkt-ic-sm svg, .mkt-chip svg, .mkt-lane svg, .mkt-flow-ic svg{ width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+.mkt-ic-tile.trust{ background:#DCEBE4; color: var(--trust); }
+.mkt-band .mkt-ic-tile{ background: rgba(255,255,255,0.08); color:#D9C6A3; }
+.mkt-feature{ background: rgba(255,255,255,0.55); border:1px solid var(--line); border-radius:16px; padding:24px; }
+.mkt-band .mkt-feature{ background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.10); }
+.mkt-step{ align-items:flex-start; }
+.mkt-step .mkt-ic-tile{ margin:0; }
+.mkt-trust-list li::before{ content:""; width:18px; height:18px; margin-top:2px; background: var(--trust); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7'/%3E%3C/svg%3E") center/contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7'/%3E%3C/svg%3E") center/contain no-repeat; }
+.mkt-principle{ display:flex; gap:16px; align-items:flex-start; }
+.mkt-principle .mkt-ic-tile{ background:#fff; margin:0; }
+
+/* hero pass: soft shapes + floating verification chips */
+.mkt-pass-wrap{ position:relative; }
+.screen-marketing{ overflow-x:clip; }
+.mkt-pass-wrap::before{ content:""; position:absolute; width:320px; height:320px; border-radius:50%; background: var(--accent-soft); top:-30px; right:-60px; z-index:0; }
+.mkt-pass-wrap::after{ content:""; position:absolute; width:150px; height:150px; border-radius:50%; background:#DCEBE4; bottom:30px; left:-40px; z-index:0; }
+.mkt-pass, .mkt-pass-caption{ position:relative; z-index:1; }
+.mkt-chip{ position:absolute; z-index:2; display:flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--line); border-radius:999px; padding:8px 14px 8px 9px; font-size:0.8rem; font-weight:500; color: var(--ink); box-shadow:0 14px 30px -18px rgba(22,35,58,0.45); white-space:nowrap; }
+.mkt-chip svg{ width:18px; height:18px; }
+.mkt-chip .mkt-ic-sm{ display:inline-flex; width:26px; height:26px; border-radius:50%; align-items:center; justify-content:center; background:#DCEBE4; color: var(--trust); }
+.mkt-chip .mkt-ic-sm svg{ width:15px; height:15px; stroke-width:2; }
+.mkt-chip.c1{ top:-18px; left:-46px; }
+.mkt-chip.c2{ top:118px; right:-58px; }
+
+/* home: before / after comparison */
+.mkt-compare{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:24px; }
+.mkt-compare-card{ background:#fff; border:1px solid var(--line); border-radius:20px; padding:24px 24px 18px; }
+.mkt-compare-card.is-pass{ border:2px solid var(--accent); }
+.mkt-compare-tag{ display:inline-block; font-size:0.72rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; padding:4px 10px; border-radius:999px; background: var(--paper); color: var(--muted); }
+.mkt-compare-card.is-pass .mkt-compare-tag{ background: var(--accent-soft); color:#7A4E12; }
+.mkt-compare-card h3{ font-family: var(--font-display); font-weight:500; font-size:1.2rem; margin:10px 0 4px; color: var(--ink); }
+.mkt-compare-card p{ font-size:0.9rem; color: var(--ink-soft); margin:0; }
+.mkt-compare-card svg{ width:100%; height:auto; display:block; margin-top:14px; }
+
+/* home band: product lanes */
+.mkt-lanes{ display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
+.mkt-lane{ display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px; border:1px solid rgba(255,255,255,0.16); color:#EEF1EC; font-size:0.85rem; }
+.mkt-lane svg{ width:18px; height:18px; color:#D9C6A3; }
+
+/* sub-page heroes with an illustration on the right */
+.mkt-hero-split{ display:grid; grid-template-columns: minmax(0,1fr) 400px; gap:48px; align-items:center; }
+.mkt-hero-art > svg{ width:100%; height:auto; display:block; }
+
+/* services hero: journey card */
+.mkt-flow{ background:#fff; border:1px solid var(--line); border-radius:20px; padding:22px; box-shadow:0 30px 60px -36px rgba(22,35,58,0.35); }
+.mkt-flow-row{ display:flex; align-items:center; gap:14px; position:relative; padding:10px 0; }
+.mkt-flow-row:not(:last-child)::after{ content:""; position:absolute; left:22px; top:54px; height:calc(100% - 44px); border-left:2px dashed var(--line-strong); }
+.mkt-flow-ic{ display:inline-flex; width:46px; height:46px; border-radius:12px; align-items:center; justify-content:center; background: var(--accent-soft); color: var(--accent); flex-shrink:0; }
+.mkt-flow-row:last-child .mkt-flow-ic{ background: var(--ink); color:#F3E6D2; }
+.mkt-flow-row b{ display:block; font-size:0.92rem; color: var(--ink); font-weight:600; }
+.mkt-flow-row span.t{ font-size:0.8rem; color: var(--muted); }
+.mkt-flow-row .ok{ margin-left:auto; color: var(--trust); }
+.mkt-flow-row .ok svg{ width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+
+/* illustration colour classes (follow the marketing palette) */
+.il-ink{ fill: var(--ink); } .il-acc{ fill: var(--accent); } .il-accsoft{ fill: var(--accent-soft); }
+.il-trust{ fill: var(--trust); } .il-trustsoft{ fill:#DCEBE4; } .il-white{ fill:#fff; } .il-paper{ fill: var(--paper); }
+.il-muted{ fill:#C9CFD8; } .il-stroke{ fill:none; stroke: var(--line-strong); stroke-width:1.5; }
+.il-path-muted{ fill:none; stroke:#B3BBC7; stroke-width:2; stroke-dasharray:5 6; }
+.il-path-acc{ fill:none; stroke: var(--accent); stroke-width:2.5; }
+.il-path-trust{ fill:none; stroke: var(--trust); stroke-width:2.5; }
+.il-ic{ fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+.il-txt{ font-family: var(--font-body); font-size:13px; fill: var(--ink-soft); }
+
+@media (max-width: 880px){
+  .mkt-hero-split{ grid-template-columns:1fr; }
+  .mkt-hero-art{ max-width:420px; }
+  .mkt-compare{ grid-template-columns:1fr; }
+  .mkt-chip.c1{ left:-6px; } .mkt-chip.c2{ right:-6px; }
+}
+@media (max-width: 480px){
+  .mkt-chip{ display:none; }
+}
 </style>
 </head>
 <body class="marketing-mode">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 15h6M9 18h3"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4"/><path d="M7.5 8.5L12 4l4.5 4.5"/><path d="M4 15v4h16v-4"/></symbol>
+  <symbol id="i-diagram" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-4h12v4"/></symbol>
+  <symbol id="i-pass" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h6M7 14h4"/><rect x="15" y="12" width="3" height="3"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M11 3l1.8 5.2L18 10l-5.2 1.8L11 17l-1.8-5.2L4 10l5.2-1.8z"/><path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></symbol>
+  <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 9l9-5 9 5"/><path d="M4 9h16"/><path d="M6 9v8M10 9v8M14 9v8M18 9v8"/><path d="M3 20h18"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><path d="M4 21V5l8-3v19"/><path d="M12 21V9l8 3v9"/><path d="M2 21h20M7 8h2M7 12h2M7 16h2M15 14h2M15 17h2"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5"/><path d="M3 17l9 5 9-5"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></symbol>
+  <symbol id="i-once" viewBox="0 0 24 24"><path d="M12 21a9 9 0 110-18 9 9 0 010 18z"/><path d="M10.5 9.5L12.5 8v8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 15h3"/></symbol>
+  <symbol id="i-pos" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M9 7h6v3H9z"/><path d="M9 14h1M12 14h1M15 14h0M9 17h1M12 17h1"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5M8 7h7"/></symbol>
+  <symbol id="i-handshake" viewBox="0 0 24 24"><path d="M2 11l4-4 4 2 3-2 4 1 5 3"/><path d="M6 7l-2 9 3 2M18 9l1 7-5 4-6-4"/><path d="M10 13l2 2M12 11l3 3"/></symbol>
+</svg>
 
 <!-- ============ PUBLIC SITE NAV (marketing pages only) ============ -->
 <header class="site-nav" id="site-nav">
@@ -1068,6 +1170,8 @@ body.marketing-mode #ai-status{ display:none; }
             </div>
 
             <div class="mkt-pass-wrap">
+              <div class="mkt-chip c1" aria-hidden="true"><span class="mkt-ic-sm"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></span>Registry details matched</div>
+              <div class="mkt-chip c2" aria-hidden="true"><span class="mkt-ic-sm"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg></span>Screening complete</div>
               <div class="mkt-pass">
                 <div class="mkt-pass-top">
                   <span class="mkt-pass-who"><span class="mkt-pass-dot"></span>Verified profile</span>
@@ -1098,6 +1202,37 @@ body.marketing-mode #ai-status{ display:none; }
         </div>
       </div>
 
+      <div class="mkt-section" style="padding-bottom:20px">
+        <div class="mkt-container">
+          <div class="mkt-section-head">
+            <p class="mkt-kicker">Why BCPASS</p>
+            <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.1rem)">Four banks shouldn't mean four KYC exercises.</h2>
+          </div>
+          <div class="mkt-compare">
+            <div class="mkt-compare-card">
+              <span class="mkt-compare-tag">Today</span>
+              <h3>The same pack, again and again</h3>
+              <p>Every new bank or institution asks for the same documents and explanations, each in its own format.</p>
+              <svg viewBox="0 0 480 262" role="img" aria-label="Your company sending a separate set of KYC documents to each of four banks"><path class="il-path-muted" d="M118 147 C 220 147, 250 37, 368 37"/><path class="il-path-muted" d="M118 147 C 220 147, 250 99, 368 99"/><path class="il-path-muted" d="M118 147 C 220 147, 250 161, 368 161"/><path class="il-path-muted" d="M118 147 C 220 147, 250 223, 368 223"/><rect class="il-white" x="22" y="104" width="96" height="86" rx="14"/><rect class="il-stroke" x="22" y="104" width="96" height="86" rx="14"/>
+<g style="color:var(--ink)"><use href="#i-building" x="52" y="120" width="36" height="36" class="il-ic" stroke="currentColor"/></g>
+<text class="il-txt" x="70" y="178" text-anchor="middle">Your company</text><rect class="il-white" x="285" y="35" width="30" height="32" rx="6"/><rect class="il-stroke" x="285" y="35" width="30" height="32" rx="6"/><g style="color:#8C96A6"><use href="#i-doc" x="289" y="40" width="22" height="22" class="il-ic" stroke="currentColor"/></g><rect class="il-white" x="285" y="89" width="30" height="32" rx="6"/><rect class="il-stroke" x="285" y="89" width="30" height="32" rx="6"/><g style="color:#8C96A6"><use href="#i-doc" x="289" y="94" width="22" height="22" class="il-ic" stroke="currentColor"/></g><rect class="il-white" x="285" y="143" width="30" height="32" rx="6"/><rect class="il-stroke" x="285" y="143" width="30" height="32" rx="6"/><g style="color:#8C96A6"><use href="#i-doc" x="289" y="148" width="22" height="22" class="il-ic" stroke="currentColor"/></g><rect class="il-white" x="285" y="197" width="30" height="32" rx="6"/><rect class="il-stroke" x="285" y="197" width="30" height="32" rx="6"/><g style="color:#8C96A6"><use href="#i-doc" x="289" y="202" width="22" height="22" class="il-ic" stroke="currentColor"/></g><rect class="il-white" x="368" y="14" width="92" height="46" rx="10"/><rect class="il-stroke" x="368" y="14" width="92" height="46" rx="10"/><g style="color:var(--ink-soft)"><use href="#i-bank" x="380" y="25" width="24" height="24" class="il-ic" stroke="currentColor"/></g><rect class="il-paper" x="412" y="29" width="36" height="6" rx="3"/><rect class="il-paper" x="412" y="40" width="24" height="6" rx="3"/><rect class="il-white" x="368" y="76" width="92" height="46" rx="10"/><rect class="il-stroke" x="368" y="76" width="92" height="46" rx="10"/><g style="color:var(--ink-soft)"><use href="#i-bank" x="380" y="87" width="24" height="24" class="il-ic" stroke="currentColor"/></g><rect class="il-paper" x="412" y="91" width="36" height="6" rx="3"/><rect class="il-paper" x="412" y="102" width="24" height="6" rx="3"/><rect class="il-white" x="368" y="138" width="92" height="46" rx="10"/><rect class="il-stroke" x="368" y="138" width="92" height="46" rx="10"/><g style="color:var(--ink-soft)"><use href="#i-bank" x="380" y="149" width="24" height="24" class="il-ic" stroke="currentColor"/></g><rect class="il-paper" x="412" y="153" width="36" height="6" rx="3"/><rect class="il-paper" x="412" y="164" width="24" height="6" rx="3"/><rect class="il-white" x="368" y="200" width="92" height="46" rx="10"/><rect class="il-stroke" x="368" y="200" width="92" height="46" rx="10"/><g style="color:var(--ink-soft)"><use href="#i-bank" x="380" y="211" width="24" height="24" class="il-ic" stroke="currentColor"/></g><rect class="il-paper" x="412" y="215" width="36" height="6" rx="3"/><rect class="il-paper" x="412" y="226" width="24" height="6" rx="3"/></svg>
+            </div>
+            <div class="mkt-compare-card is-pass">
+              <span class="mkt-compare-tag">With BCPASS</span>
+              <h3>One verified profile, shared your way</h3>
+              <p>Build your profile once, then share a Pass at the level of detail each recipient needs.</p>
+              <svg viewBox="0 0 480 262" role="img" aria-label="Your company builds one verified Pass and shares it with four banks"><path class="il-path-acc" d="M118 147 H 172"/><path class="il-path-trust" d="M290 147 C 330 147, 330 37, 368 37"/><path class="il-path-trust" d="M290 147 C 330 147, 330 99, 368 99"/><path class="il-path-trust" d="M290 147 C 330 147, 330 161, 368 161"/><path class="il-path-trust" d="M290 147 C 330 147, 330 223, 368 223"/><rect class="il-white" x="22" y="104" width="96" height="86" rx="14"/><rect class="il-stroke" x="22" y="104" width="96" height="86" rx="14"/>
+<g style="color:var(--ink)"><use href="#i-building" x="52" y="120" width="36" height="36" class="il-ic" stroke="currentColor"/></g>
+<text class="il-txt" x="70" y="178" text-anchor="middle">Your company</text><rect class="il-ink" x="172" y="98" width="118" height="98" rx="14"/>
+<text x="188" y="146" font-family="'Abril Fatface', Georgia, serif" font-size="34" fill="#F7F8F5">B<tspan dx="-9" fill="#E3B866">C</tspan></text>
+<rect x="188" y="160" width="64" height="6" rx="3" fill="rgba(255,255,255,0.28)"/><rect x="188" y="172" width="42" height="6" rx="3" fill="rgba(255,255,255,0.18)"/>
+<rect x="258" y="108" width="22" height="22" rx="4" fill="rgba(255,255,255,0.14)"/>
+<text class="il-txt" x="231" y="218" text-anchor="middle" style="font-weight:600;fill:var(--ink)">One verified Pass</text><rect class="il-white" x="368" y="14" width="92" height="46" rx="10"/><rect class="il-stroke" x="368" y="14" width="92" height="46" rx="10"/><g style="color:var(--ink-soft)"><use href="#i-bank" x="380" y="25" width="24" height="24" class="il-ic" stroke="currentColor"/></g><rect class="il-paper" x="412" y="29" width="36" height="6" rx="3"/><rect class="il-paper" x="412" y="40" width="24" height="6" rx="3"/><circle class="il-trust" cx="458" cy="16" r="10"/><path d="M453 16.5l3.5 3.5 6-6.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect class="il-white" x="368" y="76" width="92" height="46" rx="10"/><rect class="il-stroke" x="368" y="76" width="92" height="46" rx="10"/><g style="color:var(--ink-soft)"><use href="#i-bank" x="380" y="87" width="24" height="24" class="il-ic" stroke="currentColor"/></g><rect class="il-paper" x="412" y="91" width="36" height="6" rx="3"/><rect class="il-paper" x="412" y="102" width="24" height="6" rx="3"/><circle class="il-trust" cx="458" cy="78" r="10"/><path d="M453 78.5l3.5 3.5 6-6.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect class="il-white" x="368" y="138" width="92" height="46" rx="10"/><rect class="il-stroke" x="368" y="138" width="92" height="46" rx="10"/><g style="color:var(--ink-soft)"><use href="#i-bank" x="380" y="149" width="24" height="24" class="il-ic" stroke="currentColor"/></g><rect class="il-paper" x="412" y="153" width="36" height="6" rx="3"/><rect class="il-paper" x="412" y="164" width="24" height="6" rx="3"/><circle class="il-trust" cx="458" cy="140" r="10"/><path d="M453 140.5l3.5 3.5 6-6.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect class="il-white" x="368" y="200" width="92" height="46" rx="10"/><rect class="il-stroke" x="368" y="200" width="92" height="46" rx="10"/><g style="color:var(--ink-soft)"><use href="#i-bank" x="380" y="211" width="24" height="24" class="il-ic" stroke="currentColor"/></g><rect class="il-paper" x="412" y="215" width="36" height="6" rx="3"/><rect class="il-paper" x="412" y="226" width="24" height="6" rx="3"/><circle class="il-trust" cx="458" cy="202" r="10"/><path d="M453 202.5l3.5 3.5 6-6.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="mkt-section">
         <div class="mkt-container">
           <div class="mkt-section-head">
@@ -1107,6 +1242,7 @@ body.marketing-mode #ai-status{ display:none; }
           <div class="mkt-steps">
             <div class="mkt-step">
               <span class="mkt-step-num">01</span>
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-chat"/></svg></span>
               <div class="mkt-step-body">
                 <h3>Tell us about your business</h3>
                 <p>Describe your business in your own words and our AI asks the right questions, building a structured profile as you go — no blank forms to stare at.</p>
@@ -1114,6 +1250,7 @@ body.marketing-mode #ai-status{ display:none; }
             </div>
             <div class="mkt-step">
               <span class="mkt-step-num">02</span>
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-upload"/></svg></span>
               <div class="mkt-step-body">
                 <h3>Upload your documents</h3>
                 <p>Our AI works out what each document is and pulls out the relevant details. You don't need to label anything yourself.</p>
@@ -1121,6 +1258,7 @@ body.marketing-mode #ai-status{ display:none; }
             </div>
             <div class="mkt-step">
               <span class="mkt-step-num">03</span>
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-diagram"/></svg></span>
               <div class="mkt-step-body">
                 <h3>Review your diagram and summary</h3>
                 <p>See your ownership structure, suppliers, and customers mapped out clearly, with anything worth a second look flagged plainly — nothing hidden in a document.</p>
@@ -1128,6 +1266,7 @@ body.marketing-mode #ai-status{ display:none; }
             </div>
             <div class="mkt-step">
               <span class="mkt-step-num">04</span>
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-pass"/></svg></span>
               <div class="mkt-step-body">
                 <h3>Share your Pass</h3>
                 <p>Choose exactly what a bank, partner, or institution sees — one link and QR code per company, five levels of detail, changeable any time.</p>
@@ -1142,18 +1281,28 @@ body.marketing-mode #ai-status{ display:none; }
           <p class="mkt-kicker">Beyond your next bank account</p>
           <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.1rem);max-width:30ch">Built for more than lending.</h2>
           <p style="max-width:56ch;font-size:1rem">As BCPASS grows, your verified profile will be able to work harder for you — helping match your business with the right providers not just for loans, but FX, trade finance, cards, merchant and POS services, and more.</p>
+          <div class="mkt-lanes" aria-label="Product areas">
+            <span class="mkt-lane"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-bank"/></svg>Lending</span>
+            <span class="mkt-lane"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-globe"/></svg>FX</span>
+            <span class="mkt-lane"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-box"/></svg>Trade finance</span>
+            <span class="mkt-lane"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-card"/></svg>Cards</span>
+            <span class="mkt-lane"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pos"/></svg>Merchant and POS</span>
+          </div>
           <div class="mkt-feature-grid" style="margin-top:36px">
             <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-spark"/></svg></span>
               <p class="mkt-feature-num">AI</p>
               <h3>Understands your business</h3>
               <p class="mkt-feature-desc">Your AI-built profile already holds the detail a bank or partner needs — no re-explaining your business from scratch.</p>
             </div>
             <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-diagram"/></svg></span>
               <p class="mkt-feature-num">Diagram</p>
               <h3>Shows your structure</h3>
               <p class="mkt-feature-desc">Ownership, suppliers, and customers, mapped visually — so anyone reviewing your profile understands it fast.</p>
             </div>
             <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-pass"/></svg></span>
               <p class="mkt-feature-num">Pass</p>
               <h3>Shares on your terms</h3>
               <p class="mkt-feature-desc">One Pass, several levels of detail, shared with a bank, partner, or institution — you're always in control.</p>
@@ -1168,6 +1317,7 @@ body.marketing-mode #ai-status{ display:none; }
             <p class="mkt-kicker">Your information stays yours</p>
             <h2 class="display" style="font-size:clamp(1.5rem,3vw,2rem)">You decide what's shared, and with whom.</h2>
             <p class="lede">A Pass gives a recipient a verified starting point — it never replaces their own due diligence, and it's never shared without your say-so.</p>
+            <div style="display:flex;gap:12px;margin-top:18px"><span class="mkt-ic-tile trust" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg></span><span class="mkt-ic-tile trust" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-eye"/></svg></span><span class="mkt-ic-tile trust" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg></span></div>
           </div>
           <ul class="mkt-trust-list">
             <li>You choose what's shared, at your own pace — nothing goes out until you decide to share it</li>
@@ -1193,8 +1343,28 @@ body.marketing-mode #ai-status{ display:none; }
     <section class="screen screen-marketing" id="screen-about">
       <div class="mkt-hero" style="padding-bottom:20px">
         <div class="mkt-container">
-          <p class="mkt-kicker">About BCPASS</p>
-          <h1 class="display">Built for the business,<br>not just the bank.</h1>
+          <div class="mkt-hero-split">
+            <div>
+              <p class="mkt-kicker">About BCPASS</p>
+              <h1 class="display">Built for the business,<br>not just the bank.</h1>
+            </div>
+            <div class="mkt-hero-art"><svg viewBox="0 0 400 300" role="img" aria-label="A stack of repeated KYC forms turning into one BCPASS Pass">
+<circle class="il-accsoft" cx="292" cy="150" r="104"/>
+<g transform="rotate(-8 90 150)"><rect class="il-white" x="40" y="70" width="110" height="140" rx="10"/><rect class="il-stroke" x="40" y="70" width="110" height="140" rx="10"/></g>
+<g transform="rotate(-3 90 150)"><rect class="il-white" x="44" y="72" width="110" height="140" rx="10"/><rect class="il-stroke" x="44" y="72" width="110" height="140" rx="10"/></g>
+<rect class="il-white" x="48" y="74" width="110" height="140" rx="10"/><rect class="il-stroke" x="48" y="74" width="110" height="140" rx="10"/>
+<rect class="il-muted" x="64" y="94" width="60" height="7" rx="3.5"/>
+<rect class="il-paper" x="64" y="114" width="78" height="6" rx="3"/><rect class="il-paper" x="64" y="128" width="70" height="6" rx="3"/><rect class="il-paper" x="64" y="142" width="78" height="6" rx="3"/><rect class="il-paper" x="64" y="156" width="52" height="6" rx="3"/>
+<rect class="il-paper" x="64" y="180" width="40" height="16" rx="4"/>
+<text class="il-txt" x="103" y="240" text-anchor="middle">×10 banks</text>
+<path class="il-path-acc" d="M172 150 H 210" stroke-dasharray="4 6"/><path d="M204 143l9 7-9 7" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect class="il-ink" x="226" y="88" width="140" height="124" rx="16"/>
+<text x="244" y="146" font-family="'Abril Fatface', Georgia, serif" font-size="44" fill="#F7F8F5">B<tspan dx="-12" fill="#E3B866">C</tspan></text>
+<rect x="244" y="164" width="84" height="7" rx="3.5" fill="rgba(255,255,255,0.3)"/><rect x="244" y="178" width="56" height="7" rx="3.5" fill="rgba(255,255,255,0.18)"/>
+<circle class="il-trust" cx="356" cy="92" r="16"/><path d="M348 92.5l5.5 5.5 9-10" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text class="il-txt" x="296" y="240" text-anchor="middle" style="font-weight:600;fill:var(--ink)">×1 Pass</text>
+</svg></div>
+          </div>
         </div>
       </div>
       <div class="mkt-section" style="padding-top:0">
@@ -1212,16 +1382,19 @@ body.marketing-mode #ai-status{ display:none; }
           </div>
           <div class="mkt-feature-grid">
             <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-once"/></svg></span>
               <p class="mkt-feature-num">01</p>
               <h3>You should only tell your story once</h3>
               <p class="mkt-feature-desc">Repeating the same KYC exercise for every institution wastes your time and theirs. One verified profile should travel with you.</p>
             </div>
             <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-handshake"/></svg></span>
               <p class="mkt-feature-num">02</p>
               <h3>Sharing isn't skipping</h3>
               <p class="mkt-feature-desc">A Pass gives a bank, partner, or institution a verified head start — it's never a substitute for their own checks, and we don't build it to be one.</p>
             </div>
             <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-spark"/></svg></span>
               <p class="mkt-feature-num">03</p>
               <h3>AI should do the busywork, not the judgment calls</h3>
               <p class="mkt-feature-desc">Our AI structures, extracts, and flags — it never guesses a fact you haven't told it or a document hasn't shown. You stay the authority on your own business.</p>
@@ -1245,9 +1418,14 @@ body.marketing-mode #ai-status{ display:none; }
     <section class="screen screen-marketing" id="screen-services">
       <div class="mkt-hero" style="padding-bottom:20px">
         <div class="mkt-container">
-          <p class="mkt-kicker">Our services</p>
-          <h1 class="display">Everything you need to<br>tell your story once.</h1>
-          <p class="lede" style="max-width:56ch">From your first conversation with our AI to the moment you share a Pass, here's what BCPASS actually does.</p>
+          <div class="mkt-hero-split">
+            <div>
+              <p class="mkt-kicker">Our services</p>
+              <h1 class="display">Everything you need to<br>tell your story once.</h1>
+              <p class="lede" style="max-width:56ch">From your first conversation with our AI to the moment you share a Pass, here's what BCPASS actually does.</p>
+            </div>
+            <div class="mkt-hero-art"><div class="mkt-flow" aria-hidden="true"><div class="mkt-flow-row"><span class="mkt-flow-ic"><svg viewBox="0 0 24 24"><use href="#i-chat"/></svg></span><div><b>Describe your business</b><span class="t">AI asks the follow-up questions</span></div><span class="ok"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></span></div><div class="mkt-flow-row"><span class="mkt-flow-ic"><svg viewBox="0 0 24 24"><use href="#i-upload"/></svg></span><div><b>Upload documents</b><span class="t">Sorted and read automatically</span></div><span class="ok"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></span></div><div class="mkt-flow-row"><span class="mkt-flow-ic"><svg viewBox="0 0 24 24"><use href="#i-diagram"/></svg></span><div><b>Review your diagram</b><span class="t">Ownership, suppliers, customers</span></div><span class="ok"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></span></div><div class="mkt-flow-row"><span class="mkt-flow-ic"><svg viewBox="0 0 24 24"><use href="#i-pass"/></svg></span><div><b>Share your Pass</b><span class="t">Five levels of detail</span></div><span class="ok"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></span></div></div></div>
+          </div>
         </div>
       </div>
 
@@ -1255,35 +1433,35 @@ body.marketing-mode #ai-status{ display:none; }
         <div class="mkt-container">
           <div class="mkt-steps">
             <div class="mkt-step">
-              <span class="mkt-step-num">—</span>
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-chat"/></svg></span>
               <div class="mkt-step-body">
                 <h3>Build your profile by describing your business</h3>
                 <p>Our AI guides you through your company overview, business activity, ownership and structure, funding sources, business history, and current and future plans — asking follow-up questions where something's missing, rather than handing you a blank form.</p>
               </div>
             </div>
             <div class="mkt-step">
-              <span class="mkt-step-num">—</span>
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-doc"/></svg></span>
               <div class="mkt-step-body">
                 <h3>Upload documents, and let AI do the sorting</h3>
                 <p>Add financial statements, registry documents, bank letters, and more. Our AI works out what each one is and extracts the relevant detail — you don't need to tell us what anything is, or retype it by hand.</p>
               </div>
             </div>
             <div class="mkt-step">
-              <span class="mkt-step-num">—</span>
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-search"/></svg></span>
               <div class="mkt-step-body">
                 <h3>See your business clearly</h3>
                 <p>A generated business diagram maps your ownership, directors, suppliers, and customers. A plain-language summary and a readiness check flag anything worth a second look, before you ever share it with anyone.</p>
               </div>
             </div>
             <div class="mkt-step">
-              <span class="mkt-step-num">—</span>
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg></span>
               <div class="mkt-step-body">
                 <h3>Share exactly what's needed</h3>
                 <p>Your Pass has five levels of detail, from a brief introduction through to your full documents. Pick a level for each bank, partner, or institution you share with, and change it any time — one link and QR code per company.</p>
               </div>
             </div>
             <div class="mkt-step">
-              <span class="mkt-step-num">—</span>
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-target"/></svg></span>
               <div class="mkt-step-body">
                 <h3>Looking ahead: matching, beyond lending</h3>
                 <p>We're building on your verified profile to help match your business with the right providers — not just for loans, but FX, trade finance, cards, merchant and POS services, and more. This is on our roadmap, not yet live.</p>
@@ -1308,9 +1486,38 @@ body.marketing-mode #ai-status{ display:none; }
     <section class="screen screen-marketing" id="screen-ai">
       <div class="mkt-hero" style="padding-bottom:20px">
         <div class="mkt-container">
-          <p class="mkt-kicker">How AI is embedded</p>
-          <h1 class="display">AI does the paperwork.<br>You stay the authority.</h1>
-          <p class="lede" style="max-width:56ch">We use AI throughout BCPASS — always in service of getting your business represented accurately, never to replace your own review of it.</p>
+          <div class="mkt-hero-split">
+            <div>
+              <p class="mkt-kicker">How AI is embedded</p>
+              <h1 class="display">AI does the paperwork.<br>You stay the authority.</h1>
+              <p class="lede" style="max-width:56ch">We use AI throughout BCPASS — always in service of getting your business represented accurately, never to replace your own review of it.</p>
+            </div>
+            <div class="mkt-hero-art"><svg viewBox="0 0 400 300" role="img" aria-label="Your words and documents flowing into AI, which produces a structured profile for you to review">
+<circle class="il-trustsoft" cx="200" cy="150" r="70"/>
+<rect class="il-white" x="14" y="52" width="104" height="44" rx="12"/><rect class="il-stroke" x="14" y="52" width="104" height="44" rx="12"/>
+<g style="color:var(--accent)"><use href="#i-chat" x="24" y="62" width="24" height="24" class="il-ic" stroke="currentColor"/></g>
+<rect class="il-paper" x="56" y="66" width="48" height="6" rx="3"/><rect class="il-paper" x="56" y="78" width="32" height="6" rx="3"/>
+<rect class="il-white" x="14" y="128" width="104" height="44" rx="12"/><rect class="il-stroke" x="14" y="128" width="104" height="44" rx="12"/>
+<g style="color:var(--accent)"><use href="#i-doc" x="24" y="138" width="24" height="24" class="il-ic" stroke="currentColor"/></g>
+<rect class="il-paper" x="56" y="142" width="48" height="6" rx="3"/><rect class="il-paper" x="56" y="154" width="36" height="6" rx="3"/>
+<rect class="il-white" x="14" y="204" width="104" height="44" rx="12"/><rect class="il-stroke" x="14" y="204" width="104" height="44" rx="12"/>
+<g style="color:var(--accent)"><use href="#i-building" x="24" y="214" width="24" height="24" class="il-ic" stroke="currentColor"/></g>
+<rect class="il-paper" x="56" y="218" width="48" height="6" rx="3"/><rect class="il-paper" x="56" y="230" width="28" height="6" rx="3"/>
+<path class="il-path-muted" d="M118 74 C 150 74, 150 150, 168 150"/><path class="il-path-muted" d="M118 150 H 168"/><path class="il-path-muted" d="M118 226 C 150 226, 150 150, 168 150"/>
+<circle class="il-ink" cx="200" cy="150" r="34"/>
+<g style="color:#E3B866"><use href="#i-spark" x="184" y="134" width="32" height="32" class="il-ic" stroke="currentColor"/></g>
+<path class="il-path-trust" d="M234 150 H 262"/><path d="M256 143l8 7-8 7" fill="none" stroke="var(--trust)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect class="il-white" x="270" y="70" width="118" height="160" rx="14"/><rect class="il-stroke" x="270" y="70" width="118" height="160" rx="14"/>
+<rect class="il-muted" x="284" y="86" width="64" height="8" rx="4"/>
+<circle class="il-trust" cx="292" cy="116" r="7"/><rect class="il-paper" x="306" y="112" width="68" height="8" rx="4"/>
+<circle class="il-trust" cx="292" cy="140" r="7"/><rect class="il-paper" x="306" y="136" width="56" height="8" rx="4"/>
+<circle class="il-acc" cx="292" cy="164" r="7"/><rect class="il-accsoft" x="306" y="160" width="62" height="8" rx="4"/>
+<circle class="il-trust" cx="292" cy="188" r="7"/><rect class="il-paper" x="306" y="184" width="48" height="8" rx="4"/>
+<path d="M288.5 116l2.5 2.5 4.5-5M288.5 140l2.5 2.5 4.5-5M288.5 188l2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="292" y="168" text-anchor="middle" font-family="var(--font-body)" font-size="10" font-weight="700" fill="#fff">?</text>
+<text class="il-txt" x="329" y="252" text-anchor="middle" style="font-weight:600;fill:var(--ink)">You review it</text>
+</svg></div>
+          </div>
         </div>
       </div>
 
@@ -1318,31 +1525,37 @@ body.marketing-mode #ai-status{ display:none; }
         <div class="mkt-container">
           <div class="mkt-feature-grid">
             <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-chat"/></svg></span>
               <p class="mkt-feature-num">Conversation</p>
               <h3>Turning what you say into structure</h3>
               <p class="mkt-feature-desc">When you describe your business in your own words, AI organizes what you say into a structured profile, asking follow-up questions where something's missing.</p>
             </div>
             <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-doc"/></svg></span>
               <p class="mkt-feature-num">Documents</p>
               <h3>Reading what you upload</h3>
               <p class="mkt-feature-desc">AI works out what each document is and pulls out the relevant detail, so you don't have to label or retype anything yourself.</p>
             </div>
             <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-diagram"/></svg></span>
               <p class="mkt-feature-num">Diagram</p>
               <h3>Mapping your structure</h3>
               <p class="mkt-feature-desc">AI turns your ownership, directors, suppliers, and customers into a diagram, connecting the pieces so it's easy for anyone to follow.</p>
             </div>
             <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-search"/></svg></span>
               <p class="mkt-feature-num">Review</p>
               <h3>Checking for gaps, not guessing</h3>
               <p class="mkt-feature-desc">Our AI is built to flag what looks inconsistent or incomplete and ask you about it — never to invent a detail you haven't told us or a document hasn't shown.</p>
             </div>
             <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-book"/></svg></span>
               <p class="mkt-feature-num">Context</p>
               <h3>Adding context, always sourced</h3>
               <p class="mkt-feature-desc">Where it's useful, AI adds general market or industry context — always clearly labeled as research, never presented as a fact about your business.</p>
             </div>
             <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-user"/></svg></span>
               <p class="mkt-feature-num">You</p>
               <h3>You review everything</h3>
               <p class="mkt-feature-desc">Every AI-generated summary, diagram, and flag is something you — and whoever you share it with — can review before it's relied on. AI drafts; you decide.</p>
@@ -1350,8 +1563,11 @@ body.marketing-mode #ai-status{ display:none; }
           </div>
 
           <div class="mkt-principle">
-            <b>Our standing rule</b>
-            <p>Never guess, never invent. If our AI isn't sure about something, it says so — it doesn't fill the gap with a detail that merely sounds right.</p>
+            <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg></span>
+            <div>
+              <b>Our standing rule</b>
+              <p>Never guess, never invent. If our AI isn't sure about something, it says so — it doesn't fill the gap with a detail that merely sounds right.</p>
+            </div>
           </div>
         </div>
       </div>
