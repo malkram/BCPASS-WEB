@@ -1110,6 +1110,50 @@ body.marketing-mode #ai-status{ display:none; }
 @media (max-width: 480px){
   .mkt-chip{ display:none; }
 }
+
+/* ---- Partnership page (7 Oct 2026): partner application form ---- */
+.pa-card{ background:#fff; border:1px solid var(--line); border-radius:20px; padding:32px; max-width:860px; margin:0 auto; }
+.pa-set{ border:none; padding:0; margin:0 0 30px; min-width:0; }
+.pa-set legend{ font-family: var(--font-display); font-size:1.15rem; color: var(--ink); padding:0; margin-bottom:12px; }
+.pa-grid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:16px; }
+.pa-grid .field input, .pa-grid .field select{ width:100%; }
+.pa-grid .field[hidden]{ display:none; }
+.pa-help{ font-size:0.88rem; color: var(--ink-soft); margin:0 0 12px; }
+.pa-checks{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:8px 18px; }
+.pa-check{ display:flex; gap:10px; align-items:flex-start; font-size:0.92rem; color: var(--ink-soft); cursor:pointer; line-height:1.4; }
+.pa-check input{ margin-top:3px; width:17px; height:17px; flex-shrink:0; accent-color: var(--accent); }
+.pa-slot{ background:#F7F8F5; border:1px solid var(--line); border-radius:14px; padding:18px 18px 16px; margin-top:16px; }
+.pa-slot h3{ font-size:1rem; margin:0 0 4px; color: var(--ink); }
+.pa-slot .field{ margin-top:12px; }
+.pa-slot textarea{ width:100%; }
+.pa-drop{ display:flex; align-items:center; gap:12px; padding:14px; border:1.5px dashed var(--line-strong); border-radius:12px; background:#fff; flex-wrap:wrap; }
+.pa-drop.is-over{ border-color: var(--accent); background: var(--accent-soft); }
+.pa-drop-hint{ font-size:0.85rem; color: var(--muted); }
+.pa-file-input{ position:absolute; width:1px; height:1px; opacity:0; overflow:hidden; clip:rect(0 0 0 0); }
+.pa-file-input:focus-visible + .pa-drop-hint{ outline:2px solid var(--accent); }
+.pa-files{ list-style:none; margin:10px 0 0; padding:0; display:flex; flex-direction:column; gap:6px; }
+.pa-files li{ display:flex; align-items:center; gap:10px; font-size:0.88rem; padding:7px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+.pa-card .field input, .pa-card .field-text{ background:#fff; }
+.pa-files .pa-fn{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color: var(--ink); }
+.pa-files .pa-fs{ color: var(--muted); font-size:0.8rem; flex-shrink:0; }
+.pa-files button{ background:none; border:none; color:#9B2C2C; cursor:pointer; font-size:0.82rem; padding:2px 4px; white-space:nowrap; flex-shrink:0; }
+.pa-hp{ position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden; }
+.pa-consent{ padding:14px 16px; background:#F7F8F5; border:1px solid var(--line); border-radius:12px; margin-bottom:18px; }
+.pa-actions{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.pa-progress{ flex:1; min-width:160px; height:8px; background: var(--line); border-radius:999px; overflow:hidden; }
+.pa-progress[hidden]{ display:none; }
+.pa-progress-bar{ height:100%; width:0; background: var(--accent); transition: width .2s; }
+.pa-msg{ font-size:0.9rem; margin:12px 0 0; min-height:1.2em; }
+.pa-msg.err{ color:#9B2C2C; }
+.pa-field-err{ border-color:#9B2C2C !important; }
+.pa-set.pa-field-err-set .pa-checks{ outline:1.5px solid #9B2C2C; outline-offset:6px; border-radius:6px; }
+.pa-success{ text-align:left; }
+.pa-success[hidden], #pa-form-wrap[hidden]{ display:none; }
+.pa-success .mkt-ic-tile{ margin-bottom:14px; }
+@media (max-width: 720px){
+  .pa-card{ padding:22px 16px; border-radius:16px; }
+  .pa-grid, .pa-checks{ grid-template-columns:1fr; }
+}
 </style>
 </head>
 <body class="marketing-mode">
@@ -1149,6 +1193,7 @@ body.marketing-mode #ai-status{ display:none; }
       <a data-goto="about">About us</a>
       <a data-goto="services">Our services</a>
       <a data-goto="ai">How AI is embedded</a>
+      <a data-goto="partners">Partnership</a>
       <a data-goto="privacy">Privacy</a>
     </nav>
     <div class="site-nav-actions">
@@ -1687,6 +1732,304 @@ body.marketing-mode #ai-status{ display:none; }
           <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.1rem)">Questions about your data?</h2>
           <div class="mkt-cta-actions">
             <a class="btn btn-ghost" data-goto="about">Learn more about us</a>
+            <a class="btn btn-primary" data-goto="signup">Create your BCPASS account →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 0f. MARKETING: PARTNERSHIP (7 Oct 2026) ---------- -->
+    <section class="screen screen-marketing" id="screen-partners">
+      <div class="mkt-hero" style="padding-bottom:20px">
+        <div class="mkt-container">
+          <div class="mkt-hero-split">
+            <div>
+              <p class="mkt-kicker">Partnership</p>
+              <h1 class="display">Meet SMEs that already<br>fit what you offer.</h1>
+              <p class="lede" style="max-width:56ch">BCPASS is for banks, lenders and other providers that serve small and medium-sized businesses. Tell us what you offer, how you onboard and who you want to hear from. We will use it to introduce you to businesses with a verified starting point.</p>
+              <div class="mkt-hero-actions">
+                <a class="btn btn-primary" href="#pa-form" id="pa-hero-apply">Apply to partner →</a>
+              </div>
+            </div>
+            <div class="mkt-hero-art"><svg viewBox="0 0 400 300" role="img" aria-label="A provider shares its onboarding requirements and ideal customers; businesses with a verified pass are introduced to it">
+<circle class="il-trustsoft" cx="200" cy="150" r="70"/>
+<rect class="il-white" x="14" y="92" width="112" height="116" rx="14"/><rect class="il-stroke" x="14" y="92" width="112" height="116" rx="14"/>
+<g style="color:var(--accent)"><use href="#i-bank" x="58" y="104" width="32" height="32" class="il-ic" stroke="currentColor"/></g>
+<rect class="il-muted" x="30" y="146" width="80" height="8" rx="4"/>
+<rect class="il-paper" x="30" y="162" width="64" height="7" rx="3.5"/>
+<rect class="il-paper" x="30" y="176" width="72" height="7" rx="3.5"/>
+<path class="il-path-muted" d="M126 150 H 168"/>
+<circle class="il-ink" cx="200" cy="150" r="34"/>
+<g style="color:#E3B866"><use href="#i-handshake" x="184" y="134" width="32" height="32" class="il-ic" stroke="currentColor"/></g>
+<path class="il-path-trust" d="M234 150 H 262"/><path d="M256 143l8 7-8 7" fill="none" stroke="var(--trust)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect class="il-white" x="270" y="50" width="118" height="50" rx="12"/><rect class="il-stroke" x="270" y="50" width="118" height="50" rx="12"/>
+<circle class="il-trust" cx="292" cy="75" r="8"/><path d="M288.5 75l2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<rect class="il-paper" x="308" y="66" width="64" height="8" rx="4"/><rect class="il-paper" x="308" y="79" width="44" height="7" rx="3.5"/>
+<rect class="il-white" x="270" y="125" width="118" height="50" rx="12"/><rect class="il-stroke" x="270" y="125" width="118" height="50" rx="12"/>
+<circle class="il-trust" cx="292" cy="150" r="8"/><path d="M288.5 150l2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<rect class="il-paper" x="308" y="141" width="56" height="8" rx="4"/><rect class="il-paper" x="308" y="154" width="48" height="7" rx="3.5"/>
+<rect class="il-white" x="270" y="200" width="118" height="50" rx="12"/><rect class="il-stroke" x="270" y="200" width="118" height="50" rx="12"/>
+<circle class="il-trust" cx="292" cy="225" r="8"/><path d="M288.5 225l2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<rect class="il-paper" x="308" y="216" width="60" height="8" rx="4"/><rect class="il-paper" x="308" y="229" width="40" height="7" rx="3.5"/>
+<text class="il-txt" x="70" y="232" text-anchor="middle" style="font-weight:600;fill:var(--ink)">You</text>
+<text class="il-txt" x="329" y="274" text-anchor="middle" style="font-weight:600;fill:var(--ink)">SMEs with a pass</text>
+</svg></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mkt-section" style="padding-top:10px">
+        <div class="mkt-container">
+          <p class="mkt-kicker">Who we want to hear from</p>
+          <h2 class="display" style="font-size:clamp(1.5rem,2.6vw,1.9rem);margin-bottom:18px">Providers across the services SMEs rely on</h2>
+          <div class="mkt-feature-grid">
+            <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-bank"/></svg></span>
+              <h3>Loans and credit</h3>
+              <p class="mkt-feature-desc">Term loans, working capital, asset finance, invoice finance and credit lines.</p>
+            </div>
+            <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-globe"/></svg></span>
+              <h3>Trade finance</h3>
+              <p class="mkt-feature-desc">Letters of credit, supply chain and import or export financing, guarantees.</p>
+            </div>
+            <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-building"/></svg></span>
+              <h3>Account services</h3>
+              <p class="mkt-feature-desc">Business current accounts, multi-currency accounts and cash management.</p>
+            </div>
+            <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-trend"/></svg></span>
+              <h3>Payments, FX and hedging</h3>
+              <p class="mkt-feature-desc">Cross-border payments, foreign exchange, forwards and other treasury tools.</p>
+            </div>
+            <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-pos"/></svg></span>
+              <h3>Cards, POS and e-commerce</h3>
+              <p class="mkt-feature-desc">Merchant acquiring, point-of-sale, online checkout and payment gateways.</p>
+            </div>
+            <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg></span>
+              <h3>Insurance and digital assets</h3>
+              <p class="mkt-feature-desc">Business insurance and brokerage, and crypto or digital asset services for companies.</p>
+            </div>
+          </div>
+          <p class="mkt-section-sub" style="margin-top:18px">Offer something else that SMEs need? Choose "Other" in the form and tell us about it.</p>
+        </div>
+      </div>
+
+      <div class="mkt-section" style="padding-top:10px">
+        <div class="mkt-container">
+          <p class="mkt-kicker">How it works</p>
+          <div class="mkt-steps">
+            <div class="mkt-step">
+              <span class="mkt-step-num">01</span>
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-building"/></svg></span>
+              <div class="mkt-step-body">
+                <h3>Tell us who you are and what you offer</h3>
+                <p>Your organisation, your contact person and the services you provide to SMEs.</p>
+              </div>
+            </div>
+            <div class="mkt-step">
+              <span class="mkt-step-num">02</span>
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-upload"/></svg></span>
+              <div class="mkt-step-body">
+                <h3>Share how you onboard and who you want</h3>
+                <p>Upload your onboarding requirements, your ideal customer profile and the kinds of customer that fall outside your scope. A short description works too.</p>
+              </div>
+            </div>
+            <div class="mkt-step">
+              <span class="mkt-step-num">03</span>
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-handshake"/></svg></span>
+              <div class="mkt-step-body">
+                <h3>We talk, then set up the partnership</h3>
+                <p>Our team reviews what you send and gets in touch. If it is a fit, we agree how introductions to SMEs will work. You still run your own checks on every business.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mkt-section" style="padding-top:10px" id="pa-form-anchor">
+        <div class="mkt-container">
+          <div class="pa-card" id="pa-form-card">
+            <div id="pa-form-wrap">
+              <p class="mkt-kicker">Partner application</p>
+              <h2 class="display" style="font-size:clamp(1.5rem,2.6vw,1.9rem);margin-bottom:6px">Tell us about your organisation</h2>
+              <p class="pa-help" style="margin-bottom:22px">Fields marked * are required. It takes about ten minutes, fewer if you already have your documents to hand.</p>
+
+              <form id="pa-form" novalidate autocomplete="on">
+                <fieldset class="pa-set">
+                  <legend>1. Your organisation</legend>
+                  <div class="pa-grid">
+                    <label class="field" for="pa-org">Organisation name *
+                      <input id="pa-org" name="organisation_name" type="text" maxlength="200" autocomplete="organization">
+                    </label>
+                    <label class="field" for="pa-website">Website *
+                      <input id="pa-website" name="website" type="text" inputmode="url" maxlength="300" placeholder="www.example.com" autocomplete="url">
+                    </label>
+                    <label class="field" for="pa-country">Headquarters country
+                      <input id="pa-country" name="hq_country" type="text" maxlength="100" autocomplete="country-name">
+                    </label>
+                    <label class="field" for="pa-orgtype">Type of organisation
+                      <select id="pa-orgtype" name="org_type" class="field-text">
+                        <option value="">Choose one</option>
+                        <option>Bank</option>
+                        <option>Digital bank / neobank</option>
+                        <option>Non-bank lender</option>
+                        <option>Payments / FX provider</option>
+                        <option>Insurer or broker</option>
+                        <option>Crypto / digital asset firm</option>
+                        <option>Fintech platform</option>
+                        <option>Other</option>
+                      </select>
+                    </label>
+                  </div>
+                </fieldset>
+
+                <fieldset class="pa-set" id="pa-services-set">
+                  <legend>2. What you offer SMEs *</legend>
+                  <div class="pa-checks" id="pa-services">
+                    <label class="pa-check"><input type="checkbox" name="services" value="loans"><span>Loans and credit</span></label>
+                    <label class="pa-check"><input type="checkbox" name="services" value="trade_finance"><span>Trade finance</span></label>
+                    <label class="pa-check"><input type="checkbox" name="services" value="account_services"><span>Business accounts and banking</span></label>
+                    <label class="pa-check"><input type="checkbox" name="services" value="payments_fx"><span>Payments and foreign exchange</span></label>
+                    <label class="pa-check"><input type="checkbox" name="services" value="hedging"><span>Hedging and treasury</span></label>
+                    <label class="pa-check"><input type="checkbox" name="services" value="cards_pos"><span>Cards, POS and merchant acquiring</span></label>
+                    <label class="pa-check"><input type="checkbox" name="services" value="ecommerce"><span>E-commerce and online payments</span></label>
+                    <label class="pa-check"><input type="checkbox" name="services" value="insurance"><span>Insurance</span></label>
+                    <label class="pa-check"><input type="checkbox" name="services" value="crypto"><span>Crypto and digital assets</span></label>
+                    <label class="pa-check"><input type="checkbox" name="services" value="other"><span>Other</span></label>
+                  </div>
+                  <div class="pa-grid" style="margin-top:14px">
+                    <label class="field" for="pa-services-other" id="pa-services-other-wrap" hidden>If other, please say what
+                      <input id="pa-services-other" name="services_other" type="text" maxlength="300">
+                    </label>
+                    <label class="field" for="pa-markets" style="grid-column:1 / -1">Where do you serve SMEs? (countries or regions)
+                      <input id="pa-markets" name="markets" type="text" maxlength="600" placeholder="e.g. United Kingdom, Hong Kong">
+                    </label>
+                  </div>
+                </fieldset>
+
+                <fieldset class="pa-set">
+                  <legend>3. Your contact person</legend>
+                  <div class="pa-grid">
+                    <label class="field" for="pa-name">Contact person *
+                      <input id="pa-name" name="contact_name" type="text" maxlength="150" autocomplete="name">
+                    </label>
+                    <label class="field" for="pa-title">Job title
+                      <input id="pa-title" name="contact_title" type="text" maxlength="150" autocomplete="organization-title">
+                    </label>
+                    <label class="field" for="pa-email">Email *
+                      <input id="pa-email" name="contact_email" type="email" maxlength="254" autocomplete="email">
+                    </label>
+                    <label class="field" for="pa-phone">Phone *
+                      <input id="pa-phone" name="contact_phone" type="tel" maxlength="40" placeholder="+44 20 7946 0000" autocomplete="tel">
+                    </label>
+                  </div>
+                </fieldset>
+
+                <fieldset class="pa-set">
+                  <legend>4. How you work with SMEs</legend>
+                  <p class="pa-help">Upload a document, write a short description, or do both. Up to 3 files in each box. PDF, Word, Excel, PowerPoint, CSV, text or image. 10 MB per file and 25 MB in total.</p>
+
+                  <div class="pa-slot" data-slot="onboarding">
+                    <h3>Your onboarding requirements</h3>
+                    <p class="pa-help">What an SME has to provide to become your customer: documents, checks, minimum information, forms.</p>
+                    <div class="pa-drop">
+                      <label class="btn btn-ghost btn-small pa-pick" for="pa-file-onboarding">Choose files</label>
+                      <input id="pa-file-onboarding" class="pa-file-input" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.ppt,.pptx,.png,.jpg,.jpeg" data-slot="onboarding">
+                      <span class="pa-drop-hint">or drop them here</span>
+                    </div>
+                    <ul class="pa-files" id="pa-files-onboarding" aria-live="polite"></ul>
+                    <label class="field" for="pa-text-onboarding">Or describe it here
+                      <textarea id="pa-text-onboarding" class="field-text" maxlength="6000" rows="3" placeholder="e.g. Two years of trading history, UK or Hong Kong registered, certified ownership chart to individuals holding 25% or more..."></textarea>
+                    </label>
+                  </div>
+
+                  <div class="pa-slot" data-slot="ideal_client">
+                    <h3>Your ideal customer profile</h3>
+                    <p class="pa-help">The SMEs you most want: sector, size, turnover, markets, years trading, the kind of need you serve best.</p>
+                    <div class="pa-drop">
+                      <label class="btn btn-ghost btn-small pa-pick" for="pa-file-ideal_client">Choose files</label>
+                      <input id="pa-file-ideal_client" class="pa-file-input" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.ppt,.pptx,.png,.jpg,.jpeg" data-slot="ideal_client">
+                      <span class="pa-drop-hint">or drop them here</span>
+                    </div>
+                    <ul class="pa-files" id="pa-files-ideal_client" aria-live="polite"></ul>
+                    <label class="field" for="pa-text-ideal_client">Or describe it here
+                      <textarea id="pa-text-ideal_client" class="field-text" maxlength="6000" rows="3" placeholder="e.g. Importers and exporters with annual turnover of GBP 1m to 20m, trading between the UK and Asia..."></textarea>
+                    </label>
+                  </div>
+
+                  <div class="pa-slot" data-slot="out_of_scope">
+                    <h3>Customers outside your scope</h3>
+                    <p class="pa-help">The businesses you cannot or will not serve: sectors, countries, structures or risk types. This helps us avoid sending you introductions that will not work.</p>
+                    <div class="pa-drop">
+                      <label class="btn btn-ghost btn-small pa-pick" for="pa-file-out_of_scope">Choose files</label>
+                      <input id="pa-file-out_of_scope" class="pa-file-input" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.ppt,.pptx,.png,.jpg,.jpeg" data-slot="out_of_scope">
+                      <span class="pa-drop-hint">or drop them here</span>
+                    </div>
+                    <ul class="pa-files" id="pa-files-out_of_scope" aria-live="polite"></ul>
+                    <label class="field" for="pa-text-out_of_scope">Or describe it here
+                      <textarea id="pa-text-out_of_scope" class="field-text" maxlength="6000" rows="3" placeholder="e.g. We do not serve cash-intensive businesses, shell companies or businesses trading with sanctioned countries..."></textarea>
+                    </label>
+                  </div>
+                </fieldset>
+
+                <div class="pa-hp" aria-hidden="true">
+                  <label for="pa-hp">Leave this field empty</label>
+                  <input id="pa-hp" name="company_fax" type="text" tabindex="-1" autocomplete="off">
+                </div>
+
+                <label class="pa-check pa-consent" id="pa-consent-wrap">
+                  <input type="checkbox" id="pa-consent">
+                  <span id="pa-consent-text">I am authorised to submit this on behalf of my organisation. I understand that BCPASS will use these details and documents only to assess and run a partnership with my organisation and to improve how SMEs are introduced to it, that they are not shown to SMEs or other institutions as submitted, and that BCPASS may contact me at the details given.</span>
+                </label>
+
+                <div class="pa-actions">
+                  <button type="submit" class="btn btn-primary" id="pa-submit">Send application</button>
+                  <div class="pa-progress" id="pa-progress" hidden><div class="pa-progress-bar" id="pa-progress-bar"></div></div>
+                </div>
+                <p class="pa-msg" id="pa-msg" role="alert" aria-live="assertive"></p>
+              </form>
+            </div>
+
+            <div id="pa-success" class="pa-success" hidden>
+              <span class="mkt-ic-tile trust" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></span>
+              <h2 class="display" style="font-size:clamp(1.5rem,2.6vw,1.9rem)">Thank you. We have your application.</h2>
+              <p class="pa-help" style="font-size:1rem">Your reference is <b id="pa-ref"></b>. We have sent a confirmation to your email address and a member of our partnerships team will be in touch.</p>
+              <button type="button" class="btn btn-ghost" id="pa-another">Submit another application</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mkt-section" style="padding-top:0">
+        <div class="mkt-container mkt-trust">
+          <div>
+            <p class="side-title">What happens to your documents</p>
+            <ul class="mkt-trust-list">
+              <li>They are stored privately and are visible only to the BCPASS team handling partnerships</li>
+              <li>They are never shown to SMEs or to other institutions as you submitted them</li>
+              <li>We use them to understand who you serve and to avoid introductions that will not fit</li>
+            </ul>
+          </div>
+          <div>
+            <p class="side-title">What this is not</p>
+            <ul class="mkt-trust-list">
+              <li>Submitting an application does not guarantee a partnership or any volume of introductions</li>
+              <li>Please do not send customer personal data or confidential client files</li>
+              <li>SMEs still choose who to share their pass with, and you still run your own checks</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="mkt-cta">
+        <div class="mkt-container">
+          <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.1rem)">Are you an SME looking for a provider?</h2>
+          <div class="mkt-cta-actions">
+            <a class="btn btn-ghost" data-goto="services">See our services</a>
             <a class="btn btn-primary" data-goto="signup">Create your BCPASS account →</a>
           </div>
         </div>
@@ -2463,6 +2806,7 @@ body.marketing-mode #ai-status{ display:none; }
       <a data-goto="about">About us</a>
       <a data-goto="services">Our services</a>
       <a data-goto="ai">How AI is embedded</a>
+      <a data-goto="partners">Partnership</a>
       <a data-goto="privacy">Privacy</a>
       <a data-goto="login">Sign in</a>
     </nav>
@@ -6232,6 +6576,162 @@ document.querySelectorAll('[data-goto]').forEach(btn => {
   btn.addEventListener('click', (e) => { e.preventDefault(); goToScreen(btn.dataset.goto); });
 });
 refreshPublicNavAuth();
+
+// ---- Partnership page (7 Oct 2026): partner application form ----
+// Public (no sign-in). Submits multipart to the partner-apply edge function with a plain fetch/XHR
+// (callFunction needs a signed-in token). Files are kept in memory per slot because a file input
+// cannot be appended to; the server re-checks every limit.
+(function(){
+  const PA_SLOTS = ['onboarding','ideal_client','out_of_scope'];
+  const PA_MAX_FILE = 10 * 1024 * 1024, PA_MAX_TOTAL = 25 * 1024 * 1024, PA_MAX_PER_SLOT = 3;
+  const PA_EXT = ['pdf','doc','docx','xls','xlsx','csv','txt','ppt','pptx','png','jpg','jpeg'];
+  const paFiles = { onboarding: [], ideal_client: [], out_of_scope: [] };
+  const $ = id => document.getElementById(id);
+  const form = $('pa-form');
+  if(!form) return;
+
+  function fmtSize(n){ return n >= 1048576 ? (n/1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n/1024)) + ' KB'; }
+  function extOf(n){ const i = n.lastIndexOf('.'); return i < 0 ? '' : n.slice(i+1).toLowerCase(); }
+  function setMsg(t, isErr){ const m = $('pa-msg'); m.textContent = t || ''; m.classList.toggle('err', !!isErr); }
+  function clearErrors(){
+    form.querySelectorAll('.pa-field-err').forEach(e => e.classList.remove('pa-field-err'));
+    $('pa-services-set').classList.remove('pa-field-err-set');
+  }
+  function markField(id){ const el = $(id); if(el){ el.classList.add('pa-field-err'); el.focus(); } }
+  function totalBytes(){ return PA_SLOTS.reduce((s, k) => s + paFiles[k].reduce((a, f) => a + f.size, 0), 0); }
+
+  function renderSlot(slot){
+    const ul = $('pa-files-' + slot);
+    ul.innerHTML = '';
+    paFiles[slot].forEach((f, i) => {
+      const li = document.createElement('li');
+      const n = document.createElement('span'); n.className = 'pa-fn'; n.textContent = f.name;
+      const s = document.createElement('span'); s.className = 'pa-fs'; s.textContent = fmtSize(f.size);
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Remove';
+      b.setAttribute('aria-label', 'Remove ' + f.name);
+      b.addEventListener('click', () => { paFiles[slot].splice(i, 1); renderSlot(slot); setMsg(''); });
+      li.append(n, s, b); ul.appendChild(li);
+    });
+  }
+
+  function addFiles(slot, list){
+    const problems = [];
+    for(const f of Array.from(list)){
+      if(paFiles[slot].length >= PA_MAX_PER_SLOT){ problems.push('You can attach up to ' + PA_MAX_PER_SLOT + ' files in each box.'); break; }
+      if(!PA_EXT.includes(extOf(f.name))){ problems.push('"' + f.name + '" is not a supported file type.'); continue; }
+      if(f.size > PA_MAX_FILE){ problems.push('"' + f.name + '" is larger than 10 MB.'); continue; }
+      if(f.size === 0){ problems.push('"' + f.name + '" is empty.'); continue; }
+      if(totalBytes() + f.size > PA_MAX_TOTAL){ problems.push('The files together can be at most 25 MB.'); break; }
+      if(paFiles[slot].some(x => x.name === f.name && x.size === f.size)) continue;
+      paFiles[slot].push(f);
+    }
+    renderSlot(slot);
+    setMsg(problems.length ? problems[0] : '', !!problems.length);
+  }
+
+  document.querySelectorAll('.pa-file-input').forEach(inp => {
+    inp.addEventListener('change', () => { addFiles(inp.dataset.slot, inp.files); inp.value = ''; });
+  });
+  document.querySelectorAll('.pa-slot').forEach(slotEl => {
+    const drop = slotEl.querySelector('.pa-drop'), slot = slotEl.dataset.slot;
+    ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('is-over'); }));
+    ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('is-over'); }));
+    drop.addEventListener('drop', e => { if(e.dataTransfer && e.dataTransfer.files) addFiles(slot, e.dataTransfer.files); });
+  });
+
+  // "Other" service shows its description box.
+  form.querySelectorAll('input[name="services"]').forEach(c => c.addEventListener('change', () => {
+    const other = form.querySelector('input[name="services"][value="other"]').checked;
+    $('pa-services-other-wrap').hidden = !other;
+    $('pa-services-set').classList.remove('pa-field-err-set');
+  }));
+
+  const hero = $('pa-hero-apply');
+  if(hero) hero.addEventListener('click', e => { e.preventDefault(); const a = $('pa-form-anchor'); if(a) a.scrollIntoView({ behavior:'smooth', block:'start' }); });
+
+  function validate(){
+    clearErrors();
+    const v = id => $(id).value.trim();
+    if(v('pa-org').length < 2){ markField('pa-org'); return "Please enter your organisation's name."; }
+    if(!v('pa-website')){ markField('pa-website'); return 'Please enter your website.'; }
+    if(!/^(https?:\/\/)?[^\s\/]+\.[^\s\/]{2,}.*$/i.test(v('pa-website'))){ markField('pa-website'); return "That website address doesn't look right."; }
+    const picked = Array.from(form.querySelectorAll('input[name="services"]:checked'));
+    if(!picked.length){ $('pa-services-set').classList.add('pa-field-err-set'); $('pa-services-set').scrollIntoView({ block:'center' }); return 'Please choose at least one service you offer.'; }
+    if(v('pa-name').length < 2){ markField('pa-name'); return "Please enter the contact person's name."; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v('pa-email'))){ markField('pa-email'); return 'Please enter a valid email address.'; }
+    const ph = v('pa-phone');
+    if(!/^[0-9+()\-.\s]{6,40}$/.test(ph) || ph.replace(/\D/g,'').length < 6){ markField('pa-phone'); return 'Please enter a valid phone number.'; }
+    if(!$('pa-consent').checked){ $('pa-consent').focus(); return 'Please tick the confirmation box to continue.'; }
+    return '';
+  }
+
+  function paErrorFor(res){
+    if(res && res.field){
+      const map = { organisation_name:'pa-org', website:'pa-website', contact_name:'pa-name', contact_email:'pa-email', contact_phone:'pa-phone', consent:'pa-consent' };
+      if(map[res.field]) markField(map[res.field]);
+    }
+    return (res && res.error) || 'We could not send your application. Please try again.';
+  }
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    if($('pa-submit').disabled) return;
+    const problem = validate();
+    if(problem){ setMsg(problem, true); return; }
+    const data = {
+      organisation_name: $('pa-org').value.trim(), website: $('pa-website').value.trim(),
+      hq_country: $('pa-country').value.trim(), org_type: $('pa-orgtype').value,
+      services: Array.from(form.querySelectorAll('input[name="services"]:checked')).map(c => c.value),
+      services_other: $('pa-services-other').value.trim(), markets: $('pa-markets').value.trim(),
+      contact_name: $('pa-name').value.trim(), contact_title: $('pa-title').value.trim(),
+      contact_email: $('pa-email').value.trim(), contact_phone: $('pa-phone').value.trim(),
+      onboarding_text: $('pa-text-onboarding').value.trim(), ideal_client_text: $('pa-text-ideal_client').value.trim(),
+      out_of_scope_text: $('pa-text-out_of_scope').value.trim(),
+      consent: true, hp: $('pa-hp').value
+    };
+    const fd = new FormData();
+    fd.append('data', JSON.stringify(data));
+    PA_SLOTS.forEach(slot => paFiles[slot].forEach(f => fd.append(slot, f, f.name)));
+
+    const btn = $('pa-submit'), prog = $('pa-progress'), bar = $('pa-progress-bar');
+    btn.disabled = true; btn.textContent = 'Sending...';
+    const hasFiles = totalBytes() > 0;
+    prog.hidden = !hasFiles; bar.style.width = '0%';
+    setMsg(hasFiles ? 'Uploading. Please keep this page open.' : '');
+    const done = () => { btn.disabled = false; btn.textContent = 'Send application'; prog.hidden = true; };
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', SUPABASE_URL + '/functions/v1/partner-apply');
+    xhr.setRequestHeader('apikey', SUPABASE_ANON_KEY);
+    xhr.upload.onprogress = ev => { if(ev.lengthComputable) bar.style.width = Math.round(ev.loaded / ev.total * 100) + '%'; };
+    xhr.onerror = () => { done(); setMsg('We could not reach the server. Please check your connection and try again.', true); };
+    xhr.ontimeout = xhr.onerror;
+    xhr.timeout = 180000;
+    xhr.onload = () => {
+      let res = null; try{ res = JSON.parse(xhr.responseText); }catch(_){}
+      done();
+      if(xhr.status >= 200 && xhr.status < 300 && res && res.ok){
+        $('pa-ref').textContent = res.reference || '';
+        $('pa-form-wrap').hidden = true; $('pa-success').hidden = false;
+        $('pa-form-card').scrollIntoView({ behavior:'smooth', block:'start' });
+        setMsg('');
+      } else {
+        setMsg(paErrorFor(res), true);
+      }
+    };
+    xhr.send(fd);
+  });
+
+  $('pa-another').addEventListener('click', () => {
+    form.reset(); PA_SLOTS.forEach(s => { paFiles[s] = []; renderSlot(s); });
+    $('pa-services-other-wrap').hidden = true; clearErrors(); setMsg('');
+    $('pa-success').hidden = true; $('pa-form-wrap').hidden = false;
+    $('pa-form-card').scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+
+  // exposed for tests only
+  window.__paFiles = paFiles;
+})();
 
 // ---- Phase 1: structured KYB wizard (internal variable names still say "KYC_SCHEMA" — see note) ----
 // Schema mirrors the summarization agent prompt's field list & tiers exactly,
