@@ -534,6 +534,33 @@ ul{ margin:0; padding:0; list-style:none; }
 .pass-toggle-row{ display:flex; gap:10px; align-items:flex-start; font-size:0.86rem; color: var(--ink-soft); cursor:pointer; margin-bottom:14px; }
 .pass-toggle-row input{ margin-top:3px; accent-color: var(--accent); }
 .pass-expiry-row{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+.pass-expiry-hint{ font-size:0.78rem; color: var(--muted); margin:-2px 0 10px; }
+.pass-send-box{ margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
+.pass-send-box .field{ margin-bottom:10px; }
+.pass-send-box .field input, .pass-send-box .field textarea{ width:100%; }
+.pass-send-msg{ font-size:0.82rem; margin-top:8px; min-height:1.1em; }
+.pass-send-msg.err{ color:#9B2C2C; }
+.pass-send-msg.ok{ color: var(--accent); }
+.pass-access-box{ margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
+.pass-access-opt{ display:flex; gap:9px; align-items:flex-start; font-size:0.85rem; margin:0 0 8px; cursor:pointer; }
+.pass-access-opt input{ margin-top:3px; }
+.pass-access-opt small{ display:block; color: var(--muted); font-size:0.76rem; }
+.pass-allowed-list{ list-style:none; margin:10px 0; padding:0; }
+.pass-allowed-list li{ display:flex; justify-content:space-between; gap:10px; align-items:center; font-size:0.83rem; padding:6px 0; border-bottom:1px solid var(--line); word-break:break-all; }
+.pass-allowed-list li:last-child{ border-bottom:none; }
+.pass-allowed-list .pa-kind{ color: var(--muted); font-size:0.74rem; margin-left:6px; white-space:nowrap; }
+.pass-allowed-list button{ white-space:nowrap; flex-shrink:0; background:none; border:none; color:#9B2C2C; font-size:0.78rem; cursor:pointer; padding:2px 4px; }
+.pass-allowed-add{ display:flex; gap:8px; margin-top:8px; }
+.pass-allowed-add input{ flex:1; min-width:0; }
+.pass-send-domain{ display:flex; gap:8px; align-items:flex-start; font-size:0.8rem; color: var(--ink-soft); margin:-2px 0 10px; }
+.pass-send-domain input{ margin-top:3px; }
+.pass-activity{ margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
+.pass-activity-summary{ font-size:0.84rem; color: var(--ink-soft); margin:0 0 10px; }
+.pass-activity-list{ list-style:none; margin:0; padding:0; }
+.pass-activity-list li{ font-size:0.82rem; padding:7px 0; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; gap:10px; }
+.pass-activity-list li:last-child{ border-bottom:none; }
+.pass-activity-list .pa-when{ color: var(--muted); white-space:nowrap; font-size:0.76rem; }
+.pass-activity-empty{ font-size:0.82rem; color: var(--muted); }
 .pass-expiry-row label{ font-size:0.82rem; color: var(--ink-soft); white-space:nowrap; }
 .pass-expiry-row input[type="date"]{ flex:1; }
 .pass-status-banner{ font-size:0.82rem; padding:8px 12px; border-radius: var(--radius); margin-bottom:14px; }
@@ -2141,18 +2168,21 @@ body.marketing-mode #ai-status{ display:none; }
               <span>Name (optional — only you see this, e.g. "HSBC intro")</span>
               <input type="text" id="pass-new-label" maxlength="60" placeholder="e.g. Meeting with ABC Bank">
             </label>
+            <label class="field">
+              <span>Who is it for? (optional — a bank or a person)</span>
+              <input type="text" id="pass-new-for" maxlength="120" placeholder="e.g. Barclays business banking">
+            </label>
             <div class="mask-options" id="pass-tier-options"><!-- rendered by renderPassTierOptions() --></div>
             <div class="pass-expiry-row pass-new-expiry-row">
               <label for="pass-new-expiry">Expires</label>
-              <select id="pass-new-expiry" class="field-text">
-                <option value="7">in 1 week</option>
-                <option value="30" selected>in 1 month</option>
-                <option value="90">in 3 months</option>
-                <option value="180">in 6 months</option>
-                <option value="never">Never</option>
-                <option value="custom">On a date I choose…</option>
-              </select>
+              <select id="pass-new-expiry" class="field-text"><!-- rendered by renderNewPassExpiryOptions() --></select>
               <input type="date" class="field-text" id="pass-new-expiry-date" style="display:none">
+            </div>
+            <p class="pass-expiry-hint" id="pass-new-expiry-hint"></p>
+            <div id="pass-new-access-wrap" style="display:none;margin-bottom:12px">
+              <p class="side-title" style="margin-bottom:6px">Who can open it?</p>
+              <label class="pass-access-opt"><input type="radio" name="pass-new-access" value="named" checked><span>Only the people I name<small>They confirm their email address with a one-time code. Works with any email, including Gmail. You add the addresses after creating the pass, or just send it by email.</small></span></label>
+              <label class="pass-access-opt"><input type="radio" name="pass-new-access" value="work_email"><span>Anyone with a work email address<small>Anyone who has the link can open it after confirming a work email. Personal email addresses (Gmail, Outlook and similar) are not accepted.</small></span></label>
             </div>
             <button class="btn btn-primary" id="pass-create-btn">Create pass →</button>
             <p class="side-note" style="margin-top:12px">Each pass gets its own link and QR code. The level is fixed once a pass is created — to share a different level, create another pass.</p>
@@ -2184,8 +2214,42 @@ body.marketing-mode #ai-status{ display:none; }
             <input type="date" class="field-text" id="pass-expiry-input">
             <button class="btn btn-ghost btn-small" id="pass-clear-expiry">No expiry</button>
           </div>
+          <p class="pass-expiry-hint" id="pass-expiry-hint"></p>
 
           <p class="side-note">Turning this pass off or changing its expiry takes effect immediately for anyone who already has it — nothing to re-share. Your other passes are not affected.</p>
+
+          <div class="pass-access-box" id="pass-access-box" style="display:none">
+            <p class="side-title">Who can open this pass</p>
+            <label class="pass-access-opt"><input type="radio" name="pass-access" value="named"><span>Only the people I name<small>Any email address works, including Gmail, as long as you have added it below.</small></span></label>
+            <label class="pass-access-opt"><input type="radio" name="pass-access" value="work_email"><span>Anyone with a work email address<small>Personal email addresses are not accepted.</small></span></label>
+            <div id="pass-allowed-wrap">
+              <ul class="pass-allowed-list" id="pass-allowed-list"></ul>
+              <div class="pass-allowed-add">
+                <input type="text" class="field-text" id="pass-allowed-input" placeholder="name@example.com or @bank.com" autocomplete="off" maxlength="200">
+                <button class="btn btn-ghost btn-small" id="pass-allowed-add-btn" type="button">Add</button>
+              </div>
+              <p class="pass-send-msg" id="pass-allowed-msg"></p>
+              <p class="side-note" style="margin-top:6px">Add one person's email address, or a whole organisation with its domain (for example @bank.com). Anyone you send the pass to by email is added automatically. Removing someone ends their access straight away.</p>
+            </div>
+          </div>
+
+          <div class="pass-send-box" id="pass-send-box">
+            <p class="side-title">Send this pass by email</p>
+            <label class="field"><span>Their email address</span><input type="email" id="pass-send-email" placeholder="name@bank.com" autocomplete="off"></label>
+            <label class="pass-send-domain" id="pass-send-domain-wrap" style="display:none"><input type="checkbox" id="pass-send-domain"><span id="pass-send-domain-text"></span></label>
+            <label class="field"><span>Their name (optional)</span><input type="text" id="pass-send-name" maxlength="120"></label>
+            <label class="field"><span>Bank or company (optional)</span><input type="text" id="pass-send-org" maxlength="160"></label>
+            <label class="field"><span>A short message (optional)</span><textarea id="pass-send-note" rows="2" maxlength="600"></textarea></label>
+            <button class="btn btn-primary btn-small" id="pass-send-btn">Send pass →</button>
+            <p class="pass-send-msg" id="pass-send-msg"></p>
+            <p class="side-note" style="margin-top:6px" id="pass-send-verify-note"></p>
+          </div>
+
+          <div class="pass-activity" id="pass-activity">
+            <p class="side-title">Who has seen this pass</p>
+            <p class="pass-activity-summary" id="pass-activity-summary"></p>
+            <ul class="pass-activity-list" id="pass-activity-list"></ul>
+          </div>
 
           <div class="pass-delete-row">
             <button class="btn btn-ghost btn-small pass-delete-btn" id="pass-delete-btn">Delete this pass</button>
@@ -4578,6 +4642,25 @@ const PASS_TIERS = [
 // silently upgraded. get-pass already works purely from the token, so it
 // needed no change. Requires 11_pass_links_multiple.sql (drops the old
 // UNIQUE(case_id) and adds the optional `label` column).
+// Expiry limits (12 Oct): Standard passes last at most 3 months, Full and Full Document at most
+// 2 months, counted from the date set (the client can renew later). The database enforces
+// this too (trigger kyb_pass_enforce_expiry), so these helpers only keep the page honest.
+const PASS_MAX_MONTHS = { standard: 3, full: 2, full_document: 2 };
+function passMaxMonths(tier){ return PASS_MAX_MONTHS[tier] || null; }
+function passMaxTimestamp(tier){
+  const m = passMaxMonths(tier); if(!m) return null;
+  const d = new Date(); d.setMonth(d.getMonth() + m);
+  d.setMinutes(d.getMinutes() - 5); // stay safely inside the database's own limit
+  return d;
+}
+function passMaxDateString(tier){
+  const d = passMaxTimestamp(tier); if(!d) return '';
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function passNeedsVerification(tier){ return ['standard', 'full', 'full_document'].includes(tier); }
+function passUrlFor(link, source){ return `${PASS_VIEWER_BASE_URL}?t=${link.share_token}&s=${source}`; }
+let pendingPassRecipientOrg = ''; // set by the Matching screen's "Send them my pass" so the Pass screen opens pre-filled
+
 let passLinks = [];          // every pass for the current company, newest first
 let currentPassLink = null;  // the one selected in the list — shown on the card and in the share box
 let newPassTier = 'introduction'; // level currently chosen in the "Create a new pass" form
@@ -4645,8 +4728,15 @@ async function loadPassLinkForCase(selectLinkId){
   if(contentEl) contentEl.style.display = 'grid'; // .split's own display value — see CSS
   showPageOfSelected();
   renderPassTierOptions();
+  renderNewPassExpiryOptions();
   renderPassList();
   showSelectedPass();
+  if(pendingPassRecipientOrg){
+    // Arrived from Matching ("Send them my pass"): pre-fill the new-pass form for that institution.
+    const forInput = document.getElementById('pass-new-for');
+    if(forInput && !forInput.value) forInput.value = pendingPassRecipientOrg;
+    prefillPassSendForm();
+  }
 }
 
 // Shows/hides the card + share box depending on whether a pass is
@@ -4699,7 +4789,7 @@ function renderPassList(){
     const label = l.label?.trim();
     const status = passStatus(l);
     const expiry = l.expires_at ? `Expires ${formatPassDate(l.expires_at)}` : 'No expiry';
-    const sub = `${label ? tierName + ' · ' : ''}Created ${formatPassDate(l.created_at)} · ${expiry}`;
+    const sub = `${label ? tierName + ' · ' : ''}${l.recipient_org && l.recipient_org !== label ? 'For ' + l.recipient_org + ' · ' : ''}Created ${formatPassDate(l.created_at)} · ${expiry}`;
     return `
       <button type="button" class="pass-list-item ${currentPassLink?.link_id === l.link_id ? 'selected' : ''}" data-link-id="${l.link_id}">
         <div>
@@ -4755,26 +4845,59 @@ document.getElementById('pass-tier-options')?.addEventListener('change', (e) => 
   newPassTier = e.target.value;
   document.querySelectorAll('#pass-tier-options .mask-option').forEach(el => el.classList.remove('selected'));
   e.target.closest('.mask-option').classList.add('selected');
+  renderNewPassExpiryOptions();
 });
+
+// The "Expires" choices depend on the level: Standard / Full / Full Document have a maximum
+// (3 / 2 / 2 months) and no "Never"; Introduction and Basic keep the open choices.
+function renderNewPassExpiryOptions(){
+  const sel = document.getElementById('pass-new-expiry');
+  if(!sel) return;
+  const accessWrap = document.getElementById('pass-new-access-wrap');
+  if(accessWrap) accessWrap.style.display = passNeedsVerification(newPassTier) ? '' : 'none';
+  const maxM = passMaxMonths(newPassTier);
+  const previous = sel.value;
+  const opts = maxM
+    ? [['d7', 'in 1 week'], ['d30', 'in 1 month'], ['max', `in ${maxM} months (maximum)`], ['custom', 'On a date I choose…']]
+    : [['d7', 'in 1 week'], ['d30', 'in 1 month'], ['d90', 'in 3 months'], ['d180', 'in 6 months'], ['never', 'Never'], ['custom', 'On a date I choose…']];
+  sel.innerHTML = opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
+  // Switching level resets to that level's default (the maximum for capped levels); only a chosen date is kept.
+  const keep = previous === 'custom' ? 'custom' : (maxM ? 'max' : 'd30');
+  sel.value = keep;
+  const dateInput = document.getElementById('pass-new-expiry-date');
+  if(dateInput){
+    dateInput.style.display = keep === 'custom' ? '' : 'none';
+    dateInput.max = maxM ? passMaxDateString(newPassTier) : '';
+  }
+  const hint = document.getElementById('pass-new-expiry-hint');
+  if(hint) hint.textContent = maxM
+    ? `${PASS_TIERS.find(t => t.key === newPassTier)?.name || 'This level'} can be valid for up to ${maxM} months. You can renew it later. The person opening it confirms their email address with a one-time code.`
+    : '';
+}
 
 document.getElementById('pass-new-expiry')?.addEventListener('change', (e) => {
   const dateInput = document.getElementById('pass-new-expiry-date');
   if(dateInput) dateInput.style.display = e.target.value === 'custom' ? '' : 'none';
 });
 
-// Reads the "Expires" choice in the create form: null = never expires.
+// Reads the "Expires" choice in the create form: null = never expires (Introduction/Basic only).
 function readNewPassExpiry(){
   const choice = document.getElementById('pass-new-expiry')?.value;
-  if(choice === 'never') return null;
+  const maxTs = passMaxTimestamp(newPassTier);
+  if(choice === 'never' && !maxTs) return null;
+  if(choice === 'max' && maxTs) return maxTs.toISOString();
   if(choice === 'custom'){
     const d = document.getElementById('pass-new-expiry-date')?.value;
     if(!d) throw new Error('Choose an expiry date, or pick a different option.');
-    const when = new Date(d + 'T23:59:59');
+    let when = new Date(d + 'T23:59:59');
     if(when.getTime() <= Date.now()) throw new Error('The expiry date must be in the future.');
+    if(maxTs && when.getTime() > maxTs.getTime()) when = maxTs; // cap at the level's maximum
     return when.toISOString();
   }
+  const days = Number(String(choice).replace('d', '')) || 30;
   const when = new Date();
-  when.setDate(when.getDate() + Number(choice));
+  when.setDate(when.getDate() + days);
+  if(maxTs && when.getTime() > maxTs.getTime()) return maxTs.toISOString();
   return when.toISOString();
 }
 
@@ -4789,8 +4912,13 @@ document.getElementById('pass-create-btn')?.addEventListener('click', async (e) 
     const { data: { user } } = await supabaseClient.auth.getUser();
     if(!user) throw new Error('Not logged in.');
     const label = document.getElementById('pass-new-label')?.value.trim();
+    const forWho = document.getElementById('pass-new-for')?.value.trim();
     const row = { case_id: currentCaseId, user_id: user.id, pass_tier: newPassTier, enabled: true, expires_at };
-    if(label) row.label = label;
+    if(passNeedsVerification(newPassTier)){
+      row.access_mode = document.querySelector('input[name="pass-new-access"]:checked')?.value === 'work_email' ? 'work_email' : 'named';
+    }
+    if(label || forWho) row.label = label || forWho;
+    if(forWho) row.recipient_org = forWho;
     const { data: created, error } = await supabaseClient
       .from('kyb_pass_links')
       .insert(row)
@@ -4807,6 +4935,8 @@ document.getElementById('pass-create-btn')?.addEventListener('click', async (e) 
     }
     const labelInput = document.getElementById('pass-new-label');
     if(labelInput) labelInput.value = '';
+    const forInput = document.getElementById('pass-new-for');
+    if(forInput) forInput.value = '';
     await loadPassLinkForCase(created.link_id);
     document.getElementById('pass-selected-area')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch(err) {
@@ -4819,12 +4949,16 @@ document.getElementById('pass-create-btn')?.addEventListener('click', async (e) 
 
 async function updatePassLink(patch){
   if(!currentPassLink) return;
-  const { error } = await supabaseClient
+  const { data: saved, error } = await supabaseClient
     .from('kyb_pass_links')
     .update({ ...patch, updated_at: new Date().toISOString() })
-    .eq('link_id', currentPassLink.link_id);
+    .eq('link_id', currentPassLink.link_id)
+    .select('expires_at, enabled')
+    .maybeSingle();
   if(error){ alert("Could not update your pass: " + error.message); return; }
   Object.assign(currentPassLink, patch);
+  if(saved) Object.assign(currentPassLink, saved); // the database may have trimmed the expiry to the level's maximum
+  renderPassLinkBox();
   renderPassStatusBanner();
   renderPassList();
 }
@@ -4832,7 +4966,8 @@ async function updatePassLink(patch){
 function renderPassLinkBox(){
   const urlInput = document.getElementById('pass-share-url');
   if(!urlInput || !currentPassLink) return;
-  const shareUrl = `${PASS_VIEWER_BASE_URL}?t=${currentPassLink.share_token}`;
+  const shareUrl = passUrlFor(currentPassLink, 'link');   // typed/pasted link
+  const qrUrl = passUrlFor(currentPassLink, 'qr');        // the QR code carries its own source tag
   urlInput.value = shareUrl;
 
   const toggle = document.getElementById('pass-enabled-toggle');
@@ -4840,6 +4975,20 @@ function renderPassLinkBox(){
 
   const expiryInput = document.getElementById('pass-expiry-input');
   if(expiryInput) expiryInput.value = currentPassLink.expires_at ? currentPassLink.expires_at.slice(0, 10) : '';
+  const maxM = passMaxMonths(currentPassLink.pass_tier);
+  if(expiryInput) expiryInput.max = maxM ? passMaxDateString(currentPassLink.pass_tier) : '';
+  const clearBtn = document.getElementById('pass-clear-expiry');
+  if(clearBtn) clearBtn.style.display = maxM ? 'none' : '';
+  const expHint = document.getElementById('pass-expiry-hint');
+  if(expHint) expHint.textContent = maxM ? `This level can be valid for up to ${maxM} months at a time. Choose a later date, up to that limit, to renew it.` : '';
+  const verifyNote = document.getElementById('pass-send-verify-note');
+  if(verifyNote) verifyNote.textContent = passNeedsVerification(currentPassLink.pass_tier)
+    ? (currentPassLink.access_mode === 'named'
+        ? 'Only the people you name can open this level. They confirm their email address with a one-time code first, and their visit is recorded below.'
+        : 'The person opening this level confirms their work email with a one-time code first. Their visit is recorded below.') : '';
+  prefillPassSendForm();
+  loadPassActivity();
+  renderPassAccessBox();
 
   // 23 SEPT FIX #2: the client-side QRCode library (loaded from
   // cdn.jsdelivr.net) was confirmed via Chrome DevTools to be blocked
@@ -4864,7 +5013,7 @@ function renderPassLinkBox(){
     if(bcQrWrap) bcQrWrap.innerHTML = '<p class="side-note" style="margin:0;font-size:0.68rem">QR loading…</p>';
     lastPassQrDataUrl = null;
     const requestedToken = currentPassLink.share_token;
-    callFunction('generate-qr', { text: shareUrl }).then(({ data_url }) => {
+    callFunction('generate-qr', { text: qrUrl }).then(({ data_url }) => {
       if(currentPassLink?.share_token !== requestedToken) return; // user switched to another pass meanwhile
       if(!data_url) throw new Error('No QR image returned.');
       lastPassQrDataUrl = data_url;
@@ -4932,10 +5081,19 @@ document.getElementById('pass-enabled-toggle')?.addEventListener('change', (e) =
 
 document.getElementById('pass-expiry-input')?.addEventListener('change', (e) => {
   const val = e.target.value; // "YYYY-MM-DD" or ""
-  updatePassLink({ expires_at: val ? new Date(val + 'T23:59:59').toISOString() : null });
+  const maxTs = currentPassLink ? passMaxTimestamp(currentPassLink.pass_tier) : null;
+  if(!val){
+    // Standard / Full / Full Document always need an expiry: an empty box means "use the maximum".
+    updatePassLink({ expires_at: maxTs ? maxTs.toISOString() : null });
+    return;
+  }
+  let when = new Date(val + 'T23:59:59');
+  if(maxTs && when.getTime() > maxTs.getTime()) when = maxTs;
+  updatePassLink({ expires_at: when.toISOString() });
 });
 
 document.getElementById('pass-clear-expiry')?.addEventListener('click', () => {
+  if(currentPassLink && passMaxMonths(currentPassLink.pass_tier)) return; // not available for capped levels
   const input = document.getElementById('pass-expiry-input');
   if(input) input.value = '';
   updatePassLink({ expires_at: null });
@@ -4951,12 +5109,237 @@ document.getElementById('pass-copy-link')?.addEventListener('click', async () =>
     urlInput.select();
     document.execCommand('copy');
   }
+  recordPassSend('copy_link');
   if(btn){
     const original = btn.textContent;
     btn.textContent = 'Copied!';
     setTimeout(() => { btn.textContent = original; }, 1500);
   }
 });
+
+// ---- Sending records, email sending and the "who has seen this pass" panel (12 Oct) ----
+// Every copy / download / email is written to kyb_pass_sends (owner-only RLS); the email path
+// goes through the send-pass function so the link is emailed from the server and logged there.
+async function recordPassSend(channel){
+  if(!supabaseClient || !currentPassLink) return;
+  try {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(!user) return;
+    const row = { link_id: currentPassLink.link_id, case_id: currentPassLink.case_id, user_id: user.id, channel };
+    if(currentPassLink.recipient_org) row.recipient_org = currentPassLink.recipient_org;
+    if(currentPassLink.recipient_name) row.recipient_name = currentPassLink.recipient_name;
+    const { error } = await supabaseClient.from('kyb_pass_sends').insert(row);
+    if(error){ console.warn('Could not record the send:', error.message); return; }
+    loadPassActivity();
+  } catch(err) { console.warn('Could not record the send:', err); }
+}
+
+function prefillPassSendForm(){
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.value = v || ''; };
+  set('pass-send-email', currentPassLink?.recipient_email);
+  set('pass-send-name', currentPassLink?.recipient_name);
+  set('pass-send-org', currentPassLink?.recipient_org || pendingPassRecipientOrg);
+  set('pass-send-note', currentPassLink?.recipient_note);
+  const domCb = document.getElementById('pass-send-domain'); if(domCb) domCb.checked = false;
+  if(typeof updatePassSendDomainOption === 'function') updatePassSendDomainOption();
+  const msg = document.getElementById('pass-send-msg');
+  if(msg){ msg.textContent = ''; msg.className = 'pass-send-msg'; }
+}
+
+document.getElementById('pass-send-btn')?.addEventListener('click', async (e) => {
+  if(!currentPassLink) return;
+  const btn = e.currentTarget;
+  const msg = document.getElementById('pass-send-msg');
+  const setMsg = (t, kind) => { if(msg){ msg.textContent = t || ''; msg.className = 'pass-send-msg' + (kind ? ' ' + kind : ''); } };
+  const email = document.getElementById('pass-send-email')?.value.trim();
+  if(!email || !/^\S+@\S+\.\S+$/.test(email)){ setMsg('Enter their email address first.', 'err'); return; }
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Sending…'; setMsg('');
+  try {
+    await callFunction('send-pass', {
+      link_id: currentPassLink.link_id,
+      recipient_email: email,
+      recipient_name: document.getElementById('pass-send-name')?.value.trim() || '',
+      recipient_org: document.getElementById('pass-send-org')?.value.trim() || '',
+      note: document.getElementById('pass-send-note')?.value.trim() || '',
+      allow_domain: !!document.getElementById('pass-send-domain')?.checked && document.getElementById('pass-send-domain-wrap')?.style.display !== 'none',
+    });
+    setMsg(`Sent to ${email}.`, 'ok');
+    currentPassLink.recipient_email = email;
+    currentPassLink.recipient_name = document.getElementById('pass-send-name')?.value.trim() || null;
+    currentPassLink.recipient_org = document.getElementById('pass-send-org')?.value.trim() || null;
+    currentPassLink.recipient_note = document.getElementById('pass-send-note')?.value.trim() || null;
+    pendingPassRecipientOrg = '';
+    renderPassList();
+    loadPassActivity();
+    loadPassAllowed();
+  } catch(err) {
+    setMsg(err.message || 'Could not send the email.', 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = original;
+  }
+});
+
+// ---- Who can open this pass: access mode + allowed list (13 Oct) ----
+const PERSONAL_MAIL_DOMAINS = new Set(['gmail.com','googlemail.com','outlook.com','hotmail.com','hotmail.co.uk','live.com','msn.com','yahoo.com','yahoo.co.uk','yahoo.com.hk','ymail.com','icloud.com','me.com','mac.com','aol.com','proton.me','protonmail.com','gmx.com','gmx.net','mail.com','zoho.com','qq.com','163.com','126.com','sina.com','yandex.com','yandex.ru','hotmail.com.hk','netvigator.com','pccw.com','biznetvigator.com','tutanota.com','fastmail.com','hey.com']);
+let passAllowed = [];
+let ownerEmailLower = '';
+
+function renderPassAccessBox(){
+  const box = document.getElementById('pass-access-box');
+  if(!box || !currentPassLink) return;
+  const needs = passNeedsVerification(currentPassLink.pass_tier);
+  box.style.display = needs ? '' : 'none';
+  if(!needs) return;
+  const mode = currentPassLink.access_mode === 'named' ? 'named' : 'work_email';
+  box.querySelectorAll('input[name="pass-access"]').forEach(r => { r.checked = r.value === mode; });
+  const wrap = document.getElementById('pass-allowed-wrap');
+  if(wrap) wrap.style.display = mode === 'named' ? '' : 'none';
+  const msg = document.getElementById('pass-allowed-msg');
+  if(msg){ msg.textContent = ''; msg.className = 'pass-send-msg'; }
+  loadPassAllowed();
+}
+
+async function loadPassAllowed(){
+  const list = document.getElementById('pass-allowed-list');
+  if(!list || !supabaseClient || !currentPassLink) return;
+  const requested = currentPassLink.link_id;
+  try {
+    if(!ownerEmailLower){
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      ownerEmailLower = (user?.email || '').toLowerCase();
+    }
+  } catch(e) {}
+  const { data, error } = await supabaseClient.from('kyb_pass_allowed_viewers')
+    .select('allowed_id, kind, value, created_at').eq('link_id', requested).order('created_at', { ascending: true });
+  if(currentPassLink?.link_id !== requested) return;
+  if(error){ list.innerHTML = `<li><span>The list isn't available yet.</span></li>`; return; }
+  passAllowed = data || [];
+  if(!passAllowed.length){ list.innerHTML = `<li><span>Nobody has been added yet.</span></li>`; return; }
+  list.innerHTML = passAllowed.map(a => {
+    const isYou = a.kind === 'email' && a.value === ownerEmailLower;
+    const label = a.kind === 'domain' ? '@' + a.value : a.value;
+    const kind = a.kind === 'domain' ? 'everyone at this organisation' : (isYou ? 'you' : '');
+    return `<li><span>${escapeHtml(label)}${kind ? `<span class="pa-kind">${escapeHtml(kind)}</span>` : ''}</span><button type="button" data-allowed-id="${escapeHtml(a.allowed_id)}">Remove</button></li>`;
+  }).join('');
+}
+
+document.getElementById('pass-access-box')?.addEventListener('change', async (e) => {
+  if(!e.target.matches('input[name="pass-access"]') || !currentPassLink) return;
+  const mode = e.target.value;
+  if(mode === currentPassLink.access_mode) return;
+  await updatePassLink({ access_mode: mode });
+  renderPassAccessBox();
+  renderPassLinkBox_noQr();
+  updatePassSendDomainOption();
+});
+// Refresh just the explanatory note after a mode change (the full box re-render would regenerate the QR).
+function renderPassLinkBox_noQr(){
+  const verifyNote = document.getElementById('pass-send-verify-note');
+  if(verifyNote && currentPassLink) verifyNote.textContent = passNeedsVerification(currentPassLink.pass_tier)
+    ? (currentPassLink.access_mode === 'named'
+        ? 'Only the people you name can open this level. They confirm their email address with a one-time code first, and their visit is recorded below.'
+        : 'The person opening this level confirms their work email with a one-time code first. Their visit is recorded below.') : '';
+}
+
+function parseAllowedInput(raw){
+  const v = String(raw || '').trim().toLowerCase().replace(/^mailto:/, '');
+  if(!v) return { error: 'Enter an email address or a domain such as @bank.com.' };
+  if(/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return { kind: 'email', value: v };
+  const dom = v.replace(/^@/, '').replace(/^\*\./, '');
+  if(/^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/.test(dom)){
+    if(PERSONAL_MAIL_DOMAINS.has(dom)) return { error: `${dom} is a personal email service, so everyone there can't be allowed. Add the person's full address instead.` };
+    return { kind: 'domain', value: dom };
+  }
+  return { error: 'That doesn\'t look like an email address or a domain.' };
+}
+
+async function addPassAllowed(){
+  if(!currentPassLink || !supabaseClient) return;
+  const input = document.getElementById('pass-allowed-input');
+  const msg = document.getElementById('pass-allowed-msg');
+  const setMsg = (t, kind) => { if(msg){ msg.textContent = t || ''; msg.className = 'pass-send-msg' + (kind ? ' ' + kind : ''); } };
+  const parsed = parseAllowedInput(input?.value);
+  if(parsed.error){ setMsg(parsed.error, 'err'); return; }
+  const { error } = await supabaseClient.from('kyb_pass_allowed_viewers')
+    .insert({ link_id: currentPassLink.link_id, kind: parsed.kind, value: parsed.value });
+  if(error){
+    setMsg(error.code === '23505' ? 'Already on the list.' : 'Could not add that: ' + error.message, 'err');
+    return;
+  }
+  if(input) input.value = '';
+  setMsg(parsed.kind === 'domain' ? `Everyone at @${parsed.value} can now open this pass.` : `${parsed.value} can now open this pass.`, 'ok');
+  loadPassAllowed();
+}
+document.getElementById('pass-allowed-add-btn')?.addEventListener('click', addPassAllowed);
+document.getElementById('pass-allowed-input')?.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); addPassAllowed(); } });
+document.getElementById('pass-allowed-list')?.addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-allowed-id]');
+  if(!btn || !currentPassLink) return;
+  btn.disabled = true;
+  const { error } = await supabaseClient.from('kyb_pass_allowed_viewers').delete().eq('allowed_id', btn.dataset.allowedId);
+  const msg = document.getElementById('pass-allowed-msg');
+  if(error && msg){ msg.textContent = 'Could not remove that: ' + error.message; msg.className = 'pass-send-msg err'; btn.disabled = false; return; }
+  if(msg){ msg.textContent = 'Removed. Their access has ended.'; msg.className = 'pass-send-msg ok'; }
+  loadPassAllowed();
+});
+
+// Send form: offer "everyone at their organisation" only for a work address on a level that checks the viewer.
+function updatePassSendDomainOption(){
+  const wrap = document.getElementById('pass-send-domain-wrap');
+  const text = document.getElementById('pass-send-domain-text');
+  const cb = document.getElementById('pass-send-domain');
+  if(!wrap || !text || !currentPassLink) return;
+  const email = (document.getElementById('pass-send-email')?.value || '').trim().toLowerCase();
+  const dom = email.includes('@') ? email.split('@')[1] : '';
+  const show = currentPassLink.access_mode === 'named' && passNeedsVerification(currentPassLink.pass_tier)
+    && /^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/.test(dom) && !PERSONAL_MAIL_DOMAINS.has(dom);
+  wrap.style.display = show ? '' : 'none';
+  if(show) text.textContent = `Also let colleagues at @${dom} open it (for example if they forward it internally)`;
+  else if(cb) cb.checked = false;
+}
+document.getElementById('pass-send-email')?.addEventListener('input', updatePassSendDomainOption);
+
+const PASS_SOURCE_WORDS = { qr: 'scanned the QR code', link: 'opened the link', email: 'opened the emailed link', unknown: 'opened the pass' };
+function formatPassDateTime(iso){
+  return new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+async function loadPassActivity(){
+  const list = document.getElementById('pass-activity-list');
+  const summary = document.getElementById('pass-activity-summary');
+  if(!list || !summary || !supabaseClient || !currentPassLink) return;
+  const requested = currentPassLink.link_id;
+  const { data, error } = await supabaseClient.rpc('my_pass_activity', { p_link_id: requested });
+  if(currentPassLink?.link_id !== requested) return; // switched pass meanwhile
+  if(error){ summary.textContent = ''; list.innerHTML = `<li class="pass-activity-empty">Activity isn't available yet.</li>`; return; }
+  const events = data || [];
+  const opened = events.filter(ev => ev.event_type === 'viewed' && String(ev.detail).startsWith('ok')).length;
+  const verified = events.filter(ev => ev.event_type === 'consented').length;
+  const sent = events.filter(ev => ev.event_type === 'sent').length;
+  summary.textContent = events.length
+    ? `Sent ${sent} time${sent === 1 ? '' : 's'} · opened ${opened} time${opened === 1 ? '' : 's'}${passNeedsVerification(currentPassLink.pass_tier) ? ` · ${verified} verified viewer${verified === 1 ? '' : 's'}` : ''}`
+    : '';
+  if(!events.length){ list.innerHTML = `<li class="pass-activity-empty">Nobody has opened or been sent this pass yet.</li>`; return; }
+  list.innerHTML = events.slice(0, 15).map(ev => {
+    let text = '';
+    const who = [ev.institution, ev.who].filter(Boolean).join(' · ');
+    if(ev.event_type === 'sent'){
+      const how = String(ev.detail).startsWith('email') ? (String(ev.detail).includes('failed') ? 'Email could not be delivered' : 'Emailed') : String(ev.detail).startsWith('copy_link') ? 'You copied the link' : String(ev.detail).startsWith('qr_download') ? 'You downloaded the QR code' : 'Shared';
+      text = who ? `${how} — ${who}` : how;
+    } else if(ev.event_type === 'consented'){
+      text = `Verified and agreed to the confidentiality terms — ${who}`;
+    } else {
+      const [outcome, src] = String(ev.detail).split(' / ');
+      if(outcome === 'ok') text = `${who && who !== 'not yet verified' ? who + ' ' : 'Someone '}${PASS_SOURCE_WORDS[src] || 'opened the pass'}`;
+      else if(outcome === 'verification_required') text = `Someone ${PASS_SOURCE_WORDS[src] || 'opened the pass'} — waiting for them to verify`;
+      else if(outcome === 'not_authorised') text = 'Someone tried to open the pass with an email address that isn\'t on your list';
+      else if(outcome === 'expired') text = 'Opened after the pass had expired';
+      else text = 'Opened while the pass was switched off';
+    }
+    return `<li><span>${escapeHtml(text)}</span><span class="pa-when">${escapeHtml(formatPassDateTime(ev.event_at))}</span></li>`;
+  }).join('');
+}
 
 // Both "open the pass the way a recipient would" buttons — the one next
 // to the share link, and the one under the simplified "What they'll see"
@@ -5184,6 +5567,7 @@ document.getElementById('bc-card-download')?.addEventListener('click', async (e)
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    recordPassSend('qr_download');
   } catch(err) {
     console.error('Could not build the business card image:', err);
     alert("Could not create the card image: " + (err.message || err));
@@ -5217,6 +5601,7 @@ document.getElementById('bc-card-share')?.addEventListener('click', async (e) =>
         title: `${companyName} — BCPASS`,
         text: `${companyName}'s BCPASS pass: ${shareUrl}`,
       });
+      recordPassSend('other');
       return;
     }
     // Fallback for browsers with no file-sharing support (most desktop
@@ -5227,6 +5612,7 @@ document.getElementById('bc-card-share')?.addEventListener('click', async (e) =>
     // one-click fallback to offer for it outside the native share sheet.
     const waText = encodeURIComponent(`${companyName}'s BCPASS pass: ${shareUrl}`);
     window.open(`https://wa.me/?text=${waText}`, '_blank');
+    recordPassSend('other');
     alert("Your browser can't share the image file directly, so WhatsApp opened with the link instead — use “Download as image” first to attach the card itself, or to share it via WeChat.");
   } catch(err) {
     if(err?.name !== 'AbortError'){
@@ -5416,7 +5802,7 @@ function renderMatching(){
         const isPartner = !!(data.partners && data.partners[ckey]);
         const actionsHtml = isPartner
           ? `<div class="mx-actions"><p class="mx-actions-hint">This is a BCPASS partner. A BCPASS consultant can connect you with them.</p><button type="button" class="btn btn-primary btn-small" data-mx-go="appointments">Connect with a BCPASS consultant</button></div>`
-          : `<div class="mx-actions"><p class="mx-actions-hint">Not a BCPASS partner yet. You can send them your pass yourself, or talk to us about alternatives.</p><button type="button" class="btn btn-ghost btn-small" data-mx-go="pass">Send them my pass</button><button type="button" class="btn btn-ghost btn-small" data-mx-go="appointments">Talk to a BCPASS specialist</button></div>`;
+          : `<div class="mx-actions"><p class="mx-actions-hint">Not a BCPASS partner yet. You can send them your pass yourself, or talk to us about alternatives.</p><button type="button" class="btn btn-ghost btn-small" data-mx-go="pass" data-mx-org="${escapeHtml(String(m.name || ''))}">Send them my pass</button><button type="button" class="btn btn-ghost btn-small" data-mx-go="appointments">Talk to a BCPASS specialist</button></div>`;
         return `
         <div class="mx-row">
           <div class="match-rank">${m.rank}</div>
@@ -5458,7 +5844,7 @@ document.getElementById('screen-matching')?.addEventListener('click', (e) => {
   const tabBtn = e.target.closest('[data-mx-tab]');
   if(tabBtn && currentCaseId && matchingByCase[currentCaseId]){ matchingByCase[currentCaseId].tab = tabBtn.dataset.mxTab; renderMatching(); return; }
   const goBtn = e.target.closest('[data-mx-go]');
-  if(goBtn){ goToScreen(goBtn.dataset.mxGo); return; }
+  if(goBtn){ if(goBtn.dataset.mxOrg) pendingPassRecipientOrg = goBtn.dataset.mxOrg; goToScreen(goBtn.dataset.mxGo); return; }
   const moreBtn = e.target.closest('[data-mx-card]');
   if(moreBtn && currentCaseId && matchingByCase[currentCaseId]){
     const st = matchingByCase[currentCaseId]; st.open = st.open || {};
