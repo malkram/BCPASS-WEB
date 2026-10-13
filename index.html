@@ -1895,11 +1895,8 @@ body.marketing-mode #ai-status{ display:none; }
                     <label class="field" for="pa-org">Organisation name *
                       <input id="pa-org" name="organisation_name" type="text" maxlength="200" autocomplete="organization">
                     </label>
-                    <label class="field" for="pa-website">Website *
+                    <label class="field" for="pa-website">Website (optional)
                       <input id="pa-website" name="website" type="text" inputmode="url" maxlength="300" placeholder="www.example.com" autocomplete="url">
-                    </label>
-                    <label class="field" for="pa-country">Headquarters country
-                      <input id="pa-country" name="hq_country" type="text" maxlength="100" autocomplete="country-name">
                     </label>
                     <label class="field" for="pa-orgtype">Type of organisation
                       <select id="pa-orgtype" name="org_type" class="field-text">
@@ -6686,8 +6683,7 @@ refreshPublicNavAuth();
     clearErrors();
     const v = id => $(id).value.trim();
     if(v('pa-org').length < 2){ markField('pa-org'); return "Please enter your organisation's name."; }
-    if(!v('pa-website')){ markField('pa-website'); return 'Please enter your website.'; }
-    if(!/^(https?:\/\/)?[^\s\/]+\.[^\s\/]{2,}.*$/i.test(v('pa-website'))){ markField('pa-website'); return "That website address doesn't look right."; }
+    if(v('pa-website') && !/^(https?:\/\/)?[^\s\/]+\.[^\s\/]{2,}.*$/i.test(v('pa-website'))){ markField('pa-website'); return "That website address doesn't look right."; }
     const picked = Array.from(form.querySelectorAll('input[name="services"]:checked'));
     if(!picked.length){ $('pa-services-set').classList.add('pa-field-err-set'); $('pa-services-set').scrollIntoView({ block:'center' }); return 'Please choose at least one service you offer.'; }
     if(v('pa-name').length < 2){ markField('pa-name'); return "Please enter the contact person's name."; }
@@ -6713,7 +6709,7 @@ refreshPublicNavAuth();
     if(problem){ setMsg(problem, true); return; }
     const data = {
       organisation_name: $('pa-org').value.trim(), website: $('pa-website').value.trim(),
-      hq_country: $('pa-country').value.trim(), org_type: $('pa-orgtype').value,
+      org_type: $('pa-orgtype').value,
       services: Array.from(form.querySelectorAll('input[name="services"]:checked')).map(c => c.value),
       services_other: $('pa-services-other').value.trim(), markets: $('pa-markets').value.trim(),
       contact_name: $('pa-name').value.trim(), contact_title: $('pa-title').value.trim(),
