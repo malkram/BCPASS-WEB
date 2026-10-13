@@ -625,11 +625,42 @@ ul{ margin:0; padding:0; list-style:none; }
 .pass-preview-link-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:4px; padding-top:16px; border-top:1px solid var(--line); }
 .pass-preview-link-row .side-title{ margin-bottom:0; }
 
-/* ============ APPOINTMENTS ============ */
-.slot-grid{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:10px; max-width: 420px; }
-.slot{ padding:12px; border:1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper-raise); font-weight:500; font-size:0.9rem; }
-.slot:hover{ border-color: var(--accent); }
-.slot-selected{ background: var(--ink); color:#fff; border-color: var(--ink); }
+/* ============ APPOINTMENTS (8 Oct 2026): real booking page ============ */
+.slot-grid{ display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:10px; max-width: 480px; }
+.slot{ padding:12px 6px; border:1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper-raise); font-weight:500; font-size:0.9rem; cursor:pointer; font-family:inherit; color:var(--ink); }
+.slot:hover:not(:disabled){ border-color: var(--accent); }
+.slot-selected, .slot-selected:hover{ background: var(--ink); color:#fff; border-color: var(--ink); }
+.slot:disabled, .ap-day:disabled{ opacity:0.42; cursor:not-allowed; background: transparent; border-style:dashed; }
+.slot:disabled{ text-decoration: line-through; text-decoration-color: rgba(16,40,33,0.35); }
+.ap-tz{ font-weight:400; color: var(--muted); font-size:0.85rem; margin-left:6px; }
+.ap-legend{ font-size:0.82rem; color: var(--muted); margin:10px 0 0; max-width:480px; }
+.ap-topics{ display:flex; flex-wrap:wrap; gap:8px; }
+.ap-topic{ cursor:pointer; }
+.ap-topic input{ position:absolute; opacity:0; width:1px; height:1px; }
+.ap-topic span{ display:inline-block; padding:8px 14px; border:1px solid var(--line-strong); border-radius:999px; font-size:0.88rem; background: var(--paper-raise); color: var(--ink-soft); }
+.ap-topic input:checked + span{ background: var(--ink); color:#fff; border-color: var(--ink); }
+.ap-topic input:focus-visible + span{ outline:2px solid var(--accent); outline-offset:2px; }
+.ap-method{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:16px; max-width:560px; }
+.ap-weeknav{ display:flex; align-items:center; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+.ap-weeklabel{ font-size:0.9rem; color: var(--ink-soft); min-width:150px; text-align:center; }
+.ap-days{ display:grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap:10px; max-width:480px; }
+.ap-day{ padding:10px 4px; border:1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper-raise); cursor:pointer; font-family:inherit; color: var(--ink); display:flex; flex-direction:column; align-items:center; gap:2px; }
+.ap-day small{ font-size:0.75rem; color: var(--muted); text-transform:uppercase; letter-spacing:0.04em; }
+.ap-day b{ font-size:1.05rem; font-weight:600; }
+.ap-day:hover:not(:disabled){ border-color: var(--accent); }
+.ap-day.selected{ background: var(--ink); color:#fff; border-color: var(--ink); }
+.ap-day.selected small{ color: rgba(255,255,255,0.75); }
+.ap-item{ border:1px solid var(--line); border-radius: var(--radius); padding:12px 14px; margin-bottom:10px; background: var(--paper-raise); font-size:0.88rem; }
+.ap-item b{ display:block; color: var(--ink); font-size:0.92rem; }
+.ap-item .ap-sub{ color: var(--muted); font-size:0.82rem; margin-top:2px; }
+.ap-item .ap-actions{ margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.ap-item .ap-link{ background:none; border:none; color:#9B2C2C; cursor:pointer; font-size:0.82rem; padding:0; font-family:inherit; text-decoration:underline; }
+.ap-item.is-past{ opacity:0.7; }
+.ap-chip{ display:inline-block; font-size:0.72rem; padding:2px 8px; border-radius:999px; background: var(--accent-soft); color: var(--ink-soft); margin-left:6px; }
+@media (max-width: 560px){ .slot-grid{ grid-template-columns: repeat(3, minmax(0,1fr)); } .ap-method{ grid-template-columns:1fr; } }
+
+.field[hidden]{ display:none; }
+.ap-who{ display:flex; gap:12px; border:1px solid var(--accent); border-radius: var(--radius); padding:14px 16px; background: var(--accent-soft); }
 
 /* ============ MOBILE TAB BAR ============ */
 .tabbar{ display:none; }
@@ -1225,7 +1256,6 @@ body.marketing-mode #ai-status{ display:none; }
       </li>
       <li><button class="rail-btn" data-screen="matching">Matching</button></li>
       <li><button class="rail-btn" data-screen="appointments">Appointments</button></li>
-      <li><button class="rail-btn" data-screen="institution">Institution view</button></li>
     </ul>
     <div class="rail-foot">Prototype — UK &amp; HK pilot</div>
   </nav>
@@ -2689,85 +2719,87 @@ body.marketing-mode #ai-status{ display:none; }
     <section class="screen" id="screen-appointments">
       <header class="screen-head">
         <div>
-          <p class="kicker">Harbour Trade HK</p>
+          <p class="kicker" id="ap-company">Your company</p>
           <h1>Book a conversation</h1>
         </div>
       </header>
 
       <div class="split">
         <div class="split-main">
-          <p class="side-title">Who would you like to speak with?</p>
-          <div class="consult-options">
-            <label class="mask-option selected">
-              <input type="radio" name="consult" checked>
-              <div class="mask-body">
-                <span class="mask-name">BCPASS consultant</span>
-                <span class="mask-desc">General guidance on your profile, no obligation, no institution involved.</span>
-              </div>
-            </label>
-            <label class="mask-option">
-              <input type="radio" name="consult">
-              <div class="mask-body">
-                <span class="mask-name">Prosper Bank — SME Trade Desk</span>
-                <span class="mask-desc">Referral to their team, sharing your Standard-level pass in advance.</span>
-              </div>
-            </label>
-          </div>
+          <p class="side-note" id="ap-nocase" hidden>Choose a company from your dashboard first, then come back here to book.</p>
 
-          <p class="side-title" style="margin-top:28px">Pick a time — Thursday, 10 September</p>
-          <div class="slot-grid">
-            <button class="slot">09:30</button>
-            <button class="slot slot-selected">10:00</button>
-            <button class="slot">11:15</button>
-            <button class="slot">14:00</button>
-            <button class="slot">15:30</button>
-            <button class="slot">16:45</button>
-          </div>
+          <div id="ap-form">
+            <p class="side-title">Who would you like to speak with?</p>
+            <div class="consult-options">
+              <div class="ap-who">
+                <div class="mask-body">
+                  <span class="mask-name">BCPASS consultant</span>
+                  <span class="mask-desc">General guidance on your company profile and your options. No obligation.</span>
+                </div>
+              </div>
+            </div>
 
-          <button class="btn btn-primary" style="margin-top:24px">Confirm booking for 10:00</button>
+            <p class="side-title">What would you like to talk about?</p>
+            <div class="ap-topics" id="ap-topics" role="group" aria-label="Topics">
+              <label class="ap-topic"><input type="checkbox" value="profile"><span>My company profile</span></label>
+              <label class="ap-topic"><input type="checkbox" value="bank_account"><span>Opening a bank account</span></label>
+              <label class="ap-topic"><input type="checkbox" value="loans"><span>Loans and credit</span></label>
+              <label class="ap-topic"><input type="checkbox" value="trade_finance"><span>Trade finance</span></label>
+              <label class="ap-topic"><input type="checkbox" value="payments_fx"><span>Payments, FX and hedging</span></label>
+              <label class="ap-topic"><input type="checkbox" value="insurance"><span>Insurance</span></label>
+              <label class="ap-topic"><input type="checkbox" value="other"><span>Something else</span></label>
+            </div>
+            <label class="field" for="ap-notes" style="margin:12px 0 26px">Anything we should know before the call? (optional)
+              <textarea id="ap-notes" class="field-text" rows="3" maxlength="1500" placeholder="e.g. We are opening a second account for our Hong Kong entity and want to compare options."></textarea>
+            </label>
+
+            <p class="side-title">How would you like to talk?</p>
+            <div class="ap-method" role="radiogroup" aria-label="Call type">
+              <label class="mask-option selected" id="ap-method-video-opt">
+                <input type="radio" name="ap-method" value="video" checked>
+                <div class="mask-body"><span class="mask-name">Video call</span><span class="mask-desc">We email you the video link before the call.</span></div>
+              </label>
+              <label class="mask-option" id="ap-method-phone-opt">
+                <input type="radio" name="ap-method" value="phone">
+                <div class="mask-body"><span class="mask-name">Phone call</span><span class="mask-desc">We call you on the number below.</span></div>
+              </label>
+            </div>
+            <label class="field" for="ap-phone" id="ap-phone-wrap" style="margin:-10px 0 26px;max-width:320px" hidden>Phone number to call
+              <input id="ap-phone" type="tel" maxlength="40" autocomplete="tel" placeholder="+44 20 7946 0000">
+            </label>
+
+            <p class="side-title">Pick a day</p>
+            <div class="ap-weeknav">
+              <button type="button" class="btn btn-ghost btn-small" id="ap-prev" aria-label="Earlier week">‹ Earlier</button>
+              <span class="ap-weeklabel" id="ap-weeklabel"></span>
+              <button type="button" class="btn btn-ghost btn-small" id="ap-next" aria-label="Later week">Later ›</button>
+            </div>
+            <div class="ap-days" id="ap-days" role="group" aria-label="Days"></div>
+
+            <p class="side-title" style="margin-top:24px">Pick a time <span class="ap-tz" id="ap-tz"></span></p>
+            <div class="slot-grid" id="ap-slots" role="group" aria-label="Times"></div>
+            <p class="ap-legend" id="ap-legend"></p>
+
+            <label class="pa-check" style="margin-top:22px">
+              <input type="checkbox" id="ap-share">
+              <span>Let my consultant look at my company profile before the call. This saves time on the call. Tick it only if you are happy for them to see it.</span>
+            </label>
+
+            <button class="btn btn-primary" id="ap-confirm" style="margin-top:24px" disabled>Confirm booking</button>
+            <p class="pass-send-msg" id="ap-msg" role="alert" style="margin-top:10px"></p>
+          </div>
         </div>
 
         <aside class="split-side">
           <p class="side-title">What to expect</p>
           <ul class="prompt-list">
-            <li>20 minutes, video or phone</li>
-            <li>Your consultant sees only the pass level you've chosen</li>
-            <li>You'll get a calendar invite and a reminder the day before</li>
+            <li>30 minutes, by video or phone</li>
+            <li>Book at least 12 hours ahead so your consultant has time to prepare</li>
+            <li>You get a confirmation email with a calendar file</li>
+            <li>Your consultant only sees your company profile if you tick the box</li>
           </ul>
-        </aside>
-      </div>
-    </section>
-
-    <!-- ---------- 8. INSTITUTION VIEW ---------- -->
-    <section class="screen" id="screen-institution">
-      <header class="screen-head">
-        <div>
-          <p class="kicker">Viewing as · Prosper Bank, SME Trade Desk</p>
-          <h1>Incoming pass</h1>
-        </div>
-        <span class="tag tag-green">Standard level</span>
-      </header>
-
-      <div class="split">
-        <div class="split-main">
-          <div class="pass-card pass-card-large">
-            <p class="pass-field"><span>Entity</span><b>Harbour Trade — Hong Kong entity ●●●●</b></p>
-            <p class="pass-field"><span>Sector</span><b>Trading &amp; logistics</b></p>
-            <p class="pass-field"><span>Trading since</span><b>2016</b></p>
-            <p class="pass-field"><span>Revenue band</span><b>HK$30M–50M</b></p>
-            <p class="pass-field"><span>Employees</span><b>15–25</b></p>
-            <p class="pass-field"><span>Looking for</span><b>Multi-currency FX &amp; payments facility across 7 currencies</b></p>
-            <p class="pass-field"><span>Verification status</span><b>Fully verified · 0 open flags</b></p>
-            <p class="pass-field"><span>Documents on file</span><b>Financials, bank statements, invoices — available on request</b></p>
-          </div>
-          <p class="side-note">Full company name, documents, and director details unlock once the client accepts your interest.</p>
-        </div>
-
-        <aside class="split-side">
-          <p class="side-title">Respond to this pass</p>
-          <button class="btn btn-primary btn-block">Express interest</button>
-          <button class="btn btn-ghost btn-block" style="margin-top:10px" data-goto="appointments">Request a call</button>
-          <button class="btn btn-ghost btn-block" style="margin-top:10px">Ask a clarifying question</button>
+          <p class="side-title" style="margin-top:26px">Your conversations</p>
+          <div id="ap-list"><p class="side-note">Nothing booked yet.</p></div>
         </aside>
       </div>
     </section>
@@ -6563,6 +6595,7 @@ function showScreen(name){
   if(name === 'mfa-enroll') startMfaEnrollment();
   if(name === 'mfa-challenge'){ const n = document.getElementById('mfa-challenge-recovery-note'); if(n) n.style.display = passwordRecovery ? 'block' : 'none'; startMfaChallenge(); }
   if(name === 'build'){ try{ refreshSignoffControls(); }catch(_){} } // buttons may have been left switched off when the client last navigated away
+  if(name === 'appointments') initAppointmentsScreen();
   if(name === 'forgot') initForgotScreen();
   if(name === 'reset') initResetScreen();
 
@@ -7850,15 +7883,234 @@ document.querySelectorAll('.mask-option').forEach(opt => {
   });
 });
 
-// ---- Appointment slot picker ----
-document.querySelectorAll('.slot').forEach(slot => {
-  slot.addEventListener('click', () => {
-    document.querySelectorAll('.slot').forEach(s => s.classList.remove('slot-selected'));
-    slot.classList.add('slot-selected');
-    const confirmBtn = document.querySelector('#screen-appointments .btn-primary');
-    if(confirmBtn) confirmBtn.textContent = `Confirm booking for ${slot.textContent}`;
+
+// ---- Appointments (8 Oct 2026): real bookings through the book-appointment function ----
+// Slots: weekdays, on the hour, 09:00-16:00 in the company's own time zone (30-minute call). Hong Kong companies: afternoon
+// only (12:00 on). At least 12 hours' notice, up to 30 days ahead. The function re-checks every rule.
+const AP = { FIRST:9, LAST:16, HK_FIRST:12, NOTICE_H:12, MAX_DAYS:30, tz:'Europe/London', entity:'UK', taken:new Set(),
+  weekOffset:0, day:null, hour:null, method:'video', mine:[], busy:false, cancelAsk:null };
+function apEntity(){
+  const c = String(kycProfile.registration_country || '').trim().toLowerCase();
+  if(c === 'hong kong') return { entity:'HK', tz:'Asia/Hong_Kong', label:'Hong Kong time' };
+  if(c === 'ireland') return { entity:'Ireland', tz:'Europe/Dublin', label:'Irish time' };
+  if(c === 'united kingdom' || c === 'uk') return { entity:'UK', tz:'Europe/London', label:'UK time' };
+  return { entity:'Other', tz:'Europe/London', label:'UK time' };
+}
+function apTzParts(ms, tz){
+  const o = {};
+  for(const p of new Intl.DateTimeFormat('en-GB', { timeZone:tz, hourCycle:'h23', year:'numeric', month:'numeric', day:'numeric', hour:'numeric', minute:'numeric', second:'numeric' }).formatToParts(new Date(ms))) o[p.type] = Number(p.value);
+  return o;
+}
+function apZonedToUtc(y, m, d, h, tz){
+  const target = Date.UTC(y, m-1, d, h, 0, 0);
+  let t = target;
+  for(let i=0;i<3;i++){
+    const p = apTzParts(t, tz);
+    const off = Date.UTC(p.year, p.month-1, p.day, p.hour, p.minute, p.second) - t; // zone offset at t
+    t = target - off;
+  }
+  return t;
+}
+function apDayKey(y,m,d){ return y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0'); }
+function apWeekDays(offset){
+  const n = apTzParts(Date.now(), AP.tz);
+  const today = new Date(Date.UTC(n.year, n.month-1, n.day));
+  const dow = (today.getUTCDay() + 6) % 7; // Monday = 0
+  const monday = new Date(today.getTime() - dow*86400000 + offset*7*86400000);
+  return [0,1,2,3,4].map(i => { const dt = new Date(monday.getTime() + i*86400000); return { y:dt.getUTCFullYear(), m:dt.getUTCMonth()+1, d:dt.getUTCDate(), dt }; });
+}
+// Why a slot can't be booked: '' (available), 'morning', 'notice', 'far', 'taken'
+function apSlotState(day, hour){
+  if(AP.entity === 'HK' && hour < AP.HK_FIRST) return 'morning';
+  const ms = apZonedToUtc(day.y, day.m, day.d, hour, AP.tz);
+  if(ms < Date.now() + AP.NOTICE_H*3600000) return 'notice';
+  if(ms > Date.now() + AP.MAX_DAYS*86400000) return 'far';
+  if(AP.taken.has(new Date(ms).toISOString())) return 'taken';
+  return '';
+}
+function apFmtDay(day){ return new Intl.DateTimeFormat('en-GB', { weekday:'short', day:'numeric', month:'short', timeZone:'UTC' }).format(day.dt); }
+function apFmtHour(h){ return String(h).padStart(2,'0') + ':00'; }
+function apTzName(){ return apEntity().label; }
+function apSetMsg(t, err){ const m = document.getElementById('ap-msg'); if(!m) return; m.textContent = t || ''; m.classList.toggle('err', !!err); }
+
+function renderApDays(){
+  const days = apWeekDays(AP.weekOffset), box = document.getElementById('ap-days');
+  if(!box) return;
+  box.innerHTML = '';
+  days.forEach(day => {
+    const free = [AP.FIRST,10,11,12,13,14,15,AP.LAST].some(h => !apSlotState(day, h));
+    const key = apDayKey(day.y, day.m, day.d);
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'ap-day' + (AP.day === key ? ' selected' : ''); b.disabled = !free; b.dataset.day = key;
+    b.innerHTML = '<small></small><b></b>';
+    b.querySelector('small').textContent = new Intl.DateTimeFormat('en-GB', { weekday:'short', timeZone:'UTC' }).format(day.dt);
+    b.querySelector('b').textContent = new Intl.DateTimeFormat('en-GB', { day:'numeric', month:'short', timeZone:'UTC' }).format(day.dt);
+    if(!free) b.title = 'No times available';
+    b.addEventListener('click', () => { AP.day = key; AP.hour = null; renderApDays(); renderApSlots(); updateApConfirm(); apSetMsg(''); });
+    box.appendChild(b);
   });
-});
+  const f = days[0].dt, l = days[4].dt;
+  document.getElementById('ap-weeklabel').textContent = new Intl.DateTimeFormat('en-GB', { day:'numeric', month:'short', timeZone:'UTC' }).format(f) + ' to ' + new Intl.DateTimeFormat('en-GB', { day:'numeric', month:'short', timeZone:'UTC' }).format(l);
+  document.getElementById('ap-prev').disabled = AP.weekOffset <= 0;
+  document.getElementById('ap-next').disabled = AP.weekOffset >= 4;
+}
+function apSelectedDay(){
+  if(!AP.day) return null;
+  const [y,m,d] = AP.day.split('-').map(Number);
+  return { y, m, d, dt:new Date(Date.UTC(y, m-1, d)) };
+}
+function renderApSlots(){
+  const box = document.getElementById('ap-slots'); if(!box) return;
+  box.innerHTML = '';
+  const day = apSelectedDay();
+  const legend = document.getElementById('ap-legend');
+  legend.textContent = AP.entity === 'HK' ? 'Mornings are not available for Hong Kong companies. Greyed-out times are unavailable or already booked.' : 'Greyed-out times are unavailable or already booked.';
+  if(!day){ box.innerHTML = '<p class="side-note" style="grid-column:1/-1">Pick a day to see the times.</p>'; return; }
+  for(let h = AP.FIRST; h <= AP.LAST; h++){
+    const st = apSlotState(day, h);
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'slot' + (AP.hour === h ? ' slot-selected' : ''); b.textContent = apFmtHour(h); b.disabled = !!st; b.dataset.hour = h;
+    if(st){ b.title = ({ morning:'Not available in the morning for Hong Kong companies', notice:'Needs at least 12 hours’ notice', far:'More than 30 days ahead', taken:'Already booked' })[st]; b.setAttribute('aria-label', apFmtHour(h) + ', unavailable'); }
+    b.addEventListener('click', () => { AP.hour = h; renderApSlots(); updateApConfirm(); apSetMsg(''); });
+    box.appendChild(b);
+  }
+}
+function updateApConfirm(){
+  const btn = document.getElementById('ap-confirm'); if(!btn) return;
+  const day = apSelectedDay();
+  const ready = !!(currentCaseId && day && AP.hour !== null && !AP.busy);
+  btn.disabled = !ready;
+  btn.textContent = AP.busy ? 'Booking...' : (day && AP.hour !== null ? 'Confirm booking for ' + apFmtDay(day) + ', ' + apFmtHour(AP.hour) : 'Confirm booking');
+}
+
+async function loadApTaken(){
+  if(!supabaseClient) return;
+  try{
+    const from = new Date().toISOString(), to = new Date(Date.now() + (AP.MAX_DAYS+2)*86400000).toISOString();
+    const { data, error } = await supabaseClient.rpc('appointment_taken_slots', { p_from:from, p_to:to });
+    if(error) throw error;
+    AP.taken = new Set((data || []).map(v => new Date(v).toISOString()));
+  }catch(e){ console.error('could not load taken slots', e); }
+}
+async function loadApMine(){
+  if(!supabaseClient) return;
+  try{
+    const { data, error } = await supabaseClient.from('appointments').select('appointment_id, starts_at, timezone, method, status, company_name, contact_phone').order('starts_at', { ascending:false }).limit(12);
+    if(error) throw error;
+    AP.mine = data || [];
+  }catch(e){ console.error('could not load appointments', e); AP.mine = []; }
+  renderApList();
+}
+function apFmtWhen(iso, tz){
+  const d = new Date(iso);
+  return new Intl.DateTimeFormat('en-GB', { timeZone:tz, weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }).format(d) + ' ' +
+    (new Intl.DateTimeFormat('en-GB', { timeZone:tz, timeZoneName:'short' }).formatToParts(d).find(p => p.type === 'timeZoneName')?.value || '');
+}
+function renderApList(){
+  const box = document.getElementById('ap-list'); if(!box) return;
+  const now = Date.now();
+  const up = AP.mine.filter(a => a.status === 'booked' && new Date(a.starts_at).getTime() > now).sort((a,b) => new Date(a.starts_at) - new Date(b.starts_at));
+  const past = AP.mine.filter(a => !up.includes(a)).slice(0, 4);
+  if(!up.length && !past.length){ box.innerHTML = '<p class="side-note">Nothing booked yet.</p>'; return; }
+  box.innerHTML = '';
+  const mk = (a, isUp) => {
+    const div = document.createElement('div'); div.className = 'ap-item' + (isUp ? '' : ' is-past');
+    const t = document.createElement('b'); t.textContent = apFmtWhen(a.starts_at, a.timezone);
+    if(!isUp){ const c = document.createElement('span'); c.className = 'ap-chip'; c.textContent = a.status === 'cancelled' ? 'Cancelled' : a.status === 'no_show' ? 'Missed' : 'Done'; t.appendChild(c); }
+    const s = document.createElement('div'); s.className = 'ap-sub'; s.textContent = (a.method === 'phone' ? 'Phone call' : 'Video call') + (a.company_name ? ' · ' + a.company_name : '');
+    div.append(t, s);
+    if(isUp){
+      const act = document.createElement('div'); act.className = 'ap-actions';
+      if(AP.cancelAsk === a.appointment_id){
+        const q = document.createElement('span'); q.textContent = 'Cancel this booking?';
+        const y = document.createElement('button'); y.type = 'button'; y.className = 'ap-link'; y.textContent = 'Yes, cancel';
+        y.addEventListener('click', () => cancelApAppointment(a.appointment_id));
+        const n = document.createElement('button'); n.type = 'button'; n.className = 'ap-link'; n.style.color = 'var(--ink-soft)'; n.textContent = 'Keep it';
+        n.addEventListener('click', () => { AP.cancelAsk = null; renderApList(); });
+        act.append(q, y, n);
+      } else {
+        const x = document.createElement('button'); x.type = 'button'; x.className = 'ap-link'; x.textContent = 'Cancel';
+        x.addEventListener('click', () => { AP.cancelAsk = a.appointment_id; renderApList(); });
+        act.append(x);
+      }
+      div.append(act);
+    }
+    box.appendChild(div);
+  };
+  up.forEach(a => mk(a, true));
+  if(past.length){ const h = document.createElement('p'); h.className = 'side-title'; h.style.marginTop = '16px'; h.textContent = 'Earlier'; box.appendChild(h); past.forEach(a => mk(a, false)); }
+}
+async function cancelApAppointment(id){
+  try{
+    await callFunction('book-appointment', { action:'cancel', appointment_id:id });
+    AP.cancelAsk = null;
+    apSetMsg('Your booking has been cancelled.');
+    await Promise.all([loadApMine(), loadApTaken()]);
+    renderApDays(); renderApSlots();
+  }catch(e){ AP.cancelAsk = null; renderApList(); apSetMsg(e.message || 'We could not cancel that booking.', true); }
+}
+
+function initAppointmentsScreen(){
+  const e = apEntity(); AP.entity = e.entity; AP.tz = e.tz;
+  const has = !!currentCaseId;
+  document.getElementById('ap-nocase').hidden = has;
+  document.getElementById('ap-form').hidden = !has;
+  document.getElementById('ap-company').textContent = (kycProfile.legal_entity_name || '').trim() || 'Your company';
+  document.getElementById('ap-tz').textContent = '· ' + e.label;
+  const ph = document.getElementById('ap-phone');
+  if(ph && !ph.value) ph.value = (kycProfile.contact_phone_number || '').trim();
+  AP.day = null; AP.hour = null; AP.weekOffset = 0;
+  // Start on the first week that has a bookable day
+  const render = () => {
+    for(let w = 0; w <= 4; w++){
+      AP.weekOffset = w;
+      if(apWeekDays(w).some(d => [9,10,11,12,13,14,15,16].some(h => !apSlotState(d, h)))) break;
+    }
+    renderApDays(); renderApSlots(); updateApConfirm();
+  };
+  render();
+  loadApTaken().then(() => { render(); });
+  loadApMine();
+}
+
+(function wireAppointments(){
+  const $ = id => document.getElementById(id);
+  if(!$('ap-confirm')) return;
+  $('ap-prev').addEventListener('click', () => { if(AP.weekOffset > 0){ AP.weekOffset--; renderApDays(); } });
+  $('ap-next').addEventListener('click', () => { if(AP.weekOffset < 4){ AP.weekOffset++; renderApDays(); } });
+  document.querySelectorAll('input[name="ap-method"]').forEach(r => r.addEventListener('change', () => {
+    AP.method = document.querySelector('input[name="ap-method"]:checked').value;
+    $('ap-phone-wrap').hidden = AP.method !== 'phone';
+    $('ap-method-video-opt').classList.toggle('selected', AP.method === 'video');
+    $('ap-method-phone-opt').classList.toggle('selected', AP.method === 'phone');
+    apSetMsg('');
+  }));
+  $('ap-confirm').addEventListener('click', async () => {
+    const day = apSelectedDay();
+    if(!day || AP.hour === null || AP.busy) return;
+    const phone = $('ap-phone').value.trim();
+    if(AP.method === 'phone' && (!/^[0-9+()\-.\s]{6,40}$/.test(phone) || phone.replace(/\D/g,'').length < 6)){ apSetMsg('Please enter the phone number to call.', true); $('ap-phone').focus(); return; }
+    AP.busy = true; updateApConfirm(); apSetMsg('');
+    try{
+      const startsAt = new Date(apZonedToUtc(day.y, day.m, day.d, AP.hour, AP.tz)).toISOString();
+      await callFunction('book-appointment', {
+        action:'book', case_id:currentCaseId, starts_at:startsAt, method:AP.method, phone: AP.method === 'phone' ? phone : (phone || undefined),
+        topics:Array.from(document.querySelectorAll('#ap-topics input:checked')).map(c => c.value),
+        notes:$('ap-notes').value.trim(), share_profile:$('ap-share').checked,
+      });
+      const when = apFmtDay(day) + ', ' + apFmtHour(AP.hour);
+      AP.day = null; AP.hour = null;
+      document.querySelectorAll('#ap-topics input:checked').forEach(c => { c.checked = false; });
+      $('ap-notes').value = ''; $('ap-share').checked = false;
+      await Promise.all([loadApMine(), loadApTaken()]);
+      renderApDays(); renderApSlots();
+      apSetMsg('Booked for ' + when + ' (' + apTzName() + '). We have emailed you a confirmation with a calendar file.');
+    }catch(err){
+      apSetMsg(err.message || 'We could not book that time. Please try again.', true);
+      await loadApTaken(); renderApDays(); renderApSlots();
+    }finally{ AP.busy = false; updateApConfirm(); }
+  });
+})();
 
 </script>
 <script>
