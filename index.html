@@ -645,6 +645,7 @@ ul{ margin:0; padding:0; list-style:none; }
 .ap-weeklabel{ font-size:0.9rem; color: var(--ink-soft); min-width:150px; text-align:center; }
 .ap-days{ display:grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap:10px; max-width:480px; }
 .ap-day{ padding:10px 4px; border:1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper-raise); cursor:pointer; font-family:inherit; color: var(--ink); display:flex; flex-direction:column; align-items:center; gap:2px; }
+.ap-day em{ font-size:0.68rem; font-style:normal; color: var(--muted); }
 .ap-day small{ font-size:0.75rem; color: var(--muted); text-transform:uppercase; letter-spacing:0.04em; }
 .ap-day b{ font-size:1.05rem; font-weight:600; }
 .ap-day:hover:not(:disabled){ border-color: var(--accent); }
@@ -2792,7 +2793,8 @@ body.marketing-mode #ai-status{ display:none; }
           <ul class="prompt-list">
             <li>30 minutes, by video or phone</li>
             <li>Book at least 12 hours ahead so your consultant has time to prepare</li>
-            <li>You get a confirmation email with a calendar file</li>
+            <li>Not available on UK and Hong Kong public holidays</li>
+            <li>You get a confirmation email with a calendar file, and a reminder 24 hours before</li>
             <li>Your consultant only sees your company profile if you tick the box</li>
           </ul>
           <p class="side-title" style="margin-top:26px">Your conversations</p>
@@ -7883,7 +7885,7 @@ document.querySelectorAll('.mask-option').forEach(opt => {
 // ---- Appointments (8 Oct 2026): real bookings through the book-appointment function ----
 // Slots: weekdays, on the hour, 09:00-16:00 in the company's own time zone (30-minute call). Hong Kong companies: afternoon
 // only (12:00 on). At least 12 hours' notice, up to 30 days ahead. The function re-checks every rule.
-const AP = { FIRST:9, LAST:16, HK_FIRST:12, NOTICE_H:12, MAX_DAYS:30, tz:'Europe/London', entity:'UK', taken:new Set(),
+const AP = { FIRST:9, LAST:16, HK_FIRST:12, NOTICE_H:12, MAX_DAYS:30, tz:'Europe/London', entity:'UK', taken:new Set(), closed:[],
   weekOffset:0, day:null, hour:null, method:'video', mine:[], busy:false, cancelAsk:null };
 function apEntity(){
   const c = String(kycProfile.registration_country || '').trim().toLowerCase();
@@ -7918,11 +7920,17 @@ function apWeekDays(offset){
 // Why a slot can't be booked: '' (available), 'morning', 'notice', 'far', 'taken'
 function apSlotState(day, hour){
   if(AP.entity === 'HK' && hour < AP.HK_FIRST) return 'morning';
+  if(apClosedOn(day)) return 'closed';
   const ms = apZonedToUtc(day.y, day.m, day.d, hour, AP.tz);
   if(ms < Date.now() + AP.NOTICE_H*3600000) return 'notice';
   if(ms > Date.now() + AP.MAX_DAYS*86400000) return 'far';
   if(AP.taken.has(new Date(ms).toISOString())) return 'taken';
   return '';
+}
+// Public holidays / closed days for this company's own calendar (UK list for UK, Ireland and Other; Hong Kong list for HK)
+function apClosedOn(day){
+  const key = apDayKey(day.y, day.m, day.d), grp = AP.entity === 'HK' ? 'HK' : 'UK';
+  return AP.closed.find(b => b.date === key && (b.entity === grp || b.entity === 'ALL')) || null;
 }
 function apFmtDay(day){ return new Intl.DateTimeFormat('en-GB', { weekday:'short', day:'numeric', month:'short', timeZone:'UTC' }).format(day.dt); }
 function apFmtHour(h){ return String(h).padStart(2,'0') + ':00'; }
@@ -7941,7 +7949,9 @@ function renderApDays(){
     b.innerHTML = '<small></small><b></b>';
     b.querySelector('small').textContent = new Intl.DateTimeFormat('en-GB', { weekday:'short', timeZone:'UTC' }).format(day.dt);
     b.querySelector('b').textContent = new Intl.DateTimeFormat('en-GB', { day:'numeric', month:'short', timeZone:'UTC' }).format(day.dt);
-    if(!free) b.title = 'No times available';
+    const closedRow = apClosedOn(day);
+    if(closedRow){ const em = document.createElement('em'); em.textContent = 'Closed'; b.appendChild(em); b.title = 'Closed: ' + closedRow.reason; }
+    else if(!free) b.title = 'No times available';
     b.addEventListener('click', () => { AP.day = key; AP.hour = null; renderApDays(); renderApSlots(); updateApConfirm(); apSetMsg(''); });
     box.appendChild(b);
   });
@@ -7966,7 +7976,7 @@ function renderApSlots(){
     const st = apSlotState(day, h);
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'slot' + (AP.hour === h ? ' slot-selected' : ''); b.textContent = apFmtHour(h); b.disabled = !!st; b.dataset.hour = h;
-    if(st){ b.title = ({ morning:'Not available in the morning for Hong Kong companies', notice:'Needs at least 12 hours’ notice', far:'More than 30 days ahead', taken:'Already booked' })[st]; b.setAttribute('aria-label', apFmtHour(h) + ', unavailable'); }
+    if(st){ b.title = ({ morning:'Not available in the morning for Hong Kong companies', notice:'Needs at least 12 hours’ notice', far:'More than 30 days ahead', taken:'Already booked', closed:'Closed (public holiday)' })[st]; b.setAttribute('aria-label', apFmtHour(h) + ', unavailable'); }
     b.addEventListener('click', () => { AP.hour = h; renderApSlots(); updateApConfirm(); apSetMsg(''); });
     box.appendChild(b);
   }
@@ -7987,6 +7997,13 @@ async function loadApTaken(){
     if(error) throw error;
     AP.taken = new Set((data || []).map(v => new Date(v).toISOString()));
   }catch(e){ console.error('could not load taken slots', e); }
+  try{
+    const d0 = new Date(Date.now() - 86400000), d1 = new Date(Date.now() + (AP.MAX_DAYS+3)*86400000);
+    const iso = d => d.toISOString().slice(0,10);
+    const { data, error } = await supabaseClient.rpc('appointment_blackouts', { p_from:iso(d0), p_to:iso(d1) });
+    if(error) throw error;
+    AP.closed = (data || []).map(r => ({ entity:r.entity, date:String(r.blackout_date).slice(0,10), reason:r.reason || 'Closed' }));
+  }catch(e){ console.error('could not load closed days', e); }
 }
 async function loadApMine(){
   if(!supabaseClient) return;
