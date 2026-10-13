@@ -501,8 +501,22 @@ ul{ margin:0; padding:0; list-style:none; }
 .pass-chip{ font-size:0.64rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; padding:3px 9px; border-radius:999px; white-space:nowrap; flex-shrink:0; }
 .pass-chip-active{ background:rgba(31,122,92,0.12); color: var(--accent); }
 .pass-chip-off, .pass-chip-expired{ background:#FDECEC; color:#9B2C2C; }
-.pass-create{ margin-top:30px; padding-top:22px; border-top:1px solid var(--line); }
+.pass-create{ margin-top:44px; padding:24px 26px 26px; background:#E4EEE8; border:1px solid #BCD6C8; border-top:4px solid var(--accent); border-radius:8px; box-shadow:0 2px 14px rgba(16,40,33,0.07); }
+.pass-create-head{ display:flex; gap:14px; align-items:center; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid #BCD6C8; }
+.pass-create-plus{ width:34px; height:34px; border-radius:50%; background:var(--accent); color:#fff; font-size:1.4rem; line-height:34px; text-align:center; flex-shrink:0; }
+.pass-create-title{ margin:0; font-family:var(--font-display); font-size:1.25rem; font-weight:600; }
+.pass-create-sub{ margin:3px 0 0; font-size:0.82rem; color:var(--ink-soft); }
+.pass-section-title{ margin:0; font-family:var(--font-display); font-size:1.15rem; font-weight:600; }
+.pass-section-sub{ margin:3px 0 12px; font-size:0.82rem; color:var(--muted); }
+.restricted-callout{ display:flex; gap:10px; align-items:flex-start; background:var(--amber-soft); border:1px solid #E5C3A6; border-left:4px solid var(--amber); border-radius:6px; padding:11px 13px; margin:0 0 14px; font-size:0.82rem; color:#5A3418; line-height:1.45; }
+.restricted-callout svg{ flex-shrink:0; margin-top:2px; }
+.restricted-callout b{ display:block; font-size:0.84rem; margin-bottom:2px; letter-spacing:0.01em; }
+.restricted-callout.is-open{ background:#FBF1E6; }
+.mask-lock{ display:inline-flex; align-items:center; gap:4px; margin-left:8px; padding:2px 8px; border-radius:999px; background:var(--amber-soft); color:var(--amber); font-size:0.64rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; vertical-align:middle; }
+.mask-sensitive{ display:block; margin-top:4px; font-size:0.76rem; color:var(--amber); }
+.pass-list-lock{ display:inline-flex; vertical-align:-2px; margin-left:6px; color:var(--amber); }
 .pass-create .field{ margin-bottom:14px; max-width:380px; }
+.pass-create .mask-options{ margin-top:6px; }
 .pass-new-expiry-row{ margin:4px 0 18px; }
 .pass-new-expiry-row select{ width:auto; flex:0 0 220px; }
 .mask-option{ display:flex; gap:12px; align-items:flex-start; border:1px solid var(--line); border-radius: var(--radius); padding:14px 16px; background: var(--paper-raise); cursor:pointer; transition: box-shadow .15s ease; }
@@ -2110,12 +2124,12 @@ body.marketing-mode #ai-status{ display:none; }
           <h1>Your Pass</h1>
         </div>
       </header>
-      <p class="lede">Create a separate pass for each person or institution you share with. Every pass has its own QR code, its own level of detail, and its own expiry — so you stay in control of exactly who sees what, and can switch any one of them off without touching the others. They'll still run their own checks — this just means they're not starting from zero.</p>
 
       <div id="pass-loading" class="side-note">Loading…</div>
 
       <div id="pass-content" class="split" style="display:none">
         <div class="split-main">
+          <p class="lede" id="pass-lede" style="margin-top:0">Create a separate pass for each person or institution you share with. Every pass has its own QR code, its own level of detail, and its own expiry — so you stay in control of exactly who sees what, and can switch any one of them off without touching the others. They'll still run their own checks — this just means they're not starting from zero.</p>
           <p id="pass-empty" class="side-note" style="display:none">You haven't created a pass for this company yet — choose a level below and create your first one.</p>
 
           <div id="pass-selected-area" style="display:none">
@@ -2156,14 +2170,21 @@ body.marketing-mode #ai-status{ display:none; }
           </div>
 
           <div class="pass-list-section" id="pass-list-section" style="display:none">
-            <p class="side-title">Your passes</p>
+            <p class="pass-section-title">Manage your passes</p>
+            <p class="pass-section-sub">Select a pass to see its card, link, QR code and who can open it.</p>
             <p class="pass-list-count" id="pass-list-count"></p>
             <div class="pass-list" id="pass-list"><!-- rendered by renderPassList() --></div>
             <div class="pass-pager" id="pass-pager"><!-- page tabs, rendered by renderPassList() --></div>
           </div>
 
           <div class="pass-create">
-            <p class="side-title">Create a new pass</p>
+            <div class="pass-create-head">
+              <span class="pass-create-plus" aria-hidden="true">+</span>
+              <div>
+                <p class="pass-create-title">Create a new pass</p>
+                <p class="pass-create-sub">Start a separate pass for a new person or institution. Your existing passes are not affected.</p>
+              </div>
+            </div>
             <label class="field">
               <span>Name (optional — only you see this, e.g. "HSBC intro")</span>
               <input type="text" id="pass-new-label" maxlength="60" placeholder="e.g. Meeting with ABC Bank">
@@ -2179,6 +2200,7 @@ body.marketing-mode #ai-status{ display:none; }
               <input type="date" class="field-text" id="pass-new-expiry-date" style="display:none">
             </div>
             <p class="pass-expiry-hint" id="pass-new-expiry-hint"></p>
+            <div class="restricted-callout" id="pass-new-restricted" style="display:none"></div>
             <div id="pass-new-access-wrap" style="display:none;margin-bottom:12px">
               <p class="side-title" style="margin-bottom:6px">Who can open it?</p>
               <label class="pass-access-opt"><input type="radio" name="pass-new-access" value="named" checked><span>Only the people I name<small>They confirm their email address with a one-time code. Works with any email, including Gmail. You add the addresses after creating the pass, or just send it by email.</small></span></label>
@@ -2193,6 +2215,7 @@ body.marketing-mode #ai-status{ display:none; }
           <p class="side-title">Share this pass</p>
           <p class="side-note" id="pass-selected-level" style="margin-top:-4px"></p>
           <div id="pass-status-banner-wrap"></div>
+          <div id="pass-restricted-banner-wrap"></div>
 
           <div class="pass-link-row">
             <input type="text" class="field-text" id="pass-share-url" readonly>
@@ -4657,6 +4680,7 @@ function passMaxDateString(tier){
   const d = passMaxTimestamp(tier); if(!d) return '';
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
+const LOCK_SVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10.5" width="16" height="10.5" rx="2.2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>`;
 function passNeedsVerification(tier){ return ['standard', 'full', 'full_document'].includes(tier); }
 function passUrlFor(link, source){ return `${PASS_VIEWER_BASE_URL}?t=${link.share_token}&s=${source}`; }
 let pendingPassRecipientOrg = ''; // set by the Matching screen's "Send them my pass" so the Pass screen opens pre-filled
@@ -4793,7 +4817,7 @@ function renderPassList(){
     return `
       <button type="button" class="pass-list-item ${currentPassLink?.link_id === l.link_id ? 'selected' : ''}" data-link-id="${l.link_id}">
         <div>
-          <div class="pass-list-name">${escapeHtml(label || tierName)}</div>
+          <div class="pass-list-name">${escapeHtml(label || tierName)}${passNeedsVerification(l.pass_tier) ? `<span class="pass-list-lock" title="Restricted: sensitive data, appointed recipients only">${LOCK_SVG.replace('width="16" height="16"','width="13" height="13"')}</span>` : ''}</div>
           <div class="pass-list-sub">${escapeHtml(sub)}</div>
         </div>
         <span class="pass-chip pass-chip-${status}">${PASS_STATUS_LABELS[status]}</span>
@@ -4828,8 +4852,9 @@ function renderPassTierOptions(){
     <label class="mask-option ${t.key === newPassTier ? 'selected' : ''}">
       <input type="radio" name="pass-tier" value="${t.key}" ${t.key === newPassTier ? 'checked' : ''}>
       <div class="mask-body">
-        <span class="mask-name">${t.name}</span>
+        <span class="mask-name">${t.name}${passNeedsVerification(t.key) ? `<span class="mask-lock">${LOCK_SVG.replace('width="16" height="16"','width="11" height="11"')} Restricted</span>` : ''}</span>
         <span class="mask-desc">${t.desc}</span>
+        ${passNeedsVerification(t.key) ? `<span class="mask-sensitive">Contains sensitive company data. Only the people or organisation you appoint can open it.</span>` : ''}
       </div>
     </label>
   `).join('');
@@ -4855,6 +4880,11 @@ function renderNewPassExpiryOptions(){
   if(!sel) return;
   const accessWrap = document.getElementById('pass-new-access-wrap');
   if(accessWrap) accessWrap.style.display = passNeedsVerification(newPassTier) ? '' : 'none';
+  const restricted = document.getElementById('pass-new-restricted');
+  if(restricted){
+    restricted.style.display = passNeedsVerification(newPassTier) ? '' : 'none';
+    restricted.innerHTML = `${LOCK_SVG}<div><b>Restricted pass: sensitive data</b>This level shows your company's detailed, sensitive information. Share it only with the person or organisation you appoint. They must confirm their email with a one-time code, and each visit is recorded.</div>`;
+  }
   const maxM = passMaxMonths(newPassTier);
   const previous = sel.value;
   const opts = maxM
@@ -5185,9 +5215,20 @@ const PERSONAL_MAIL_DOMAINS = new Set(['gmail.com','googlemail.com','outlook.com
 let passAllowed = [];
 let ownerEmailLower = '';
 
+function renderPassRestrictedBanner(){
+  const wrap = document.getElementById('pass-restricted-banner-wrap');
+  if(!wrap || !currentPassLink) return;
+  if(!passNeedsVerification(currentPassLink.pass_tier)){ wrap.innerHTML = ''; return; }
+  const named = currentPassLink.access_mode === 'named';
+  wrap.innerHTML = `<div class="restricted-callout ${named ? '' : 'is-open'}">${LOCK_SVG}<div><b>Restricted pass: sensitive data</b>${named
+    ? 'Only the people and organisations on your list can open this pass, after confirming their email address with a one-time code. Everyone else is turned away.'
+    : 'This pass holds sensitive company data, and anyone with a work email address can open it. For tighter control, choose "Only the people I name" under "Who can open this pass".'}</div></div>`;
+}
+
 function renderPassAccessBox(){
   const box = document.getElementById('pass-access-box');
   if(!box || !currentPassLink) return;
+  renderPassRestrictedBanner();
   const needs = passNeedsVerification(currentPassLink.pass_tier);
   box.style.display = needs ? '' : 'none';
   if(!needs) return;
