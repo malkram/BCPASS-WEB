@@ -139,6 +139,16 @@ ul{ margin:0; padding:0; list-style:none; }
 .auth-note{ font-size:0.83rem; color: var(--muted); max-width: 42ch; }
 .auth-security{ display:flex; align-items:center; gap:8px; font-size:0.82rem; color: var(--ink-soft); margin-top:18px; padding-top:16px; border-top:1px solid var(--line); }
 .dot{ width:7px; height:7px; border-radius:50%; background: var(--accent); display:inline-block; }
+/* Social / work-account sign-in (14 Oct 2026). Hidden until at least one provider is switched on in Supabase. */
+.sso-block{ margin: -2px 0 18px; }
+.sso-divider{ display:flex; align-items:center; gap:12px; color: var(--muted); font-size:0.8rem; margin: 2px 0 14px; }
+.sso-divider::before, .sso-divider::after{ content:''; flex:1; height:1px; background: var(--line); }
+.sso-buttons{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.sso-btn{ font:inherit; font-size:0.88rem; font-weight:600; padding:10px 12px; border:1px solid var(--line-strong); border-radius: 999px; background: var(--paper-raise); color: var(--ink); cursor:pointer; text-align:center; }
+.sso-btn:hover, .sso-btn:focus-visible{ border-color: var(--ink); }
+.sso-btn:disabled{ opacity:.6; cursor:wait; }
+.sso-note{ font-size:0.8rem; color: var(--muted); margin-top:10px; }
+@media (max-width:420px){ .sso-buttons{ grid-template-columns:1fr; } }
 
 .auth-side{ background: var(--paper-raise); border:1px solid var(--line); border-radius: var(--radius); padding: 22px; }
 .ledger-preview{ display:flex; flex-direction:column; }
@@ -2084,6 +2094,16 @@ body.marketing-mode #ai-status{ display:none; }
           <button type="submit" class="btn btn-primary btn-block">Continue</button>
           <p class="field-note" id="login-error" style="color:var(--amber); display:none;"></p>
         </form>
+        <div class="sso-block" data-sso hidden>
+          <div class="sso-divider"><span>or</span></div>
+          <div class="sso-buttons">
+            <button type="button" class="sso-btn" data-sso-provider="google" hidden>Continue with Google</button>
+            <button type="button" class="sso-btn" data-sso-provider="azure" hidden>Continue with Microsoft</button>
+            <button type="button" class="sso-btn" data-sso-provider="apple" hidden>Continue with Apple</button>
+            <button type="button" class="sso-btn" data-sso-provider="linkedin_oidc" hidden>Continue with LinkedIn</button>
+          </div>
+          <p class="sso-note">You'll still set up two-factor authentication. It is required on every account.</p>
+        </div>
         <p class="auth-switch">New to BCPASS? <a data-goto="signup">Create an account →</a></p>
         <p class="auth-note">One login can hold profiles for several companies. Each colleague signs in separately — nothing is shared by default.</p>
         <div class="auth-security">
@@ -2138,6 +2158,16 @@ body.marketing-mode #ai-status{ display:none; }
           <p class="field-note" id="signup-error" style="color:var(--amber); display:none;"></p>
           <p class="field-note" id="signup-notice" style="color:var(--accent); display:none;"></p>
         </form>
+        <div class="sso-block" data-sso hidden>
+          <div class="sso-divider"><span>or</span></div>
+          <div class="sso-buttons">
+            <button type="button" class="sso-btn" data-sso-provider="google" hidden>Continue with Google</button>
+            <button type="button" class="sso-btn" data-sso-provider="azure" hidden>Continue with Microsoft</button>
+            <button type="button" class="sso-btn" data-sso-provider="apple" hidden>Continue with Apple</button>
+            <button type="button" class="sso-btn" data-sso-provider="linkedin_oidc" hidden>Continue with LinkedIn</button>
+          </div>
+          <p class="sso-note">You'll still set up two-factor authentication. It is required on every account.</p>
+        </div>
         <p class="auth-switch">Already have an account? <a data-goto="login">Sign in →</a></p>
       </div>
       <div class="auth-side" aria-hidden="true">
@@ -2885,6 +2915,19 @@ try{ Object.keys(window.localStorage).filter(k => /^sb-.*-auth-token/.test(k)).f
 // the address. A good link is handled by the PASSWORD_RECOVERY event below; a used/expired one arrives as an error.
 const URL_LINK_ERROR = /[#&?]error(_code)?=/.test(window.location.hash + window.location.search)
   && /otp_expired|access_denied|invalid|expired/i.test(decodeURIComponent((window.location.hash + window.location.search).replace(/\+/g, ' ')));
+// 14 Oct 2026 (single sign-on): an OAuth sign-in comes back to this page with the session in the address (access_token and no
+// "type="). Captured here, before supabase-js clears the address, so we know to route the person through the 2FA gate. A failed
+// or cancelled sign-in comes back as an error; those are only treated as sign-in errors when WE started one (flag in sessionStorage).
+const SSO_FLAG_KEY = 'bcpass_sso_started';
+const _ssoAddr = window.location.hash + '&' + window.location.search;
+const SSO_RETURNED = /[#&?]access_token=/.test(_ssoAddr) && !/[#&?]type=/.test(_ssoAddr);
+const SSO_ERROR_TEXT = (() => {
+  if(!/[#&?]error(_code)?=/.test(_ssoAddr)) return '';
+  let started = false; try{ started = window.sessionStorage.getItem(SSO_FLAG_KEY) === '1'; }catch(_){}
+  if(!started) return '';
+  const m = _ssoAddr.match(/[#&?]error_description=([^&]*)/);
+  try{ return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : 'Sign-in was cancelled or could not be completed.'; }catch(_){ return 'Sign-in could not be completed.'; }
+})();
 const supabaseClient = (typeof supabase !== 'undefined' && SUPABASE_ANON_KEY !== "YOUR_ANON_KEY_HERE")
   ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { storage: authStorage, persistSession: true, autoRefreshToken: true } })
   : null;
@@ -3674,6 +3717,77 @@ async function handleAuthSignOut(){
 }
 document.getElementById('mfa-enroll-logout')?.addEventListener('click', (e) => { e.preventDefault(); handleAuthSignOut(); });
 document.getElementById('mfa-challenge-logout')?.addEventListener('click', (e) => { e.preventDefault(); handleAuthSignOut(); });
+
+// ---- Single sign-on: Google, Microsoft, Apple, LinkedIn (14 Oct 2026) ----
+// Uses Supabase Auth's OAuth providers. A button only appears when that provider is switched on in the Supabase dashboard
+// (read from the public /auth/v1/settings endpoint), so nothing broken is ever shown before a provider is set up.
+// An account that signs in this way is only at password-level (aal1) like any other first step, so it goes through the SAME
+// routeAfterAuth() gate: 2FA set-up on first use, 2FA code on later sign-ins, dashboard only at aal2.
+// Name, if the provider supplies one, is read from user_metadata (full_name or name); job title is left blank.
+(function initSso(){
+  const blocks = document.querySelectorAll('[data-sso]');
+  const buttons = Array.from(document.querySelectorAll('[data-sso-provider]'));
+  if(!supabaseClient || !blocks.length) return;
+  const clearFlag = () => { try{ window.sessionStorage.removeItem(SSO_FLAG_KEY); }catch(_){} };
+  const errorBoxFor = el => el.closest('.screen')?.querySelector('.auth-form .field-note[id$="-error"]');
+  const showError = (el, msg) => { if(!el) return; el.textContent = msg; el.style.display = 'block'; };
+  const setBusy = on => buttons.forEach(b => { b.disabled = on; });
+
+  // Which providers are switched on?
+  fetch(SUPABASE_URL + '/auth/v1/settings', { headers: { apikey: SUPABASE_ANON_KEY } })
+    .then(r => r.ok ? r.json() : null)
+    .then(j => {
+      const ext = (j && j.external) || {};
+      let any = false;
+      buttons.forEach(b => { const on = ext[b.dataset.ssoProvider] === true; b.hidden = !on; if(on) any = true; });
+      blocks.forEach(bl => { bl.hidden = !any; });
+    })
+    .catch(() => { /* leave the buttons hidden: password sign-in still works */ });
+
+  let busy = false;
+  buttons.forEach(btn => btn.addEventListener('click', async () => {
+    if(busy) return;
+    busy = true; setBusy(true);
+    const box = errorBoxFor(btn);
+    if(box) box.style.display = 'none';
+    const provider = btn.dataset.ssoProvider;
+    try{
+      try{ window.sessionStorage.setItem(SSO_FLAG_KEY, '1'); }catch(_){}
+      const options = {};
+      if(/^https?:$/.test(window.location.protocol)) options.redirectTo = window.location.origin + window.location.pathname;
+      if(provider === 'azure'){ options.scopes = 'email'; options.queryParams = { prompt: 'select_account' }; }
+      if(provider === 'google'){ options.queryParams = { prompt: 'select_account' }; }
+      const { error } = await supabaseClient.auth.signInWithOAuth({ provider, options });
+      if(error) throw error;
+      // The browser is now being sent to the provider; leave the buttons switched off until it does.
+    }catch(err){
+      clearFlag();
+      showError(box, "We couldn't start that sign-in. Please try again, or use your email and password.");
+      busy = false; setBusy(false);
+    }
+  }));
+  // Coming back with the Back button must not leave the buttons dead.
+  window.addEventListener('pageshow', e => { if(e.persisted){ busy = false; setBusy(false); } });
+
+  // Returning from the provider.
+  let pending = SSO_RETURNED;
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    if(pending && session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')){
+      pending = false; clearFlag();
+      setTimeout(routeAfterAuth, 0); // deferred: supabase-js must not be called from inside its own auth callback
+    }
+  });
+  setTimeout(() => {
+    if(SSO_ERROR_TEXT){
+      clearFlag();
+      goToScreen('login');
+      const denied = /denied|cancel/i.test(SSO_ERROR_TEXT);
+      showError(document.getElementById('login-error'),
+        denied ? 'That sign-in was cancelled. You can try again, or use your email and password.'
+               : "We couldn't sign you in with that account (" + SSO_ERROR_TEXT.slice(0, 160) + "). Please try again, or use your email and password.");
+    } else if(SSO_RETURNED){ clearFlag(); }
+  }, 0);
+})();
 
 // ---- Login form ----
 const loginForm = document.getElementById('login-form');
@@ -5806,7 +5920,7 @@ async function renderBusinessCard(){
     try {
       const { data: { user } } = await supabaseClient.auth.getUser();
       const meta = user?.user_metadata || {};
-      if(nameEl) nameEl.textContent = meta.full_name?.trim() || '';
+      if(nameEl) nameEl.textContent = String(meta.full_name || meta.name || '').trim();
       if(roleEl) roleEl.textContent = meta.position?.trim() || '';
     } catch(err) {
       console.error('Could not load account details for business card:', err);
