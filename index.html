@@ -1077,6 +1077,21 @@ body.marketing-mode #ai-status{ display:none; }
 .chat-form textarea{ flex:1; font:inherit; font-size:0.93rem; padding:10px 12px; border:1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper-raise); color: var(--text); resize:vertical; min-height:44px; max-height:140px; }
 .chat-form textarea:focus{ border-color: var(--accent); }
 .chat-note{ font-size:0.78rem; color: var(--muted); margin:10px 0 0; }
+.chat-form-actions{ display:flex; gap:8px; align-items:center; flex:none; }
+.chat-mic{ width:44px; height:44px; flex:none; border-radius:50%; border:1px solid var(--line-strong); background: var(--paper-raise); color: var(--ink); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0; }
+.chat-mic:hover:not(:disabled){ border-color: var(--ink); }
+.chat-mic:disabled{ opacity:0.45; cursor:not-allowed; }
+.chat-mic.on{ background:#B3261E; border-color:#B3261E; color:#fff; animation: micpulse 1.4s ease-out infinite; }
+.chat-mic[hidden], .chat-vlang[hidden]{ display:none; }
+.chat-vlang{ font:inherit; font-size:0.78rem; border:1px solid var(--line-strong); background:transparent; color: var(--ink-soft); border-radius:999px; padding:7px 12px; cursor:pointer; white-space:nowrap; }
+.chat-vlang:hover:not(:disabled){ border-color: var(--ink); color: var(--ink); }
+.chat-vlang:disabled{ opacity:0.45; cursor:not-allowed; }
+.chat-voice-status{ font-size:0.82rem; color: var(--ink-soft); margin:8px 0 0; min-height:0; }
+.chat-voice-status:empty{ display:none; }
+.chat-voice-status.err{ color:#9A2B1F; }
+.chat-form textarea.is-listening{ border-color:#B3261E; }
+@keyframes micpulse{ 0%{ box-shadow:0 0 0 0 rgba(179,38,30,0.45); } 70%{ box-shadow:0 0 0 10px rgba(179,38,30,0); } 100%{ box-shadow:0 0 0 0 rgba(179,38,30,0); } }
+@media (prefers-reduced-motion: reduce){ .chat-mic.on{ animation:none; } }
 .chat-reply.skip{ border-style:dashed; color: var(--muted); }
 .chat-hint{ font-size:0.8rem; color: var(--muted); margin:-4px 0 10px; }
 .chat-hint:empty{ display:none; }
@@ -1091,7 +1106,7 @@ body.marketing-mode #ai-status{ display:none; }
 .choose-card.recommended{ border-color: var(--accent); background:#EEF6F2; }
 .choose-card .choose-tag{ align-self:flex-start; font-size:0.72rem; font-weight:600; color:#fff; background: var(--accent); border-radius:999px; padding:2px 10px; }
 @media (max-width:640px){ .choose-grid{ grid-template-columns:1fr; } }
-@media (max-width:560px){ .chat-msg{ max-width:96%; } .chat-form{ flex-direction:column; align-items:stretch; } }
+@media (max-width:560px){ .chat-msg{ max-width:96%; } .chat-form{ flex-direction:column; align-items:stretch; } .chat-form-actions #chat-send{ margin-left:auto; } }
 
 /* ---- BC monogram logo (9 Oct 2026): Abril Fatface B + C, C overlapping 28% ---- */
 .bc-mono{ display:inline-flex; align-items:center; font-family:"Abril Fatface", serif; font-weight:400; line-height:1; letter-spacing:0; font-size:1.55em; }
@@ -2439,9 +2454,15 @@ body.marketing-mode #ai-status{ display:none; }
             <p class="chat-hint" id="chat-hint"></p>
             <form class="chat-form" id="chat-form">
               <textarea id="chat-text" rows="2" maxlength="2000" placeholder="Type your answer…" aria-label="Your answer"></textarea>
-              <button type="submit" class="btn btn-primary" id="chat-send">Send</button>
+              <div class="chat-form-actions">
+                <button type="button" class="chat-mic" id="chat-mic" aria-pressed="false" aria-label="Speak your answer" title="Speak your answer" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></svg></button>
+                <button type="button" class="chat-vlang" id="chat-vlang" aria-label="Speaking language" title="Language you will speak in" hidden>English</button>
+                <button type="submit" class="btn btn-primary" id="chat-send">Send</button>
+              </div>
             </form>
+            <p class="chat-voice-status" id="chat-voice-status" role="status" aria-live="polite"></p>
             <p class="chat-note">Your answers go into the same profile as the form and are saved as you go. You can undo any answer here, or review and edit everything in the form.</p>
+            <p class="chat-note" id="chat-voice-note" hidden>Speaking is optional. It uses your browser's built-in speech recognition, which may send the audio to the browser's provider (for example Google in Chrome or Apple in Safari). BCPASS does not record or keep the audio, and only the text you send is saved. Check the text before you press Send.</p>
           </div>
           <div id="wizard-panel"></div>
           <div class="build-actions" id="wizard-actions">
@@ -7982,6 +8003,7 @@ function chatSetBusy(on){
   chatState.busy = on;
   document.getElementById('chat-send').disabled = on;
   chatTextEl.disabled = on;
+  if(window.__chatVoiceBusy) window.__chatVoiceBusy(on);
   chatRepliesEl.querySelectorAll('button').forEach(b => b.disabled = on);
 }
 
@@ -8130,6 +8152,7 @@ async function chatReview(index, afterChange){
 function chatSend(text){
   const t = (text || '').trim();
   if(!t || chatState.busy) return;
+  if(window.__chatVoiceStop) window.__chatVoiceStop();
   chatTextEl.value = '';
   chatTurn(t);
 }
@@ -8165,6 +8188,132 @@ document.getElementById('chat-form')?.addEventListener('submit', (e) => { e.prev
 chatTextEl?.addEventListener('keydown', (e) => {
   if(e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); chatSend(chatTextEl.value); }
 });
+
+// ---- Voice input for the profile chat (English / Cantonese), 19 Oct 2026 ----
+// Uses the browser's own speech recognition (Web Speech API). Nothing is recorded or sent by BCPASS: the browser turns speech into text,
+// the text appears in the answer box, and the person checks it and presses Send. Hidden where the browser has no speech recognition.
+(function(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const micEl = document.getElementById('chat-mic');
+  const langEl = document.getElementById('chat-vlang');
+  const statusEl = document.getElementById('chat-voice-status');
+  const noteEl = document.getElementById('chat-voice-note');
+  const ta = document.getElementById('chat-text');
+  if(!SR || !micEl || !langEl || !ta) return;
+  micEl.hidden = false; langEl.hidden = false; if(noteEl) noteEl.hidden = false;
+
+  const LANGS = {
+    en:  { label: 'English',  tags: ['en-GB', 'en-US'],          sep: ' ' },
+    yue: { label: '廣東話',    tags: ['yue-Hant-HK', 'zh-HK'],    sep: '' }
+  };
+  const MAX_MS = 90000;
+  let lang = 'en';
+  try{
+    const saved = localStorage.getItem('bcpass_voice_lang');
+    if(saved === 'en' || saved === 'yue') lang = saved;
+    else if(/^(zh|yue)/i.test(localStorage.getItem('bcpass_lang') || '')) lang = 'yue';
+  }catch(e){}
+  let rec = null, listening = false, userStopped = false, tagIdx = 0, base = '', finalText = '', timer = null, busy = false;
+
+  function setStatus(msg, isErr){ statusEl.textContent = msg || ''; statusEl.classList.toggle('err', !!isErr); }
+  function paintLang(){ langEl.textContent = LANGS[lang].label; langEl.setAttribute('aria-label', 'Speaking language: ' + LANGS[lang].label + '. Press to switch.'); }
+  function paintMic(){
+    micEl.classList.toggle('on', listening);
+    micEl.setAttribute('aria-pressed', listening ? 'true' : 'false');
+    const l = listening ? 'Stop listening' : 'Speak your answer';
+    micEl.setAttribute('aria-label', l); micEl.title = l;
+    ta.classList.toggle('is-listening', listening);
+    micEl.disabled = busy; langEl.disabled = busy;
+  }
+  function compose(interim){
+    const sep = (base && !/\s$/.test(base) && LANGS[lang].sep) ? LANGS[lang].sep : '';
+    let t = base + sep + finalText + (interim || '');
+    if(t.length > ta.maxLength && ta.maxLength > 0) t = t.slice(0, ta.maxLength);
+    ta.value = t;
+  }
+  function end(){
+    listening = false; clearTimeout(timer); timer = null; rec = null; paintMic();
+  }
+  function stop(){
+    userStopped = true;
+    if(rec){ try{ rec.stop(); }catch(e){} }
+    end();
+  }
+  function begin(){
+    if(busy || listening) return;
+    userStopped = false; tagIdx = 0; base = ta.value; finalText = '';
+    start();
+  }
+  function start(){
+    const me = new SR(); rec = me;
+    rec.lang = LANGS[lang].tags[tagIdx];
+    rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 1;
+    me.onresult = (ev) => {
+      if(me !== rec) return;
+      if(!document.getElementById('chat-panel').offsetParent){ stop(); return; }
+      let fin = '', interim = '';
+      for(let i = 0; i < ev.results.length; i++){
+        const r = ev.results[i];
+        if(r.isFinal) fin += r[0].transcript; else interim += r[0].transcript;
+      }
+      finalText = fin; compose(interim);
+    };
+    me.onerror = (ev) => {
+      if(me !== rec) return;
+      const code = ev && ev.error;
+      if(code === 'language-not-supported' && tagIdx + 1 < LANGS[lang].tags.length){
+        tagIdx++; try{ me.abort(); }catch(e){} rec = null; start(); return;
+      }
+      if(code === 'aborted' || code === 'no-speech' && userStopped) return;
+      const msgs = {
+        'not-allowed': 'The microphone is blocked. Allow microphone access for this site in your browser settings, or type your answer.',
+        'service-not-allowed': 'Voice input is not allowed in this browser. Please type your answer.',
+        'audio-capture': 'No microphone was found. Please check it is connected, or type your answer.',
+        'no-speech': "I didn't hear anything. Press the microphone and try again.",
+        'network': 'Voice input needs an internet connection. Please check it and try again, or type your answer.',
+        'language-not-supported': 'This browser cannot recognise that language by voice. Please type your answer or try another browser.'
+      };
+      setStatus(msgs[code] || 'Voice input stopped. Please try again or type your answer.', true);
+      userStopped = true; end();
+    };
+    me.onend = () => {
+      if(me !== rec) return;
+      // The browser also ends a session by itself after a pause; keep what was heard.
+      if(listening){
+        end();
+        if(ta.value.trim() && !statusEl.classList.contains('err')) setStatus('Stopped listening. Check the text, then press Send.');
+        else if(!statusEl.classList.contains('err')) setStatus("I didn't hear anything. Press the microphone and try again.", true);
+      }
+    };
+    try{
+      rec.start(); listening = true; paintMic();
+      setStatus(lang === 'yue' ? 'Listening in Cantonese… press the microphone again to stop. Check the text, then press Send.' : 'Listening… press the microphone again to stop. Check the text, then press Send.');
+      clearTimeout(timer);
+      timer = setTimeout(() => { stop(); setStatus('Stopped after 90 seconds. Check the text, then press Send.'); }, MAX_MS);
+    }catch(e){
+      end(); setStatus('Could not start voice input. Please try again or type your answer.', true);
+    }
+  }
+
+  micEl.addEventListener('click', () => {
+    if(listening){ stop(); if(!statusEl.classList.contains('err')) setStatus(ta.value.trim() ? 'Check the text, then press Send.' : ''); }
+    else { setStatus(''); begin(); }
+  });
+  langEl.addEventListener('click', () => {
+    if(listening) stop();
+    lang = lang === 'en' ? 'yue' : 'en';
+    try{ localStorage.setItem('bcpass_voice_lang', lang); }catch(e){}
+    paintLang(); setStatus('');
+  });
+  // Typing while listening takes over: stop so the typed text is not overwritten.
+  ta.addEventListener('input', () => { if(listening) stop(); });
+  document.addEventListener('visibilitychange', () => { if(document.hidden && listening) stop(); });
+  window.addEventListener('pagehide', () => { if(listening) stop(); });
+
+  window.__chatVoiceStop = () => { if(listening) stop(); setStatus(''); };
+  window.__chatVoiceBusy = (on) => { busy = !!on; if(on && listening) stop(); paintMic(); };
+  paintLang(); paintMic();
+})();
 chatReset();
 
 
