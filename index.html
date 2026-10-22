@@ -1077,6 +1077,60 @@ body.marketing-mode #ai-status{ display:none; }
 .chat-form textarea{ flex:1; font:inherit; font-size:0.93rem; padding:10px 12px; border:1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper-raise); color: var(--text); resize:vertical; min-height:44px; max-height:140px; }
 .chat-form textarea:focus{ border-color: var(--accent); }
 .chat-note{ font-size:0.78rem; color: var(--muted); margin:10px 0 0; }
+
+/* ---- Conversation page (22 Oct 2026) ---- */
+.rail-conv, .tab-conv{ position:relative; }
+.conv-badge{ display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; margin-left:8px; border-radius:999px; background:#E3B866; color:#102821; font-size:0.7rem; font-weight:700; line-height:1; }
+.conv-badge[hidden]{ display:none; }
+.tab-conv .conv-badge{ position:absolute; top:0; left:calc(50% + 6px); margin:0; min-width:16px; height:16px; font-size:0.62rem; }
+.cv-tabs{ display:flex; gap:4px; border-bottom:1px solid var(--line); margin:0 0 18px; }
+.cv-tab{ font:inherit; font-size:0.92rem; background:none; border:none; border-bottom:2px solid transparent; padding:9px 14px; color: var(--muted); cursor:pointer; margin-bottom:-1px; }
+.cv-tab:hover{ color: var(--ink); }
+.cv-tab.active{ color: var(--ink); border-bottom-color: var(--accent); font-weight:500; }
+.cv-pane[hidden]{ display:none; }
+.cv-intro{ max-width:62ch; color: var(--ink-soft); font-size:0.95rem; margin:0 0 14px; }
+.cv-h{ font-size:1.05rem; margin:22px 0 8px; font-family: var(--font-display); font-weight:500; }
+.cv-log{ display:flex; flex-direction:column; gap:12px; min-height:180px; max-height:520px; overflow-y:auto; padding:6px 2px; margin:0 0 8px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+.cv-empty{ color: var(--muted); font-size:0.9rem; padding:18px 4px; }
+.cv-msg{ max-width:80%; display:flex; flex-direction:column; gap:3px; }
+.cv-msg.staff{ align-self:flex-start; }
+.cv-msg.client{ align-self:flex-end; align-items:flex-end; }
+.cv-who{ font-size:0.74rem; color: var(--muted); }
+.cv-bubble{ padding:9px 13px; border-radius:14px; font-size:0.94rem; line-height:1.45; white-space:pre-wrap; overflow-wrap:anywhere; }
+.cv-msg.staff .cv-bubble{ background: var(--paper-raise); border:1px solid var(--line); color: var(--ink); border-bottom-left-radius:4px; }
+.cv-msg.client .cv-bubble{ background: var(--accent); color:#fff; border-bottom-right-radius:4px; }
+.cv-note{ align-self:stretch; text-align:center; font-size:0.82rem; color: var(--muted); background: var(--accent-soft); border-radius:6px; padding:7px 10px; white-space:pre-wrap; }
+.cv-card{ align-self:flex-start; width:min(560px,100%); background:#fff; border:1px solid var(--line-strong); border-left:4px solid var(--accent); border-radius:6px; padding:12px 14px 10px; }
+.cv-card.summary{ border-left-color:#E3B866; }
+.cv-card h3{ font-size:0.98rem; margin:0 0 2px; font-family: var(--font-display); font-weight:500; }
+.cv-card .cv-kind{ font-size:0.74rem; color: var(--muted); margin:0 0 8px; }
+.cv-card .cv-text{ font-size:0.93rem; white-space:pre-wrap; overflow-wrap:anywhere; }
+.cv-item{ padding:9px 0; border-top:1px solid var(--line); }
+.cv-item:first-of-type{ border-top:none; }
+.cv-item-text{ font-size:0.93rem; margin:0 0 7px; overflow-wrap:anywhere; }
+.cv-item-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+.cv-item-done{ font-size:0.85rem; color: var(--ink-soft); }
+.cv-item-done.no{ color:#9A2B1F; }
+.cv-item-done small{ display:block; color: var(--muted); }
+.cv-fix{ display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
+.cv-fix input{ flex:1; min-width:180px; font:inherit; font-size:0.9rem; padding:8px 10px; border:1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper-raise); color: var(--text); }
+.cv-time{ font-size:0.72rem; color: var(--muted); }
+.cv-filebox{ display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--line); border-radius:8px; padding:9px 12px; }
+.cv-msg.client .cv-filebox{ color: var(--ink); }
+.cv-file-name{ font-size:0.9rem; overflow-wrap:anywhere; }
+.cv-status{ font-size:0.84rem; color: var(--ink-soft); margin:6px 0 0; }
+.cv-status:empty{ display:none; }
+.cv-status.err{ color:#9A2B1F; }
+.cv-form{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+.cv-form textarea{ width:100%; font:inherit; font-size:0.94rem; padding:10px 12px; border:1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper-raise); color: var(--text); resize:vertical; min-height:70px; max-height:220px; }
+.cv-form textarea:focus{ border-color: var(--accent); outline:none; }
+.cv-actions{ display:flex; gap:10px; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+.cv-list{ display:flex; flex-direction:column; gap:8px; }
+.cv-row{ background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px 13px; font-size:0.92rem; }
+.cv-row b{ font-weight:500; }
+.cv-row small{ display:block; color: var(--muted); margin-top:2px; }
+.cv-row .btn{ margin-top:6px; }
+@media (max-width:560px){ .cv-msg{ max-width:94%; } .cv-actions{ flex-direction:column-reverse; align-items:stretch; } }
 .chat-form-actions{ display:flex; gap:8px; align-items:center; flex:none; }
 .chat-mic{ width:44px; height:44px; flex:none; border-radius:50%; border:1px solid var(--line-strong); background: var(--paper-raise); color: var(--ink); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0; }
 .chat-mic:hover:not(:disabled){ border-color: var(--ink); }
@@ -1317,6 +1371,7 @@ body.marketing-mode #ai-status{ display:none; }
       </li>
       <li><button class="rail-btn" data-screen="matching">Matching</button></li>
       <li><button class="rail-btn" data-screen="appointments">Appointments</button></li>
+      <li><button class="rail-btn rail-conv" data-screen="conversation">Conversation<span class="conv-badge" data-conv-badge hidden aria-label="Unread messages"></span></button></li>
     </ul>
     <div class="rail-foot">Prototype — UK &amp; HK pilot</div>
   </nav>
@@ -2896,6 +2951,53 @@ body.marketing-mode #ai-status{ display:none; }
       </div>
     </section>
 
+    <section class="screen" id="screen-conversation">
+      <header class="screen-head">
+        <div>
+          <p class="kicker" id="cv-company">Your company</p>
+          <h1>Conversation</h1>
+        </div>
+      </header>
+
+      <p class="side-note" id="cv-nocase" hidden>Choose a company from your dashboard first, then come back here.</p>
+
+      <div id="cv-wrap" hidden>
+        <div class="cv-tabs" role="tablist" aria-label="Conversation sections">
+          <button type="button" class="cv-tab active" role="tab" aria-selected="true" data-cvtab="messages">Messages</button>
+          <button type="button" class="cv-tab" role="tab" aria-selected="false" data-cvtab="agreements">Agreements</button>
+          <button type="button" class="cv-tab" role="tab" aria-selected="false" data-cvtab="files">Files</button>
+        </div>
+
+        <div class="cv-pane" id="cv-pane-messages" role="tabpanel">
+          <p class="cv-intro">Write to the BCPASS team about this company, for example the financing support you are looking for. We reply here, and only email you to say there is a new message.</p>
+          <div class="cv-log" id="cv-log" role="log" aria-live="polite" aria-label="Conversation with the BCPASS team"></div>
+          <p class="cv-status" id="cv-status" role="status" aria-live="polite"></p>
+          <form class="cv-form" id="cv-form">
+            <textarea id="cv-text" rows="3" maxlength="2000" placeholder="Write a message…" aria-label="Your message"></textarea>
+            <div class="cv-actions">
+              <input type="file" id="cv-file" hidden>
+              <button type="button" class="btn btn-ghost" id="cv-attach">Attach a file</button>
+              <button type="submit" class="btn btn-primary" id="cv-send">Send</button>
+            </div>
+          </form>
+          <p class="chat-note">Your written messages are read by people at BCPASS, not by AI. Please do not send passwords. A message here cannot give consent to share your information: we will always ask for that on a separate screen. Files you attach are handled like any document you upload on the Documents page (the same checks and page limit), and are filed with this company's documents.</p>
+        </div>
+
+        <div class="cv-pane" id="cv-pane-agreements" role="tabpanel" hidden>
+          <p class="cv-intro">A record of what you have confirmed in this conversation, and the passes you have shared. Nothing here can be changed after the fact.</p>
+          <h2 class="cv-h">Confirmed in this conversation</h2>
+          <div id="cv-agr-conf" class="cv-list"></div>
+          <h2 class="cv-h">Passes you have shared</h2>
+          <div id="cv-agr-pass" class="cv-list"></div>
+        </div>
+
+        <div class="cv-pane" id="cv-pane-files" role="tabpanel" hidden>
+          <p class="cv-intro">Every file in this conversation. Files the BCPASS team sends you (a proposal, for example) stay here and are never treated as evidence about your company.</p>
+          <div id="cv-files" class="cv-list"></div>
+        </div>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -2919,6 +3021,7 @@ body.marketing-mode #ai-status{ display:none; }
   <button class="tab-btn" data-screen="build" data-group="build documents summary pass"><span class="tab-ic">●</span>Your pass</button>
   <button class="tab-btn" data-screen="matching"><span class="tab-ic">⇄</span>Matching</button>
   <button class="tab-btn" data-screen="appointments"><span class="tab-ic">◷</span>Appts</button>
+  <button class="tab-btn tab-conv" data-screen="conversation"><span class="tab-ic">✉</span>Chat<span class="conv-badge" data-conv-badge hidden aria-label="Unread messages"></span></button>
 </nav>
 
 <!-- ============ PUBLIC SITE FOOTER (marketing pages only) ============ -->
@@ -3776,6 +3879,7 @@ async function handleAuthSignOut(){
   aiStatus.clear();
   currentCaseId = null;
   resetCaseScopedState();
+  if(typeof convReset === 'function') convReset();
   pendingEnrollFactorId = null;
   pendingChallengeFactorId = null;
   pendingChallengeId = null;
@@ -6776,6 +6880,8 @@ function showScreen(name){
   if(name === 'mfa-challenge'){ const n = document.getElementById('mfa-challenge-recovery-note'); if(n) n.style.display = passwordRecovery ? 'block' : 'none'; startMfaChallenge(); }
   if(name === 'build'){ try{ refreshSignoffControls(); }catch(_){} } // buttons may have been left switched off when the client last navigated away
   if(name === 'appointments') initAppointmentsScreen();
+  if(name === 'conversation') initConversationScreen();
+  else if(isProtectedScreen(name)) convRefreshBadge(false);
   if(name === 'forgot') initForgotScreen();
   if(name === 'reset') initResetScreen();
 
@@ -8330,6 +8436,284 @@ document.querySelectorAll('.mask-option').forEach(opt => {
   });
 });
 
+
+// ---- Conversation page (22 Oct 2026): one thread per company with the BCPASS team ----
+// Phase 1 = people only (no AI reads this thread). Everything goes through the `conversation` edge function, which checks the
+// company belongs to the signed-in person. The team writes from Retool; the client is emailed only "you have a new message".
+// Cards: the team can post a "things to confirm" list or a single change to confirm; each tap is recorded with the exact text.
+// Consent to share information is never taken here: nothing typed or tapped in this thread grants it.
+const CV = { caseId: null, messages: [], tab: 'messages', timer: null, badgeAt: 0, editing: false, sig: '', sending: false };
+const cvEl = id => document.getElementById(id);
+function cvH(tag, cls, text){ const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; }
+function cvTime(iso){
+  try{ return new Date(iso).toLocaleString(undefined, { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }); }catch(_){ return ''; }
+}
+function cvStatus(msg, isErr){ const el = cvEl('cv-status'); if(!el) return; el.textContent = msg || ''; el.classList.toggle('err', !!isErr); }
+function cvSetBadge(n){
+  document.querySelectorAll('[data-conv-badge]').forEach(b => {
+    if(n > 0){ b.textContent = n > 9 ? '9+' : String(n); b.hidden = false; } else { b.hidden = true; b.textContent = ''; }
+  });
+}
+async function convRefreshBadge(force){
+  if(!supabaseClient) return;
+  if(!force && Date.now() - CV.badgeAt < 30000) return;
+  CV.badgeAt = Date.now();
+  try{ const r = await callFunction('conversation', { action:'unread' }); cvSetBadge(r.total || 0); }catch(_){ /* not signed in, or offline: no badge */ }
+}
+function convReset(){
+  CV.caseId = null; CV.messages = []; CV.sig = ''; CV.editing = false; CV.tab = 'messages';
+  cvStop(); cvSetBadge(0);
+  const log = cvEl('cv-log'); if(log) log.replaceChildren();
+  const t = cvEl('cv-text'); if(t) t.value = '';
+  cvStatus('');
+}
+function cvStop(){ if(CV.timer){ clearInterval(CV.timer); CV.timer = null; } }
+function cvStart(){
+  cvStop();
+  CV.timer = setInterval(() => {
+    const active = cvEl('screen-conversation')?.classList.contains('active');
+    if(!active){ cvStop(); return; }
+    if(!document.hidden) cvLoad(false);
+  }, 20000);
+}
+document.addEventListener('visibilitychange', () => {
+  if(!document.hidden && cvEl('screen-conversation')?.classList.contains('active')) cvLoad(false);
+});
+
+function initConversationScreen(){
+  const has = !!currentCaseId;
+  cvEl('cv-nocase').hidden = has;
+  cvEl('cv-wrap').hidden = !has;
+  cvEl('cv-company').textContent = (kycProfile.legal_entity_name || '').trim() || 'Your company';
+  if(!has){ cvStop(); return; }
+  if(CV.caseId !== currentCaseId){
+    CV.caseId = currentCaseId; CV.messages = []; CV.sig = ''; CV.editing = false;
+    cvEl('cv-log').replaceChildren(); cvEl('cv-text').value = ''; cvStatus('');
+  }
+  cvTab(CV.tab || 'messages');
+  cvLoad(true);
+  cvStart();
+}
+
+async function cvLoad(first){
+  const caseId = CV.caseId; if(!caseId) return;
+  try{
+    const r = await callFunction('conversation', { action:'list', case_id: caseId, mark_read: true });
+    if(caseId !== CV.caseId) return;
+    CV.messages = r.messages || [];
+    if(r.company) cvEl('cv-company').textContent = r.company;
+    cvRender(first);
+    if(CV.tab === 'files') cvRenderFiles();
+    convRefreshBadge(true);
+  }catch(err){
+    if(first) cvStatus(err.message || 'We could not load the conversation. Please try again.', true);
+  }
+}
+
+function cvRender(force){
+  if(CV.editing && !force) return; // do not rebuild the list while the person is typing a correction
+  const msgs = CV.messages;
+  const answered = msgs.filter(m => m.kind === 'confirmation').length;
+  const sig = msgs.length + '|' + (msgs.length ? msgs[msgs.length - 1].id : '') + '|' + answered;
+  if(!force && sig === CV.sig) return;
+  CV.sig = sig;
+  const log = cvEl('cv-log');
+  const atBottom = log.scrollTop + log.clientHeight >= log.scrollHeight - 40;
+  const answers = new Map();
+  msgs.forEach(m => { if(m.kind === 'confirmation') answers.set(m.ref + '|' + m.item, m); });
+  const nodes = [];
+  msgs.forEach(m => {
+    if(m.kind === 'confirmation') return; // shown on its card (and in Agreements)
+    if(m.kind === 'notice'){ nodes.push(cvH('div', 'cv-note', m.body || '')); return; }
+    if(m.kind === 'call_summary'){
+      const c = cvH('div', 'cv-card summary');
+      c.append(cvH('h3', null, 'Call summary'), cvH('p', 'cv-kind', 'From the BCPASS team · ' + cvTime(m.created_at)), cvH('div', 'cv-text', m.body || ''));
+      nodes.push(c); return;
+    }
+    if(m.kind === 'confirm_card'){ nodes.push(cvCard(m, answers)); return; }
+    const mine = m.role === 'client';
+    const wrap = cvH('div', 'cv-msg ' + (mine ? 'client' : 'staff'));
+    wrap.append(cvH('span', 'cv-who', (mine ? 'You' : 'BCPASS team') + ' · ' + cvTime(m.created_at)));
+    if(m.kind === 'file'){
+      const box = cvH('div', 'cv-filebox');
+      box.append(cvH('span', 'cv-file-name', (mine ? 'File sent: ' : 'File from the BCPASS team: ') + (m.file_name || 'file')));
+      const b = cvH('button', 'btn btn-ghost btn-small', 'Open'); b.type = 'button';
+      b.addEventListener('click', () => cvOpenFile(m.id, b));
+      box.append(b); wrap.append(box);
+    } else {
+      wrap.append(cvH('div', 'cv-bubble', m.body || ''));
+    }
+    nodes.push(wrap);
+  });
+  if(!nodes.length) nodes.push(cvH('div', 'cv-empty', 'No messages yet. Write to the BCPASS team below, for example what financing support you are looking for.'));
+  log.replaceChildren(...nodes);
+  if(force || atBottom) log.scrollTop = log.scrollHeight;
+}
+
+function cvCard(m, answers){
+  const card = m.card || {};
+  const instr = card.type === 'instruction';
+  const wrap = cvH('div', 'cv-card');
+  wrap.append(cvH('h3', null, card.title || (instr ? 'Please confirm this change' : 'Things to confirm')),
+              cvH('p', 'cv-kind', (instr ? 'Please confirm this change' : 'Please check each point') + ' · BCPASS team · ' + cvTime(m.created_at)));
+  (card.items || []).forEach(it => {
+    const row = cvH('div', 'cv-item');
+    row.append(cvH('p', 'cv-item-text', it.text || ''));
+    const a = answers.get(m.id + '|' + it.id);
+    if(a){
+      const ok = a.answer === 'confirm';
+      const d = cvH('div', 'cv-item-done' + (ok ? '' : ' no'));
+      d.append(document.createTextNode(ok ? (instr ? 'You confirmed this change' : 'You confirmed this is correct') : (instr ? "You asked us not to go ahead" : 'You said this is not right')));
+      const sm = cvH('small', null, cvTime(a.created_at) + (a.comment ? ' · "' + a.comment + '"' : '') + ' · recorded');
+      d.append(sm); row.append(d);
+    } else {
+      const acts = cvH('div', 'cv-item-actions');
+      const yes = cvH('button', 'btn btn-primary btn-small', instr ? 'Confirm this change' : 'Yes, correct'); yes.type = 'button';
+      const no = cvH('button', 'btn btn-ghost btn-small', instr ? "Don't go ahead" : 'Not right'); no.type = 'button';
+      acts.append(yes, no); row.append(acts);
+      yes.addEventListener('click', () => cvAnswer(m.id, it.id, 'confirm', '', [yes, no]));
+      no.addEventListener('click', () => {
+        if(row.querySelector('.cv-fix')) return;
+        CV.editing = true;
+        const fix = cvH('div', 'cv-fix');
+        const inp = cvH('input'); inp.type = 'text'; inp.maxLength = 500;
+        inp.placeholder = instr ? 'Tell us why (optional)' : 'What should it say? (optional)';
+        inp.setAttribute('aria-label', inp.placeholder);
+        const send = cvH('button', 'btn btn-primary btn-small', 'Send'); send.type = 'button';
+        const cancel = cvH('button', 'btn btn-ghost btn-small', 'Cancel'); cancel.type = 'button';
+        fix.append(inp, send, cancel); row.append(fix); inp.focus();
+        cancel.addEventListener('click', () => { fix.remove(); CV.editing = false; });
+        send.addEventListener('click', () => cvAnswer(m.id, it.id, 'not_right', inp.value.trim(), [yes, no, send, cancel]));
+        inp.addEventListener('keydown', e => { if(e.key === 'Enter' && !e.isComposing){ e.preventDefault(); send.click(); } });
+      });
+    }
+    wrap.append(row);
+  });
+  return wrap;
+}
+
+async function cvAnswer(messageId, itemId, answer, comment, buttons){
+  buttons.forEach(b => b.disabled = true);
+  try{
+    await callFunction('conversation', { action:'confirm', case_id: CV.caseId, message_id: messageId, item_id: itemId, answer, comment });
+    CV.editing = false; cvStatus('');
+    await cvLoad(false);
+  }catch(err){
+    CV.editing = false;
+    if(/already answered/i.test(err.message || '')){ await cvLoad(false); return; }
+    cvStatus(err.message || 'We could not record that. Please try again.', true);
+    buttons.forEach(b => b.disabled = false);
+  }
+}
+
+async function cvOpenFile(messageId, btn){
+  if(btn) btn.disabled = true;
+  try{
+    const r = await callFunction('conversation', { action:'file_url', case_id: CV.caseId, message_id: messageId });
+    const a = document.createElement('a'); a.href = r.url; a.rel = 'noopener'; a.target = '_blank';
+    document.body.appendChild(a); a.click(); a.remove();
+  }catch(err){ cvStatus(err.message || 'We could not open that file.', true); }
+  finally{ if(btn) btn.disabled = false; }
+}
+
+function cvTab(name){
+  CV.tab = name;
+  document.querySelectorAll('.cv-tab').forEach(t => { const on = t.dataset.cvtab === name; t.classList.toggle('active', on); t.setAttribute('aria-selected', String(on)); });
+  ['messages','agreements','files'].forEach(n => { const p = cvEl('cv-pane-' + n); if(p) p.hidden = n !== name; });
+  if(name === 'agreements') cvLoadAgreements();
+  if(name === 'files') cvRenderFiles();
+  if(name === 'messages'){ const log = cvEl('cv-log'); if(log) log.scrollTop = log.scrollHeight; }
+}
+document.querySelectorAll('.cv-tab').forEach(t => t.addEventListener('click', () => cvTab(t.dataset.cvtab)));
+
+function cvRenderFiles(){
+  const box = cvEl('cv-files'); if(!box) return;
+  const files = CV.messages.filter(m => m.kind === 'file');
+  if(!files.length){ box.replaceChildren(cvH('div', 'cv-empty', 'No files yet. Attach a file from the Messages tab, or the BCPASS team may send you one.')); return; }
+  box.replaceChildren(...files.slice().reverse().map(m => {
+    const row = cvH('div', 'cv-row');
+    row.append(cvH('b', null, m.file_name || 'file'), cvH('small', null, (m.role === 'client' ? 'Sent by you' : 'From the BCPASS team') + ' · ' + cvTime(m.created_at)));
+    const b = cvH('button', 'btn btn-ghost btn-small', 'Open'); b.type = 'button';
+    b.addEventListener('click', () => cvOpenFile(m.id, b)); row.append(b);
+    return row;
+  }));
+}
+
+async function cvLoadAgreements(){
+  const caseId = CV.caseId; if(!caseId) return;
+  const conf = cvEl('cv-agr-conf'), pass = cvEl('cv-agr-pass');
+  try{
+    const r = await callFunction('conversation', { action:'agreements', case_id: caseId });
+    if(caseId !== CV.caseId) return;
+    conf.replaceChildren(...((r.confirmations || []).length ? r.confirmations.map(c => {
+      const row = cvH('div', 'cv-row');
+      const ok = c.answer === 'confirm';
+      row.append(cvH('b', null, c.text || ''),
+        cvH('small', null, (ok ? (c.type === 'instruction' ? 'You confirmed this change' : 'You confirmed this is correct') : (c.type === 'instruction' ? 'You asked us not to go ahead' : 'You said this is not right'))
+          + ' · ' + cvTime(c.at) + (c.title ? ' · ' + c.title : '') + (c.comment ? ' · "' + c.comment + '"' : '')));
+      return row;
+    }) : [cvH('div', 'cv-empty', 'Nothing confirmed in this conversation yet.')]));
+    pass.replaceChildren(...((r.passes || []).length ? r.passes.map(p => {
+      const row = cvH('div', 'cv-row');
+      const tier = (p.tier || '').replace(/_/g, ' ');
+      row.append(cvH('b', null, p.org || p.name || 'Pass'),
+        cvH('small', null, (tier ? tier.charAt(0).toUpperCase() + tier.slice(1) + ' pass' : 'Pass') + ' · ' + (p.channel || 'shared') + ' · ' + cvTime(p.at) + (p.label ? ' · ' + p.label : '')));
+      return row;
+    }) : [cvH('div', 'cv-empty', 'You have not shared a pass yet.')]));
+  }catch(err){ conf.replaceChildren(cvH('div', 'cv-empty', err.message || 'We could not load this. Please try again.')); }
+}
+
+// ---- sending and attaching ----
+async function cvSend(){
+  if(CV.sending) return;
+  const ta = cvEl('cv-text'); const text = ta.value.trim();
+  if(!text){ return; }
+  if(!CV.caseId){ cvStatus('Choose a company from your dashboard first.', true); return; }
+  CV.sending = true; cvEl('cv-send').disabled = true; cvStatus('');
+  try{
+    await callFunction('conversation', { action:'send', case_id: CV.caseId, body: text });
+    ta.value = '';
+    await cvLoad(false);
+    const lg = cvEl('cv-log'); if(lg) lg.scrollTop = lg.scrollHeight;
+  }catch(err){ cvStatus(err.message || 'We could not send that. Please try again.', true); }
+  finally{ CV.sending = false; cvEl('cv-send').disabled = false; }
+}
+cvEl('cv-form')?.addEventListener('submit', e => { e.preventDefault(); cvSend(); });
+cvEl('cv-text')?.addEventListener('keydown', e => {
+  if(e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); cvSend(); }
+});
+
+cvEl('cv-attach')?.addEventListener('click', () => cvEl('cv-file').click());
+cvEl('cv-file')?.addEventListener('change', async () => {
+  const input = cvEl('cv-file'); const file = input.files?.[0]; input.value = '';
+  if(!file) return;
+  if(!CV.caseId || !supabaseClient){ cvStatus('Choose a company from your dashboard first.', true); return; }
+  if(!/\.(pdf|png|jpe?g|webp)$/i.test(file.name)){ cvStatus('Please attach a PDF or an image (PNG, JPG or WEBP).', true); return; }
+  if(file.size > 25 * 1024 * 1024){ cvStatus('That file is too large. Please keep files under 25 MB.', true); return; }
+  const caseId = CV.caseId;
+  const attach = cvEl('cv-attach'); attach.disabled = true;
+  try{
+    cvStatus('Uploading ' + file.name + '…');
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    const safe = file.name.replace(/[^A-Za-z0-9._ -]/g, '_');
+    const filePath = `${user.id}/${caseId}/${Date.now()}-${safe}`;
+    const { error: upErr } = await supabaseClient.storage.from('kyb-documents').upload(filePath, file);
+    if(upErr) throw new Error('Upload failed: ' + upErr.message);
+    const { data: docRow, error: insErr } = await supabaseClient.from('kyb_documents')
+      .insert({ case_id: caseId, category: null, file_reference: filePath }).select('document_id').single();
+    if(insErr) throw new Error('Could not record the upload: ' + insErr.message);
+    // Same path as the Documents page: the document is read and classified like any other upload.
+    cvStatus('Checking ' + file.name + '…');
+    let skipped = false;
+    try{ const res = await callFunction('run-dexter', { case_id: caseId, document_id: docRow.document_id }); skipped = !!res?.skipped_ai_processing; }
+    catch(_){ /* the file is still sent; the team can see it */ }
+    await callFunction('conversation', { action:'file_posted', case_id: caseId, document_id: docRow.document_id, file_name: file.name });
+    cvStatus(skipped ? 'File sent. It is too long to be read automatically, so our team will review it.' : 'File sent.');
+    await cvLoad(false);
+    const lg2 = cvEl('cv-log'); if(lg2) lg2.scrollTop = lg2.scrollHeight;
+  }catch(err){ cvStatus(err.message || 'We could not send that file. Please try again.', true); }
+  finally{ attach.disabled = false; }
+});
 
 // ---- Appointments (8 Oct 2026): real bookings through the book-appointment function ----
 // Slots: weekdays, on the hour, 09:00-16:00 in the company's own time zone (30-minute call). Hong Kong companies: afternoon
