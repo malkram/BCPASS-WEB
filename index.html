@@ -1345,6 +1345,35 @@ body.marketing-mode #ai-status{ display:none; }
 .lv-matrix tr.is-picked td.lv-m-name::after{ content:" ✓ selected"; font-weight:500; font-size:0.7rem; opacity:0.9; }
 .lv-matrix tr.is-picked td{ box-shadow:0 0 0 0 transparent; border-top-width:3px; border-bottom-width:3px; }
 @media (max-width:560px){ .lv-matrix-wrap{ padding:12px 8px 8px; } .lv-matrix{ font-size:0.74rem; } .lv-matrix th{ font-size:0.56rem; line-height:1.15; padding:0 0 4px; overflow-wrap:anywhere; } .lv-matrix td{ padding:8px 0; } .lv-matrix td.lv-m-name{ padding-left:6px; font-size:0.72rem; overflow-wrap:anywhere; } .lv-matrix th:first-child{ width:26%; } .lv-matrix tr.is-picked td.lv-m-name::after{ content:" ✓"; } }
+
+/* ---- Use BCPASS in your own AI page (23 Oct 2026) ---- */
+.ait-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+.ait-card{ background:var(--paper-raise); border:1px solid var(--line); border-radius:12px; padding:20px 20px 22px; display:flex; flex-direction:column; gap:12px; }
+.ait-card h3{ margin:0; font-family:var(--font-display); font-size:1.25rem; }
+.ait-steps{ margin:0; padding-left:20px; color:var(--ink-soft); font-size:0.92rem; display:flex; flex-direction:column; gap:7px; flex:1; }
+.ait-card .btn{ align-self:flex-start; }
+.ait-status{ min-height:1.4em; margin:14px 0 0; color:var(--trust); font-size:0.9rem; }
+.ait-badge{ display:inline-block; vertical-align:middle; margin-left:8px; padding:2px 10px; border-radius:20px; background:var(--amber-soft); color:var(--amber); font-family:var(--font-body); font-size:0.7rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; }
+.pass-aiconnect{ margin-top:28px; padding:24px 26px 26px; background:var(--paper-raise); border:1px solid var(--line); border-top:4px solid var(--blue, #6E8DB5); border-radius:8px; }
+.pass-aiconnect .pass-create-plus{ background:#6E8DB5; font-size:0.85rem; font-weight:700; }
+.pass-aiconnect .field{ margin-bottom:14px; max-width:380px; }
+.aic-risk{ margin:0 0 14px; padding:10px 12px; border:1px solid var(--amber); background:#FBF3EA; border-radius:6px; font-size:0.85rem; color:var(--ink-soft); }
+.aic-msg{ min-height:1.3em; margin:10px 0 0; font-size:0.88rem; color:var(--trust); }
+.aic-msg.err{ color:#A33A2A; }
+.aic-new{ margin-top:14px; padding:14px 16px; border:1px solid var(--line); border-radius:8px; background:#F4F7FA; }
+.aic-url-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.aic-url-row input{ flex:1; min-width:200px; padding:9px 10px; border:1px solid var(--line); border-radius:6px; font-family:monospace; font-size:0.78rem; background:#fff; }
+.aic-steps{ margin:12px 0 0; padding-left:20px; color:var(--ink-soft); font-size:0.88rem; display:flex; flex-direction:column; gap:6px; }
+.aic-list{ display:flex; flex-direction:column; gap:8px; }
+.aic-row{ display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+.aic-row-main{ min-width:0; }
+.aic-row-name{ margin:0; font-weight:600; font-size:0.95rem; }
+.aic-row-meta{ margin:2px 0 0; font-size:0.78rem; color:var(--ink-soft); }
+@media (max-width:640px){ .pass-aiconnect{ padding:18px 16px 20px; } }
+.ait-warn{ border-color:var(--amber); background:#FBF3EA; }
+.ait-risk{ margin:8px 0 0; padding-left:20px; list-style:disc; display:flex; flex-direction:column; gap:8px; color:var(--ink-soft); }
+@media (min-width:1000px){ #screen-aitools .mkt-feature-grid{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+@media (max-width:860px){ .ait-grid{ grid-template-columns:1fr; } }
 </style>
 </head>
 <body class="marketing-mode">
@@ -1384,6 +1413,7 @@ body.marketing-mode #ai-status{ display:none; }
       <a data-goto="about">About us</a>
       <a data-goto="services">Our services</a>
       <a data-goto="ai">How AI is embedded</a>
+      <a data-goto="aitools">Use with your AI</a>
       <a data-goto="partners">Partnership</a>
       <a data-goto="privacy">Privacy</a>
     </nav>
@@ -1671,6 +1701,131 @@ body.marketing-mode #ai-status{ display:none; }
         </div>
       </div>
 
+    </section>
+
+    <section class="screen screen-marketing" id="screen-aitools">
+      <div class="mkt-hero" style="padding-bottom:20px">
+        <div class="mkt-container">
+          <p class="mkt-kicker">Use BCPASS in your own AI</p>
+          <h1 class="display" style="max-width:20ch">Your pass, inside the AI you already use.</h1>
+          <p class="lede" style="max-width:60ch">Add our ready-made assistant to Claude, ChatGPT or Gemini, and it turns your pass into answers for a bank's questions, a cover note and a document checklist.</p>
+        </div>
+      </div>
+
+      <div class="mkt-section" style="padding-top:10px">
+        <div class="mkt-container">
+          <div class="mkt-section-head">
+            <p class="mkt-kicker">The Bank application assistant</p>
+            <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.1rem)">Tell it which bank. It prepares the pack.</h2>
+          </div>
+          <div class="mkt-feature-grid">
+            <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-doc"/></svg></span>
+              <p class="mkt-feature-num">1</p>
+              <h3>Answer sheet</h3>
+              <p class="mkt-feature-desc">The usual bank questions, answered from your pass, with the pass field each answer came from.</p>
+            </div>
+            <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-search"/></svg></span>
+              <p class="mkt-feature-num">2</p>
+              <h3>Gaps</h3>
+              <p class="mkt-feature-desc">What the bank is likely to ask that your pass does not yet say. It never fills a gap with a guess.</p>
+            </div>
+            <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-chat"/></svg></span>
+              <p class="mkt-feature-num">3</p>
+              <h3>Cover note</h3>
+              <p class="mkt-feature-desc">A short, factual draft you can send with your application, ready for you to edit.</p>
+            </div>
+            <div class="mkt-feature">
+              <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-book"/></svg></span>
+              <p class="mkt-feature-num">4</p>
+              <h3>Document checklist</h3>
+              <p class="mkt-feature-desc">The documents banks usually ask for. The bank's own list always decides.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mkt-section" style="padding-top:10px">
+        <div class="mkt-container">
+          <div class="mkt-section-head">
+            <p class="mkt-kicker">Choose your AI</p>
+            <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.1rem)">Set it up in a few minutes.</h2>
+            <p class="mkt-section-sub">You will need a copy of your pass: attach it or paste it into the chat. Menu names change from time to time, so follow your AI's own help if something has moved.</p>
+          </div>
+          <div class="ait-grid">
+            <div class="ait-card">
+              <h3>Claude</h3>
+              <ol class="ait-steps">
+                <li>Download the skill below.</li>
+                <li>In Claude, open Settings, then Capabilities, then Skills, and upload the file.</li>
+                <li>Attach or paste your pass and ask: "Prepare my application for [bank name]."</li>
+              </ol>
+              <button type="button" class="btn btn-primary" id="ait-dl">Download the skill (.zip)</button>
+            </div>
+            <div class="ait-card">
+              <h3>ChatGPT</h3>
+              <ol class="ait-steps">
+                <li>Copy the instructions below.</li>
+                <li>Create a custom GPT or a Project and paste them into its instructions.</li>
+                <li>Attach or paste your pass and ask: "Prepare my application for [bank name]."</li>
+              </ol>
+              <button type="button" class="btn btn-primary" data-ait-copy>Copy the instructions</button>
+            </div>
+            <div class="ait-card">
+              <h3>Gemini</h3>
+              <ol class="ait-steps">
+                <li>Copy the instructions below.</li>
+                <li>Create a Gem and paste them into its instructions.</li>
+                <li>Attach or paste your pass and ask: "Prepare my application for [bank name]."</li>
+              </ol>
+              <button type="button" class="btn btn-primary" data-ait-copy>Copy the instructions</button>
+            </div>
+          </div>
+          <p class="ait-status" id="ait-status" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <div class="mkt-section" style="padding-top:10px" id="ait-connector">
+        <div class="mkt-container">
+          <div class="mkt-principle ait-soon">
+            <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg></span>
+            <div>
+              <h3>Connect your AI to your pass</h3>
+              <p>Claude and ChatGPT can read your passes directly, with no copying. Sign in to BCPASS, open Share pass and choose "Connect your own AI" to make a private connector link, then paste it into your AI as a custom connector. The link is read-only: your AI can look, but it cannot change anything, and it never receives your BCPASS login. You can switch it off at any time.</p>
+              <p style="margin-top:8px">Using Gemini? Use the instructions above for now.</p>
+              <button type="button" class="btn btn-primary" id="ait-conn-go" style="margin-top:10px">Go to my account</button>
+              </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mkt-section" style="padding-top:10px">
+        <div class="mkt-container">
+          <div class="mkt-principle ait-warn">
+            <span class="mkt-ic-tile" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg></span>
+            <div>
+              <h3>Before you use your own AI</h3>
+              <ul class="ait-risk">
+                <li>Anything you put into an AI leaves BCPASS. That AI company handles it under its own terms, and BCPASS cannot see or control what happens next.</li>
+                <li>You choose which pass level to give it. If you are unsure, use a lower level. Your pass still expires and can be switched off, but a copy already inside your AI is outside our control.</li>
+                <li>AI can make mistakes. Check every answer, note and checklist before you send anything to a bank.</li>
+                <li>You are responsible for what you share and for what you send. BCPASS is not a bank, lawyer or financial adviser, and the assistant does not give legal, tax or investment advice. Every bank still runs its own checks.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mkt-cta">
+        <div class="mkt-container">
+          <h2 class="display">Need a pass first?</h2>
+          <div class="mkt-cta-actions">
+            <a class="btn btn-primary" data-goto="signup">Create your BCPASS account →</a>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- ---------- 0b. MARKETING: ABOUT US ---------- -->
@@ -2829,6 +2984,36 @@ body.marketing-mode #ai-status{ display:none; }
             <button class="btn btn-primary" id="pass-create-btn">Create pass →</button>
             <p class="side-note" style="margin-top:12px">Each pass gets its own link and QR code. The level is fixed once a pass is created — to share a different level, create another pass.</p>
           </div>
+
+          <div class="pass-aiconnect" id="pass-aiconnect">
+            <div class="pass-create-head">
+              <span class="pass-create-plus" aria-hidden="true">AI</span>
+              <div>
+                <p class="pass-create-title">Connect your own AI</p>
+                <p class="pass-create-sub">Let Claude or ChatGPT read your passes directly, with no copying.</p>
+              </div>
+            </div>
+            <p class="side-note" style="margin:0 0 10px">Make a private connector link and paste it into your AI as a custom connector. It is read-only: your AI can list your companies and passes and read a pass at the level you chose, but it cannot change anything and never receives your BCPASS login. Anyone who has the link can read your passes, so keep it private. You can switch it off below at any time.</p>
+            <div class="aic-risk"><strong>You own the risk.</strong> Anything your AI reads leaves BCPASS and is handled under that AI company's terms. Use a lower pass level if unsure, and check every AI answer before sending anything to a bank.</div>
+            <label class="field">
+              <span>Name for this link (only you see it)</span>
+              <input type="text" id="aic-label" maxlength="60" placeholder="e.g. My Claude">
+            </label>
+            <button class="btn btn-primary" id="aic-create" type="button">Create connector link</button>
+            <p class="aic-msg" id="aic-msg" role="status" aria-live="polite"></p>
+            <div class="aic-new" id="aic-new" style="display:none">
+              <p class="side-title" style="margin-bottom:6px">Your private connector link</p>
+              <p class="side-note" style="margin:0 0 8px">Copy it now. For your security it is shown only once and BCPASS cannot show it again.</p>
+              <div class="aic-url-row"><input type="text" id="aic-url" readonly aria-label="Your private connector link"><button class="btn btn-primary" id="aic-copy" type="button">Copy</button></div>
+              <ol class="aic-steps">
+                <li>In Claude: Settings, Connectors, Add custom connector. In ChatGPT: Settings, Connectors, add a custom connector (developer mode may need to be on).</li>
+                <li>Paste the link. Choose no sign-in or authentication if asked.</li>
+                <li>Ask your AI: "List my BCPASS passes", then "Read my pass and prepare my application for [bank name]".</li>
+              </ol>
+            </div>
+            <p class="side-title" style="margin:18px 0 6px">Your connector links</p>
+            <div class="aic-list" id="aic-list"><p class="side-note">Loading…</p></div>
+          </div>
         </div>
 
         <aside class="split-side" id="pass-side" style="display:none">
@@ -3134,6 +3319,7 @@ body.marketing-mode #ai-status{ display:none; }
       <a data-goto="about">About us</a>
       <a data-goto="services">Our services</a>
       <a data-goto="ai">How AI is embedded</a>
+      <a data-goto="aitools">Use with your AI</a>
       <a data-goto="partners">Partnership</a>
       <a data-goto="privacy">Privacy</a>
       <a data-goto="login">Sign in</a>
@@ -3227,6 +3413,7 @@ const AI_STEPS = {
   'match-chat':              { run:'AI agent is thinking', done:'AI agent replied', only:['chat'] },
   'profile-chat':            { run:'AI agent is reading your reply', done:'AI agent replied', only:['chat'] },
   'get-pass':                { run:'Preparing your pass', done:'Pass ready' },
+  'ai-connector-keys':       { run:'Updating your connector links', done:'Connector links updated' },
 };
 const aiStatus = (() => {
   const items = []; // newest first: { id, label, state:'run'|'done'|'retry', at }
@@ -6988,6 +7175,7 @@ function showScreen(name){
   if(name === 'documents') loadDocumentsForCase();
   if(name === 'summary') loadSummaryForCase();
   if(name === 'pass') loadPassLinkForCase();
+  if(name === 'pass'){ try{ aic.reset(); aic.load(); }catch(_){} }
   if(name === 'matching') initMatchingScreen();
   if(name === 'mfa-enroll') startMfaEnrollment();
   if(name === 'mfa-challenge'){ const n = document.getElementById('mfa-challenge-recovery-note'); if(n) n.style.display = passwordRecovery ? 'block' : 'none'; startMfaChallenge(); }
@@ -7008,6 +7196,117 @@ document.querySelectorAll('[data-goto]').forEach(btn => {
   btn.addEventListener('click', (e) => { e.preventDefault(); goToScreen(btn.dataset.goto); });
 });
 
+
+// ============================================================
+// Use BCPASS in your own AI (23 Oct 2026): downloadable skill (zip built in the browser, no server file needed)
+// and copy-the-instructions for ChatGPT / Gemini. The text below is the same assistant in two forms.
+// ============================================================
+const AIT_SKILL_FILES = {"bank-application-assistant/SKILL.md": "---\nname: bank-application-assistant\ndescription: Helps a company prepare a bank, financing or other financial-institution application using its BCPASS pass. Use when the user mentions BCPASS, a pass, KYC or KYB paperwork, opening a business account, or preparing answers, a cover note or a document checklist for a bank or institution.\n---\n\n# Bank application assistant (BCPASS)\n\nYou help a company owner or finance lead turn their BCPASS pass into a ready-to-use application pack for one specific bank or institution. A BCPASS pass is a structured, company-approved summary of the business, shared at one of five levels. You only work from what the pass contains.\n\n## 1. Get the pass\n\n- If a BCPASS connector tool is available (for example `read_my_pass`), use it to read the pass the user names. If several companies or passes exist, ask which one.\n- Otherwise ask the user to paste or attach the pass.\n- Read `references/pass-levels.md` to see what each level contains, then tell the user in one line which level this pass is and what that means for the application. A lower level will leave gaps; say so early.\n\n## 2. Ask only what you need\n\nAsk, in a single short message:\n- Which bank or institution, in which country?\n- What for: business account, trade finance, loan, payments, FX, or something else?\n- Any questions or forms the bank has already sent? (Ask them to paste these.)\n\nIf the user has not answered, make a sensible assumption, state it, and continue.\n\n## 3. Produce the pack\n\nGive these four parts, in this order, using plain language:\n\n1. **Answer sheet.** A table: the usual question, the answer taken from the pass, and which pass field it came from. If the user pasted the bank's own questions, use those instead of the usual ones.\n2. **Gaps.** A short list of what the bank is likely to ask that the pass does not contain, and what the user should add or confirm. Never fill a gap with a guess.\n3. **Cover note.** A short, professional draft the user can send with the application: who the company is, what it does, why it wants this service, and where the information came from. Keep it factual.\n4. **Document checklist.** The documents such banks usually ask for. Say clearly that the bank's own list decides, and that the user should confirm with the bank.\n\n## 4. Rules you must follow\n\n- Use only facts in the pass or stated by the user in this conversation. Do not invent figures, names, dates or ownership details.\n- Do not claim anything is verified unless the pass is at the Full Document level and marks it as verified. Lower levels are the company's own statements.\n- If two parts of the pass disagree, point it out instead of choosing one.\n- BCPASS is not a bank, a lawyer or a financial adviser, and you are not either. Do not give legal, tax or investment advice, and do not predict whether the bank will accept the application. The bank always runs its own checks.\n- The user decides what to share and with whom. Remind them to check the draft before sending anything to a bank.\n- Never ask for passwords, one-time codes, card numbers or government ID numbers.\n- Keep the answer short and practical. Use the user's language (English or Traditional Chinese) and the same spelling and currency style the pass uses.\n\n## 5. Finish\n\nEnd with the two or three most useful next steps (for example, \"add your last two years of accounts\", \"confirm the directors' details\"), and offer to rework the cover note for another bank.\n", "bank-application-assistant/references/pass-levels.md": "# What each BCPASS pass level contains\n\nEach level includes everything in the level before it.\n\n1. **Introduction.** Company name, what the company does, products sold, website. Suitable for a business card or first contact. Not enough for an application on its own.\n2. **Basic.** Adds fuller business description, industry, main markets and suppliers (country names only), business model, how long the company has traded, contact details.\n3. **Standard.** Adds turnover band, exact market and supplier percentages, group or sister companies, transaction information (typical payment size, volumes, currencies, loans or liabilities, expected turnover), areas of interest, and a business diagram without owners or directors.\n4. **Full.** Adds ownership and directors, sources of funds, business history, current providers, future plans, registered address, and a diagram that includes shareholders and directors. These are the company's own statements, not checked against documents.\n5. **Full Document.** Adds the document-checked summary: verified or client-stated markers, discrepancies found, a KYB summary and the business diagram with checks, plus any supplementary comments from the company.\n\nNotes for the assistant:\n- A pass may say a diagram or summary is \"pending\". Treat that as missing, not as a negative.\n- The company chooses the level and can change or switch it off at any time. If a pass has expired or is switched off, the reader will say so; ask the user for a current one.\n"};
+const AIT_INSTRUCTIONS = "You are the BCPASS Bank application assistant.\n\nYou help a company owner or finance lead turn their BCPASS pass into a ready-to-use application pack for one specific bank or institution. A BCPASS pass is a structured, company-approved summary of the business, shared at one of five levels. You only work from what the pass contains.\n\n## 1. Get the pass\n\n- Ask the user to paste or attach their BCPASS pass.\n- Use the pass-level guide at the end of these instructions to see what each level contains, then tell the user in one line which level this pass is and what that means for the application. A lower level will leave gaps; say so early.\n\n## 2. Ask only what you need\n\nAsk, in a single short message:\n- Which bank or institution, in which country?\n- What for: business account, trade finance, loan, payments, FX, or something else?\n- Any questions or forms the bank has already sent? (Ask them to paste these.)\n\nIf the user has not answered, make a sensible assumption, state it, and continue.\n\n## 3. Produce the pack\n\nGive these four parts, in this order, using plain language:\n\n1. **Answer sheet.** A table: the usual question, the answer taken from the pass, and which pass field it came from. If the user pasted the bank's own questions, use those instead of the usual ones.\n2. **Gaps.** A short list of what the bank is likely to ask that the pass does not contain, and what the user should add or confirm. Never fill a gap with a guess.\n3. **Cover note.** A short, professional draft the user can send with the application: who the company is, what it does, why it wants this service, and where the information came from. Keep it factual.\n4. **Document checklist.** The documents such banks usually ask for. Say clearly that the bank's own list decides, and that the user should confirm with the bank.\n\n## 4. Rules you must follow\n\n- Use only facts in the pass or stated by the user in this conversation. Do not invent figures, names, dates or ownership details.\n- Do not claim anything is verified unless the pass is at the Full Document level and marks it as verified. Lower levels are the company's own statements.\n- If two parts of the pass disagree, point it out instead of choosing one.\n- BCPASS is not a bank, a lawyer or a financial adviser, and you are not either. Do not give legal, tax or investment advice, and do not predict whether the bank will accept the application. The bank always runs its own checks.\n- The user decides what to share and with whom. Remind them to check the draft before sending anything to a bank.\n- Never ask for passwords, one-time codes, card numbers or government ID numbers.\n- Keep the answer short and practical. Use the user's language (English or Traditional Chinese) and the same spelling and currency style the pass uses.\n\n## 5. Finish\n\nEnd with the two or three most useful next steps (for example, \"add your last two years of accounts\", \"confirm the directors' details\"), and offer to rework the cover note for another bank.\n\n---\n\n# What each BCPASS pass level contains\n\nEach level includes everything in the level before it.\n\n1. **Introduction.** Company name, what the company does, products sold, website. Suitable for a business card or first contact. Not enough for an application on its own.\n2. **Basic.** Adds fuller business description, industry, main markets and suppliers (country names only), business model, how long the company has traded, contact details.\n3. **Standard.** Adds turnover band, exact market and supplier percentages, group or sister companies, transaction information (typical payment size, volumes, currencies, loans or liabilities, expected turnover), areas of interest, and a business diagram without owners or directors.\n4. **Full.** Adds ownership and directors, sources of funds, business history, current providers, future plans, registered address, and a diagram that includes shareholders and directors. These are the company's own statements, not checked against documents.\n5. **Full Document.** Adds the document-checked summary: verified or client-stated markers, discrepancies found, a KYB summary and the business diagram with checks, plus any supplementary comments from the company.\n\nNotes for the assistant:\n- A pass may say a diagram or summary is \"pending\". Treat that as missing, not as a negative.\n- The company chooses the level and can change or switch it off at any time. If a pass has expired or is switched off, the reader will say so; ask the user for a current one.\n";
+function aitCrcTable(){ const t = []; for(let n = 0; n < 256; n++){ let c = n; for(let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; } return t; }
+function aitZip(files){ // "stored" zip (no compression), enough for two small text files
+  const enc = new TextEncoder(), tbl = aitCrcTable(), chunks = [], central = []; let offset = 0;
+  const u16 = n => [n & 255, (n >>> 8) & 255], u32 = n => [n & 255, (n >>> 8) & 255, (n >>> 16) & 255, (n >>> 24) & 255];
+  Object.keys(files).forEach(name => {
+    const nameB = enc.encode(name), data = enc.encode(files[name]); let crc = 0xFFFFFFFF;
+    for(let i = 0; i < data.length; i++) crc = tbl[(crc ^ data[i]) & 255] ^ (crc >>> 8);
+    crc = (crc ^ 0xFFFFFFFF) >>> 0;
+    const head = new Uint8Array([0x50,0x4B,3,4, 20,0, 0,8, 0,0, 0,0, 0x21,0, ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(nameB.length), 0,0]);
+    chunks.push(head, nameB, data);
+    central.push({ nameB, crc, size: data.length, offset });
+    offset += head.length + nameB.length + data.length;
+  });
+  const cdStart = offset; let cdSize = 0;
+  central.forEach(c => {
+    const rec = new Uint8Array([0x50,0x4B,1,2, 20,0, 20,0, 0,8, 0,0, 0,0, 0x21,0, ...u32(c.crc), ...u32(c.size), ...u32(c.size), ...u16(c.nameB.length), 0,0, 0,0, 0,0, 0,0, 0,0,0,0, ...u32(c.offset)]);
+    chunks.push(rec, c.nameB); cdSize += rec.length + c.nameB.length;
+  });
+  chunks.push(new Uint8Array([0x50,0x4B,5,6, 0,0, 0,0, ...u16(central.length), ...u16(central.length), ...u32(cdSize), ...u32(cdStart), 0,0]));
+  return new Blob(chunks, { type: 'application/zip' });
+}
+function aitSay(msg){ const el = document.getElementById('ait-status'); if(el) el.textContent = T(msg); }
+document.getElementById('ait-dl')?.addEventListener('click', () => {
+  try{
+    const url = URL.createObjectURL(aitZip(AIT_SKILL_FILES)), a = document.createElement('a');
+    a.href = url; a.download = 'bank-application-assistant.zip'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    aitSay('Downloaded. Now upload it in Claude under Settings, Capabilities, Skills.');
+  }catch(e){ aitSay('Sorry, the download did not work. Try another browser.'); }
+});
+document.querySelectorAll('[data-ait-copy]').forEach(btn => btn.addEventListener('click', async () => {
+  try{
+    if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(AIT_INSTRUCTIONS); }
+    else { const ta = document.createElement('textarea'); ta.value = AIT_INSTRUCTIONS; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+    aitSay('Copied. Paste it into your AI\'s instructions box.');
+  }catch(e){ aitSay('Sorry, copying did not work. Try another browser.'); }
+}));
+
+
+// ============================================================
+// CONNECT YOUR OWN AI (connector links): Share pass screen. Calls ai-connector-keys (list / create / revoke).
+// The link contains a secret that is shown once; only a hash is stored. Creating or switching off needs a 2FA sign-in.
+// ============================================================
+const aic = (() => {
+  const $ = id => document.getElementById(id);
+  let busy = false, armed = null, armTimer = null;
+  const say = (t, err) => { const m = $('aic-msg'); if(m){ m.textContent = t || ''; m.classList.toggle('err', !!err); } };
+  const fmt = iso => { try{ return new Date(iso).toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' }); }catch(_){ return ''; } };
+  const friendly = e => {
+    const m = String((e && e.message) || e || '');
+    if(/two-factor/i.test(m)) return 'Please sign out and sign in again with your two-factor code, then try again.';
+    if(/already have/i.test(m)) return m.replace(/\s*\(.*$/, '');
+    return 'Sorry, that did not work. Please try again.';
+  };
+  async function load(){
+    const box = $('aic-list'); if(!box) return;
+    try{
+      const out = await callFunction('ai-connector-keys', { action:'list' });
+      const keys = (out && out.keys) || [];
+      if(!keys.length){ box.innerHTML = '<p class="side-note">You have no active connector links.</p>'; return; }
+      box.innerHTML = keys.map(k => `<div class="aic-row" data-key="${escapeHtml(k.key_id)}"><div class="aic-row-main"><p class="aic-row-name">${escapeHtml(k.label || 'My AI')}</p><p class="aic-row-meta">Starts ${escapeHtml(k.prefix || '')}… · Created ${escapeHtml(fmt(k.created_at))} · ${k.last_used_at ? 'Last used ' + escapeHtml(fmt(k.last_used_at)) : 'Not used yet'} · Expires ${escapeHtml(fmt(k.expires_at))}</p></div><button class="btn btn-ghost" type="button" data-aic-revoke="${escapeHtml(k.key_id)}">Switch off</button></div>`).join('');
+    }catch(e){ box.innerHTML = '<p class="side-note">Could not load your connector links just now.</p>'; }
+  }
+  async function create(){
+    if(busy) return; busy = true;
+    const btn = $('aic-create'); if(btn) btn.disabled = true;
+    say('Creating your link…');
+    try{
+      const out = await callFunction('ai-connector-keys', { action:'create', label: ($('aic-label') || {}).value || '' });
+      $('aic-url').value = out.url; $('aic-new').style.display = 'block';
+      $('aic-url').focus(); $('aic-url').select();
+      if($('aic-label')) $('aic-label').value = '';
+      say('Link created. Copy it now: it will not be shown again.');
+      load();
+    }catch(e){ say(friendly(e), true); }
+    finally{ busy = false; if(btn) btn.disabled = false; }
+  }
+  async function revoke(id, btn){
+    if(armed !== id){
+      armed = id; btn.textContent = 'Click again to confirm'; clearTimeout(armTimer);
+      armTimer = setTimeout(() => { armed = null; if(btn.isConnected) btn.textContent = 'Switch off'; }, 5000);
+      return;
+    }
+    armed = null; clearTimeout(armTimer); btn.disabled = true;
+    try{ await callFunction('ai-connector-keys', { action:'revoke', key_id:id }); say('Connector link switched off. Any AI using it can no longer read your passes.'); }
+    catch(e){ say(friendly(e), true); }
+    load();
+  }
+  async function copy(){
+    const inp = $('aic-url'); if(!inp || !inp.value) return;
+    try{
+      if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(inp.value); }
+      else { inp.select(); document.execCommand('copy'); }
+      say('Copied. Paste it into your AI now.');
+    }catch(_){ inp.select(); say('Press Ctrl+C (or Cmd+C) to copy the selected link.'); }
+  }
+  function reset(){ const n = $('aic-new'); if(n) n.style.display = 'none'; const u = $('aic-url'); if(u) u.value = ''; say(''); }
+  $('aic-create')?.addEventListener('click', create);
+  $('aic-copy')?.addEventListener('click', copy);
+  $('aic-list')?.addEventListener('click', e => { const b = e.target.closest('[data-aic-revoke]'); if(b) revoke(b.dataset.aicRevoke, b); });
+  return { load, reset };
+})();
+document.getElementById('ait-conn-go')?.addEventListener('click', () => goToScreen('dashboard'));
+
 // ============================================================
 // LANGUAGE: English / Traditional Chinese (Hong Kong), 15 Oct 2026
 // Covers the public pages (Home, About us, Our services, How AI is embedded, Privacy, Partnership), the top bar and footer,
@@ -7019,6 +7318,7 @@ document.querySelectorAll('[data-goto]').forEach(btn => {
 // ============================================================
 var ZH_HK = {"Marketing":"主要導覽","Home":"首頁","About us":"關於我們","Our services":"我們的服務","How AI is embedded":"AI 如何融入","Partnership":"合作夥伴","Privacy":"私隱","Footer":"頁腳導覽","Sign in":"登入","BCPASS is currently in pilot across the UK & Hong Kong. Every bank, partner, or institution you share a Pass with still runs its own checks — BCPASS gives them a verified starting point, not a shortcut around that process.":"BCPASS 目前於英國及香港進行試行。您分享 Pass 的每一間銀行、合作夥伴或機構，仍會自行進行審查——BCPASS 為他們提供前期經核實的資料及幫助，不會繞過有關機構現有的程序。","AI-powered · Built for corporates and SMEs":"AI 驅動 · 專為企業及中小企而設","Tell your story once.<br>Share it precisely.":"說一次，全通行","BCPASS uses AI to read your description and documents and turn them into a verified company profile — then lets you share exactly what you choose with any bank, partner, or institution, whenever KYC comes up.":"BCPASS 運用 AI 閱讀您的業務描述和文件，並整理成經核實的公司檔案，讓您在需要進行 KYC（客戶盡職審查）時，向任何銀行、合作夥伴或機構，準確分享您的業務內容。","Get started →":"立即開始 →","Open accounts or relationships with several banks and you'll usually answer the same questions each time. BCPASS means you answer them once — then decide who sees what.":"當您向多間銀行開立戶口或建立業務關係時，都要多次回答同樣的問題。有了 BCPASS，您只需講述一次，再決定分享內容。","Registry details matched":"已核對公司註冊資料","Screening complete":"篩查已完成","Verified profile":"經核實的檔案","Hong Kong · Trading & logistics":"香港 · 貿易及物流","Standard Pass":"標準 Pass","Sample Pass — what a bank, partner, or institution receives when you share.":"Pass 樣本——您分享後，銀行、合作夥伴或機構收到的內容。","Why BCPASS":"為何選擇 BCPASS","Four banks shouldn't mean four KYC exercises.":"面對四間銀行，不應要做四次 KYC。","Today":"現況","The same pack, again and again":"同一套資料，一次又一次提交","Every new bank or institution asks for the same documents and explanations, each in its own format.":"每間新的銀行或機構，都要求提供相同的文件和解釋，只是格式各異。","With BCPASS":"使用 BCPASS","One verified profile, shared your way":"一份經核實的檔案，由您決定如何分享","Build your profile once, then share a Pass at the level of detail each recipient needs.":"只需建立一次檔案，然後按每位接收者所需的詳細程度分享 Pass。","How it works":"如何運作","From conversation to verified profile, in four steps.":"由對話到經核實的檔案，只需四個步驟。","Tell us about your business":"介紹您的業務","Describe your business in your own words and our AI asks the right questions, building a structured profile as you go — no blank forms to stare at.":"用您自己的話描述業務，我們的 AI 會提出適當的問題，並逐步建立結構化的檔案——無須面對空白表格。","Upload your documents":"上載您的文件","Our AI works out what each document is and pulls out the relevant details. You don't need to label anything yourself.":"我們的 AI 會判斷每份文件的類別並擷取相關資料，您無須自行標註任何內容。","Review your diagram and summary":"確認業務圖及摘要","See your ownership structure, suppliers, and customers mapped out clearly, with anything worth a second look flagged plainly — nothing hidden in a document.":"您的股權架構、供應商和客戶會清晰地繪製成圖，並明確標示值得再留意的地方——沒有任何資料隱藏在文件之中。","Share your Pass":"分享您的 Pass","Choose exactly what a bank, partner, or institution sees — one link and QR code per company, five levels of detail, changeable any time.":"由您決定銀行、合作夥伴或機構可看到的內容——每間公司一條連結和一個二維碼，設有五個詳細程度，隨時可更改。","Beyond your next bank account":"不止於下一個銀行戶口","Built for more than lending.":"用途不止於借貸。","As BCPASS grows, your verified profile will be able to work harder for you — helping match your business with the right providers not just for loans, but FX, trade finance, cards, merchant and POS services, and more.":"隨著 BCPASS 不斷發展，您經核實的檔案將發揮更大作用——協助您的業務配對合適的服務供應商，不單是貸款，還包括外匯、貿易融資、信用卡、商戶及 POS 服務等。","Product areas":"產品範疇","Lending":"借貸","FX":"外匯","Trade finance":"貿易融資","Cards":"信用卡","Merchant and POS":"商戶及 POS","AI":"AI","Understands your business":"了解您的業務","Your AI-built profile already holds the detail a bank or partner needs — no re-explaining your business from scratch.":"由 AI 建立的檔案已載有銀行或合作夥伴所需的資料——無須從頭重新解釋您的業務。","Diagram":"業務圖","Shows your structure":"展示您的架構","Ownership, suppliers, and customers, mapped visually — so anyone reviewing your profile understands it fast.":"股權、供應商和客戶以圖像呈現——讓任何審閱您檔案的人都能迅速理解。","Pass":"Pass","Shares on your terms":"由您主導的分享","One Pass, several levels of detail, shared with a bank, partner, or institution — you're always in control.":"一份 Pass、多個詳細程度，向銀行、合作夥伴或機構分享——一切由您掌握。","Your information stays yours":"您的資料，由您作主","You decide what's shared, and with whom.":"分享什麼、與誰分享，由您決定。","A Pass gives a recipient a verified starting point — it never replaces their own due diligence, and it's never shared without your say-so.":"Pass 為接收者提供經核實的起點——它不會取代他們自己的盡職審查，而且未經您同意，絕不會分享。","You choose what's shared, at your own pace — nothing goes out until you decide to share it":"分享什麼由您決定，按您的節奏進行——在您決定分享之前，不會發出任何資料","Every bank, partner, or institution you share with still runs its own checks — a Pass gives them a head start, not a shortcut":"您分享的每一間銀行、合作夥伴或機構，仍會自行進行審查——Pass 讓他們有一個良好開始，而不是捷徑","Revoke access, change the level of detail, or set an expiry, any time":"隨時可撤銷存取權、更改詳細程度或設定到期日","Two-factor authentication is required on every account, and colleagues sign in separately — nothing is shared by default":"每個帳戶都必須使用雙重認證，同事各自獨立登入——預設不會共用任何資料","Ready to stop repeating yourself?":"準備好不再重複提供同樣的資料嗎？","Create your BCPASS account →":"建立您的 BCPASS 帳戶 →","About BCPASS":"關於 BCPASS","Built for the business,<br>not just the bank.":"為企業而設，<br>不只為銀行。","BCPASS started from a simple observation: when a growing company needs to open accounts or build relationships with several banks or financial institutions, it ends up doing the same KYC exercise over and over — the same documents, the same questions, the same explanations, once per institution.":"BCPASS 源自一個簡單的觀察：當一間成長中的公司需要向多間銀行或金融機構開立戶口或建立關係時，最終都要一次又一次進行相同的 KYC——相同的文件、相同的問題、相同的解釋，每間機構各做一次。","We built BCPASS to make that a one-time exercise. Our AI helps you build a verified, structured profile of your business once — then you decide who sees what, and when.":"我們打造 BCPASS，就是要讓這件事只需做一次。我們的 AI 協助您建立一份經核實、結構清晰的業務檔案，之後由您決定誰可以在何時看到什麼。","We work with corporates and SMEs who are opening new banking relationships, raising financing, or simply trying to keep their own company records organized and current. Behind the Pass you share is a platform we hope your business keeps coming back to on its own terms — a place to see your own structure clearly, keep your profile current, and better understand your own financial position, not just something you open when a bank asks for it.":"我們服務的對象，是正在建立新銀行關係、籌集資金，或只是希望將公司記錄整理妥當並保持最新的企業及中小企。在您所分享的 Pass 背後，是一個我們希望您的業務會按自己的需要經常使用的平台——讓您清楚了解自己的架構、保持檔案更新、更好地掌握自身的財務狀況，而不只是銀行要求時才打開的工具。","What we believe":"我們的信念","You should only tell your story once":"您的業務故事只需講述一次","Repeating the same KYC exercise for every institution wastes your time and theirs. One verified profile should travel with you.":"為每間機構重複進行相同的 KYC，既浪費您的時間，也浪費對方的時間。一份經核實的檔案，應該跟著您走。","Sharing isn't skipping":"分享不等於略過審查","A Pass gives a bank, partner, or institution a verified head start — it's never a substitute for their own checks, and we don't build it to be one.":"Pass 為銀行、合作夥伴或機構提供經核實的起點——它從不取代他們自己的審查，我們的設計也無意如此。","AI should do the busywork, not the judgment calls":"AI 負責瑣碎工作，而非作出判斷","Our AI structures, extracts, and flags — it never guesses a fact you haven't told it or a document hasn't shown. You stay the authority on your own business.":"我們的 AI 負責整理、擷取和標示——絕不會猜測您未曾提供或文件未有顯示的事實。您始終是自己業務的最終權威。","Want to see it for yourself?":"想親自體驗嗎？","See what we offer":"了解我們的服務","Everything you need to<br>tell your story once.":"一切只需，<br>您講述一次。","From your first conversation with our AI to the moment you share a Pass, here's what BCPASS actually does.":"由您與我們的 AI 展開第一次對話，到您分享 Pass 的一刻，以下是 BCPASS 實際提供的功能。","Describe your business":"描述您的業務","AI asks the follow-up questions":"由 AI 提出跟進問題","Upload documents":"上載文件","Sorted and read automatically":"自動分類及閱讀","Review your diagram":"檢視您的業務圖","Ownership, suppliers, customers":"股權、供應商、客戶","Five levels of detail":"五個詳細程度","Build your profile by describing your business":"透過描述業務建立您的檔案","Our AI guides you through your company overview, business activity, ownership and structure, funding sources, business history, and current and future plans — asking follow-up questions where something's missing, rather than handing you a blank form.":"我們的 AI 會引導您逐步填寫公司概況、業務活動、股權及架構、資金來源、業務歷史，以及現時和未來的計劃——遇到缺漏之處會提出跟進問題，而不是丟給您一份空白表格。","Upload documents, and let AI do the sorting":"上載文件，由 AI 負責分類","Add financial statements, registry documents, bank letters, and more. Our AI works out what each one is and extracts the relevant detail — you don't need to tell us what anything is, or retype it by hand.":"您可以上載財務報表、公司註冊文件、銀行信件等。我們的 AI 會判斷每份文件的類別並擷取相關資料——您無須說明文件是什麼，也無須逐項手動輸入。","See your business clearly":"清楚掌握您的業務","A generated business diagram maps your ownership, directors, suppliers, and customers. A plain-language summary and a readiness check flag anything worth a second look, before you ever share it with anyone.":"系統會生成業務圖，展示您的股權、董事、供應商和客戶。簡明的摘要和準備程度檢查，會在您向任何人分享之前，標示值得再留意的地方。","Share exactly what's needed":"只分享所需的內容","Your Pass has five levels of detail, from a brief introduction through to your full documents. Pick a level for each bank, partner, or institution you share with, and change it any time — one link and QR code per company.":"您的 Pass 設有五個詳細程度，由簡單介紹以至完整文件。您可為每間銀行、合作夥伴或機構選擇適合的程度，並可隨時更改——每間公司一條連結和一個二維碼。","Looking ahead: matching, beyond lending":"展望未來：配對服務，不止於借貸","We're building on your verified profile to help match your business with the right providers — not just for loans, but FX, trade finance, cards, merchant and POS services, and more. This is on our roadmap, not yet live.":"我們正以您經核實的檔案為基礎，協助您的業務配對合適的服務供應商——不單是貸款，還包括外匯、貿易融資、信用卡、商戶及 POS 服務等。此功能已列入發展藍圖，尚未推出。","Curious how the AI actually works?":"想知道 AI 究竟如何運作？","How AI is embedded →":"AI 如何融入平台 →","Get started":"立即開始","AI does the paperwork.<br>You stay the authority.":"AI 處理文書工作，<br>一切都在您掌握中。","We use AI throughout BCPASS — always in service of getting your business represented accurately, never to replace your own review of it.":"我們在 BCPASS 各個環節都運用 AI——目的始終是準確呈現您的業務，而不是取代您自己的檢視。","Conversation":"對話","Turning what you say into structure":"將您的描述整理成結構","When you describe your business in your own words, AI organizes what you say into a structured profile, asking follow-up questions where something's missing.":"當您用自己的話描述業務時，AI 會將內容整理成結構化的檔案，並在有缺漏時提出跟進問題。","Documents":"文件","Reading what you upload":"閱讀您上載的文件","AI works out what each document is and pulls out the relevant detail, so you don't have to label or retype anything yourself.":"AI 會判斷每份文件的類別並擷取相關資料，讓您無須自行標註或重新輸入任何內容。","Mapping your structure":"描繪您的架構","AI turns your ownership, directors, suppliers, and customers into a diagram, connecting the pieces so it's easy for anyone to follow.":"AI 會將您的股權、董事、供應商和客戶轉化為圖表，把各部分連繫起來，方便任何人理解。","Review":"檢視","Checking for gaps, not guessing":"找出缺漏，而非猜測","Our AI is built to flag what looks inconsistent or incomplete and ask you about it — never to invent a detail you haven't told us or a document hasn't shown.":"我們的 AI 會標示看似不一致或不完整的地方並向您查詢——絕不會憑空編造您未曾告知或文件未有顯示的細節。","Context":"背景資料","Adding context, always sourced":"補充背景，並註明來源","Where it's useful, AI adds general market or industry context — always clearly labeled as research, never presented as a fact about your business.":"在有用的情況下，AI 會補充一般市場或行業背景——並清楚標明為研究資料，絕不會當作您業務的事實來呈現。","You":"您","You review everything":"一切由您檢視","Every AI-generated summary, diagram, and flag is something you — and whoever you share it with — can review before it's relied on. AI drafts; you decide.":"每一份由 AI 生成的摘要、業務圖和標示，在被採信之前，您以及您分享的對象都可以審閱。AI 負責草擬，由您決定。","Our standing rule":"我們的原則","Never guess, never invent. If our AI isn't sure about something, it says so — it doesn't fill the gap with a detail that merely sounds right.":"絕不猜測，絕不編造。如果我們的 AI 對某些事情沒有把握，它會直接說明——而不會用聽起來合理的細節填補空白。","See it in your own business.":"在您自己的業務上體驗。","You decide what's<br>shared, and with whom.":"分享什麼、與誰分享，<br>由您決定。","Here's how BCPASS is designed to handle your information.":"以下是 BCPASS 處理您資料的設計方式。","Your Pass, your control":"您的 Pass，由您掌控","Nothing is shared until you choose to share it — building your profile doesn't send anything to anyone":"在您選擇分享之前，不會分享任何資料——建立檔案不會向任何人發送任何內容","Your Pass has five levels of detail; you choose the level for each bank, partner, or institution you share with":"您的 Pass 設有五個詳細程度；您可為每間銀行、合作夥伴或機構選擇適合的程度","One link and QR code per company — raise or lower the level, set an expiry, or turn it off, any time":"每間公司一條連結和一個二維碼——隨時可提高或降低詳細程度、設定到期日或關閉","You can see exactly what a recipient will see before you share it":"在分享之前，您可以確切看到接收者將會看到的內容","Every bank, partner, or institution you share a Pass with still runs its own checks — a Pass gives them a verified starting point, not a shortcut around their own process":"您向其分享 Pass 的每一間銀行、合作夥伴或機構，仍會自行進行審查——Pass 為他們提供經核實的起點，而不是繞過其自身程序的捷徑","Full company name, documents, and director details stay hidden until a recipient accepts your interest":"完整公司名稱、文件和董事資料，在接收者接受您的意向之前會保持隱藏","Any AI-added research or context is clearly labeled as such, never presented as a fact about your business or your counterparties":"任何由 AI 補充的研究或背景資料都會清楚標明，絕不會當作有關您業務或交易對手的事實來呈現","Your account is protected":"您的帳戶受到保護","Two-factor authentication is required on every account":"每個帳戶都必須使用雙重認證","One login can hold profiles for several companies":"一個登入帳戶可管理多間公司的檔案","Each colleague signs in separately — nothing is shared between accounts by default":"每位同事各自獨立登入——預設不會在帳戶之間共用任何資料","What we ask for, and why":"我們要求提供什麼資料，及原因","We ask for the information a bank or partner would typically need for KYC — nothing beyond that":"我們只要求提供銀行或合作夥伴進行 KYC 通常所需的資料——不會多要","Documents you upload are used to build and verify your profile, not for any other purpose":"您上載的文件只用於建立和核實您的檔案，不會作其他用途","You can pause, revise, or delete a company profile from your dashboard":"您可以在主頁暫停、修改或刪除公司檔案","This page describes how BCPASS is designed to work today, during our UK & Hong Kong pilot. It's a plain-language description of our approach, not a substitute for formal legal terms — we'll publish those as we move toward general availability.":"本頁說明 BCPASS 在英國及香港試行階段的設計運作方式。這是以淺白語言對我們做法的描述，並不取代正式法律條款——我們會在邁向全面推出時發佈有關條款。如中英文版本有任何差異，概以英文版本為準。","Questions about your data?":"對您的資料有疑問嗎？","Learn more about us":"進一步了解我們","Meet SMEs that already<br>fit what you offer.":"接觸已符合<br>您服務範圍的中小企。","BCPASS is for banks, lenders and other providers that serve small and medium-sized businesses. Tell us what you offer, how you onboard and who you want to hear from. We will use it to introduce you to businesses with a verified starting point.":"BCPASS 為服務中小型企業的銀行、貸款機構及其他服務供應商而設。請告訴我們您提供的服務、開戶或接納客戶的流程，以及您希望接觸哪類客戶。我們會據此向您介紹具備經核實起點的企業。","Apply to partner →":"申請成為合作夥伴 →","Who we want to hear from":"我們歡迎哪些機構","Providers across the services SMEs rely on":"涵蓋中小企所倚賴服務的供應商","Loans and credit":"貸款及信貸","Term loans, working capital, asset finance, invoice finance and credit lines.":"定期貸款、營運資金、資產融資、發票融資及信貸額度。","Letters of credit, supply chain and import or export financing, guarantees.":"信用狀、供應鏈及進出口融資、擔保。","Account services":"戶口服務","Business current accounts, multi-currency accounts and cash management.":"商業往來戶口、多種貨幣戶口及現金管理。","Payments, FX and hedging":"支付、外匯及對沖","Cross-border payments, foreign exchange, forwards and other treasury tools.":"跨境支付、外匯兌換、遠期合約及其他財資工具。","Cards, POS and e-commerce":"信用卡、POS 及電子商貿","Merchant acquiring, point-of-sale, online checkout and payment gateways.":"商戶收單、銷售點系統、網上結賬及支付閘道。","Insurance and digital assets":"保險及數碼資產","Business insurance and brokerage, and crypto or digital asset services for companies.":"商業保險及經紀服務，以及為公司而設的加密貨幣或數碼資產服務。","Offer something else that SMEs need? Choose \"Other\" in the form and tell us about it.":"提供中小企其他所需的服務？請在表格中選擇「其他」，並向我們說明。","Tell us who you are and what you offer":"告訴我們您是誰、提供什麼服務","Your organisation, your contact person and the services you provide to SMEs.":"您的機構、聯絡人，以及您為中小企提供的服務。","Share how you onboard and who you want":"分享您的開戶流程及理想客戶","Upload your onboarding requirements, your ideal customer profile and the kinds of customer that fall outside your scope. A short description works too.":"上載您的開戶要求、理想客戶特徵，以及不在服務範圍內的客戶類型。簡短的文字描述亦可。","We talk, then set up the partnership":"我們先溝通，再建立合作","Our team reviews what you send and gets in touch. If it is a fit, we agree how introductions to SMEs will work. You still run your own checks on every business.":"我們的團隊會審閱您提交的資料並與您聯絡。如果彼此合適，我們會商定如何向中小企作出介紹。您仍然會對每間企業自行進行審查。","Partner application":"合作夥伴申請","Tell us about your organisation":"介紹您的機構","Fields marked * are required. It takes about ten minutes, fewer if you already have your documents to hand.":"標有 * 的欄位為必填。填寫約需十分鐘；如已備妥文件，所需時間更短。","1. Your organisation":"1. 您的機構","Organisation name *":"機構名稱 *","Website (optional)":"網站","Type of organisation":"機構類別","2. What you offer SMEs *":"2. 您為中小企提供的服務 *","Business loans and credit":"商業貸款及信貸","Business accounts and banking":"商業戶口及銀行服務","Payments and foreign exchange":"支付及外匯","Hedging and treasury":"對沖及財資","Cards, POS and merchant acquiring":"信用卡、POS 及商戶收單","E-commerce and online payments":"電子商貿及網上支付","Insurance":"保險","Crypto and digital assets":"加密貨幣及數碼資產","Other":"其他","If other, please say what":"如選擇其他，請說明","Where do you serve SMEs? (countries or regions)":"您在哪些地方服務中小企？（國家或地區）","e.g. United Kingdom, Hong Kong":"例如：香港","3. Your contact person":"3. 您的聯絡人","Contact person *":"聯絡人 *","Job title":"職位","Email *":"電郵 *","Phone *":"電話 *","4. How you work with SMEs":"4. 您如何與中小企合作","Upload a document, write a short description, or do both. Up to 3 files in each box. PDF, Word, Excel, PowerPoint, CSV, text or image. 10 MB per file and 25 MB in total.":"您可以上載文件、撰寫簡短描述，或兩者兼備。每個方格最多可上載 3 個檔案。接受 PDF、Word、Excel、PowerPoint、CSV、文字或圖像檔案。每個檔案上限 10 MB，總計上限 25 MB。","Your onboarding requirements":"您的開戶要求","What an SME has to provide to become your customer: documents, checks, minimum information, forms.":"中小企成為您的客戶所需提供的資料：文件、審查、最低資料要求、表格。","Choose files":"選擇檔案","or drop them here":"或將檔案拖放到此處","Or describe it here":"或在此描述","e.g. Two years of trading history, UK or Hong Kong registered, certified ownership chart to individuals holding 25% or more...":"例如：兩年營運記錄、於英國或香港註冊、須提供至持有 25% 或以上權益的個人的經核證股權圖……","Your ideal customer profile":"您的理想客戶特徵","The SMEs you most want: sector, size, turnover, markets, years trading, the kind of need you serve best.":"您最希望接觸的中小企：行業、規模、營業額、市場、營運年期，以及您最擅長滿足的需要。","e.g. Importers and exporters with annual turnover of GBP 1m to 20m, trading between the UK and Asia...":"例如：年營業額介乎 100 萬至 2,000 萬英鎊、在英國與亞洲之間進行貿易的進出口商……","Customers outside your scope":"不在服務範圍內的客戶","The businesses you cannot or will not serve: sectors, countries, structures or risk types. This helps us avoid sending you introductions that will not work.":"您無法或不會服務的企業：行業、國家、架構或風險類別。這有助我們避免向您介紹不合適的客戶。","e.g. We do not serve cash-intensive businesses, shell companies or businesses trading with sanctioned countries...":"例如：我們不服務現金交易密集的業務、空殼公司，或與受制裁國家進行貿易的企業……","Leave this field empty":"請將此欄留空","I am authorised to submit this on behalf of my organisation. I understand that BCPASS will use these details and documents only to assess and run a partnership with my organisation and to improve how SMEs are introduced to it, that they are not shown to SMEs or other institutions as submitted, and that BCPASS may contact me at the details given.":"本人獲授權代表本機構提交此申請。本人明白 BCPASS 只會使用這些資料和文件來評估和推行與本機構的合作，並改善向本機構介紹中小企的方式；這些資料和文件不會按提交原樣向中小企或其他機構展示；BCPASS 亦可能透過所提供的聯絡資料與本人聯絡。","Send application":"提交申請","Thank you. We have your application.":"多謝您。我們已收到您的申請。","Your reference is <b id=\"pa-ref\"></b>. We have sent a confirmation to your email address and a member of our partnerships team will be in touch.":"您的參考編號為 <b id=\"pa-ref\"></b>。我們已向您的電郵地址發送確認，合作夥伴團隊的成員會與您聯絡。","Submit another application":"提交另一份申請","What happens to your documents":"您的文件會如何處理","They are stored privately and are visible only to the BCPASS team handling partnerships":"文件會以私密方式儲存，只有負責合作夥伴事務的 BCPASS 團隊可以查閱","They are never shown to SMEs or to other institutions as you submitted them":"文件不會向中小企或其他機構展示","We use them to understand who you serve and to avoid introductions that will not fit":"我們使用這些文件來了解您的服務對象，並避免介紹不合適的客戶","What this is not":"這不代表","Submitting an application does not guarantee a partnership or any volume of introductions":"提交申請並不保證成為合作夥伴，也不保證獲得任何數量的客戶介紹","Please do not send customer personal data or confidential client files":"請勿發送客戶的個人資料或機密客戶檔案","SMEs still choose who to share their pass with, and you still run your own checks":"中小企仍會自行選擇向誰分享其 Pass，而您亦仍會自行進行審查","Are you an SME looking for a provider?":"您是正在尋找服務供應商的中小企嗎？","See our services":"了解我們的服務","Your business, verified once":"您的業務，只需核實一次","Tell us once.<br>Share it precisely.":"說一次，全通行","BCPASS uses AI to read your description and documents and turn them into a verified company profile — then lets you share exactly what you choose with any bank, partner, or institution.":"BCPASS 運用 AI 閱讀您的業務描述和文件，並整理成經核實的公司檔案，讓您在需要進行 KYC（客戶盡職審查）時，向任何銀行、合作夥伴或機構，準確分享您的業務內容。","Work email":"公司電郵","cfo@yourcompany.com":"cfo@yourcompany.com","Password":"密碼","Forgot your password?":"忘記密碼？","Continue":"繼續","or":"或","Continue with Google":"使用 Google 繼續","Continue with Microsoft":"使用 Microsoft 繼續","Continue with Apple":"使用 Apple 繼續","Continue with LinkedIn":"使用 LinkedIn 繼續","You'll still set up two-factor authentication. It is required on every account.":"您仍須設定雙重認證，每個帳戶均必須使用。","New to BCPASS? <a data-goto=\"signup\">Create an account →</a>":"初次使用 BCPASS？<a data-goto=\"signup\">建立帳戶 →</a>","One login can hold profiles for several companies. Each colleague signs in separately — nothing is shared by default.":"一個登入帳戶可管理多間公司的檔案。每位同事各自獨立登入——預設不會共用任何資料。","<span class=\"dot\"></span> Two-factor authentication required on every account":"<span class=\"dot\"></span> 每個帳戶都必須使用雙重認證","Entity":"實體","Status":"狀態","2 flags":"2 項標示","Ready":"已準備","Draft":"草稿","How BCPASS helps":"BCPASS 如何協助您","Our AI reads your description and documents, then turns them into a structured, verified profile":"我們的 AI 會閱讀您的描述和文件，並整理成結構清晰、經核實的檔案","We generate a clear business diagram — suppliers, customers, ownership — so anyone reviewing it understands it fast":"我們會生成清晰的業務圖——供應商、客戶、股權——讓任何審閱者都能迅速理解","Share one Pass with any bank, partner, or institution — you choose what they see, and can change it any time":"向任何銀行、合作夥伴或機構分享一份 Pass——由您決定他們可看到什麼，並可隨時更改","Create your<br>BCPASS account.":"建立您的<br>BCPASS 帳戶。","One login can hold profiles for several companies. You'll set up two-factor authentication right after this — it's required on every account.":"一個登入帳戶可管理多間公司的檔案。完成此步驟後，您會隨即設定雙重認證——每個帳戶均必須使用。","Full name":"全名","e.g. Jane Tan":"例如：陳小明","Position / job title":"職位／職銜","e.g. Finance Director":"例如：財務總監","At least 8 characters":"至少 8 個字元","Confirm password":"確認密碼","Create account":"建立帳戶","Already have an account? <a data-goto=\"login\">Sign in →</a>":"已有帳戶？<a data-goto=\"login\">登入 →</a>","One more step":"還差一步","Set up two-factor<br>authentication.":"設定雙重認證。","Scan this code with an authenticator app (Google Authenticator, 1Password, Authy), then enter the 6-digit code it shows to finish setting up your account.":"請使用驗證器應用程式（如 Google Authenticator、1Password、Authy）掃描此二維碼，然後輸入其顯示的 6 位數字驗證碼，以完成帳戶設定。","Two-factor authentication QR code":"雙重認證二維碼","Loading…":"載入中……","6-digit code":"6 位數字驗證碼","Enable two-factor authentication":"啟用雙重認證","Not you? Sign out":"不是您本人？登出","Why this matters":"為何重要","Your profile holds real financial and ownership information — 2FA stops a leaked password alone from being enough to reach it.":"您的檔案載有真實的財務和股權資料——雙重認證可確保即使密碼外洩，也不足以讓他人存取這些資料。","Verify it's you":"驗證您的身分","Enter your<br>authentication code.":"請輸入您的<br>驗證碼。","Open your authenticator app and enter the current 6-digit code for BCPASS.":"請打開您的驗證器應用程式，輸入 BCPASS 目前顯示的 6 位數字驗證碼。","You're resetting your password. Enter your code first, then you'll choose the new password.":"您正在重設密碼。請先輸入驗證碼，然後再設定新密碼。","Verify":"驗證","Can't sign in?":"無法登入？","Reset your<br>password.":"重設<br>密碼。","Enter the work email you signed up with and we'll send you a link to choose a new password.":"請輸入您註冊時使用的公司電郵，我們會發送連結讓您設定新密碼。","Send reset link":"發送重設連結","Remembered it? <a data-goto=\"login\">Back to sign in →</a>":"想起密碼了？<a data-goto=\"login\">返回登入 →</a>","For your security, you'll be asked for your two-factor code before the new password is accepted.":"為保障您的安全，系統會先要求您輸入雙重認證驗證碼，才會接受新密碼。","Almost done":"快將完成","Choose a<br>new password.":"設定<br>新密碼。","Pick a password you haven't used for BCPASS before. At least 8 characters.":"請選擇一個您未曾在 BCPASS 使用過的密碼，至少 8 個字元。","New password":"新密碼","Confirm new password":"確認新密碼","Save new password":"儲存新密碼","Link expired? Request a new one →":"連結已過期？重新索取 →","<span class=\"mkt-pass-dot\"></span>Verified profile":"<span class=\"mkt-pass-dot\"></span>經核實的檔案","Choose one":"請選擇","Bank":"銀行","Digital bank / neobank":"數碼銀行／虛擬銀行","Non-bank lender":"非銀行貸款機構","Payments / FX provider":"支付／外匯服務供應商","Insurer or broker":"保險公司或經紀","Crypto / digital asset firm":"加密貨幣／數碼資產公司","Fintech platform":"金融科技平台","Go to my account →":"前往我的帳戶 →","Join us":"加入我們","Enter your full name.":"請輸入您的全名。","Enter your work email and a password.":"請輸入您的公司電郵和密碼。","Password must be at least 8 characters.":"密碼必須至少有 8 個字元。","Passwords don't match.":"兩次輸入的密碼不一致。","Check your inbox to confirm your email, then sign in — you'll set up two-factor authentication on first login.":"請查看收件箱並確認您的電郵，然後登入——首次登入時，您將設定雙重認證。","Could not create your account.":"無法建立您的帳戶。","Still setting up — wait a moment and try again.":"仍在設定中，請稍候再試。","That code didn't verify — check your authenticator app and try again.":"驗證碼未能通過驗證——請檢查您的驗證器應用程式後再試。","That reset link has expired or was already used. Enter your email to get a new one.":"該重設連結已過期或已被使用。請輸入您的電郵以取得新連結。","Enter the work email you signed up with.":"請輸入您註冊時使用的公司電郵。","Please wait a minute before asking for another link.":"請稍候一分鐘，再索取新連結。","We couldn't send the email just now. Please try again in a few minutes.":"暫時無法發送電郵，請幾分鐘後再試。","If there's a BCPASS account for that email, a reset link is on its way. It can take a minute — check your spam folder too. The link works once and expires soon.":"如該電郵已有 BCPASS 帳戶，重設連結已在發送途中，可能需時一分鐘，請同時檢查垃圾郵件匣。連結只可使用一次，並會很快失效。","This reset link has expired or was already used. Request a new one below.":"此重設連結已過期或已被使用。請在下方索取新連結。","Choose a password you haven't used for BCPASS before.":"請選擇一個您未曾在 BCPASS 使用過的密碼。","Couldn't save the new password. Please try again.":"無法儲存新密碼，請再試一次。","Password updated. Taking you to your account…":"密碼已更新，正在帶您前往帳戶……","Still verifying — wait a moment and try again.":"仍在驗證中，請稍候再試。","That code didn't verify — try the current code from your authenticator app.":"驗證碼未能通過驗證——請輸入驗證器應用程式目前顯示的驗證碼。","We couldn't start that sign-in. Please try again, or use your email and password.":"無法開始該登入方式，請再試一次，或使用電郵及密碼登入。","That sign-in was cancelled. You can try again, or use your email and password.":"該登入已取消。您可以再試一次，或使用電郵及密碼登入。","Invalid login credentials":"登入資料不正確。","Email not confirmed":"您的電郵尚未確認。","User already registered":"此電郵已註冊。","Invalid TOTP code entered":"驗證碼不正確。","Email rate limit exceeded":"發送次數過多，請稍後再試。","New password should be different from the old password.":"新密碼不可與舊密碼相同。","Please enter your organisation's name.":"請輸入您的機構名稱。","That website address doesn't look right.":"此網站地址似乎不正確。","Please choose at least one service you offer.":"請至少選擇一項您提供的服務。","Please enter the contact person's name.":"請輸入聯絡人姓名。","Please enter a valid email address.":"請輸入有效的電郵地址。","Please enter a valid phone number.":"請輸入有效的電話號碼。","Please tick the confirmation box to continue.":"請剔選確認方格以繼續。","We could not send your application. Please try again.":"我們未能發送您的申請，請再試一次。","Sending...":"發送中……","Uploading. Please keep this page open.":"上載中，請保持此頁面開啟。","We could not reach the server. Please check your connection and try again.":"無法連接伺服器，請檢查網絡連線後再試。","Remove":"移除","That submission is too large. Please keep files under 10 MB each and 25 MB in total.":"提交內容過大，請將每個檔案控制在 10 MB 以下，總計不超過 25 MB。","We've received several submissions from you recently. Please wait a while and try again, or email us directly.":"我們最近收到您多次提交。請稍後再試，或直接以電郵聯絡我們。","We couldn't save your submission. Please try again.":"我們未能儲存您的提交，請再試一次。","We couldn't save your submission. Please try again in a moment.":"我們未能儲存您的提交，請稍後再試。","BCPASS — Corporate profiles, verified once":"BCPASS — 企業檔案，只需核實一次","Your company":"您的公司","One verified Pass":"一份經核實的 Pass","×10 banks":"×10 間銀行","×1 Pass":"×1 份 Pass","You review it":"由您檢視","SMEs with a pass":"持有 Pass 的中小企","Built for more than account opening.":"用途不止於開戶。","As BCPASS grows, your verified profile will be able to work harder for you — helping match your business with the right providers not just for account opening, but lending, FX, trade finance, cards, merchant and POS services, and more.":"隨著 BCPASS 不斷發展，您經核實的檔案將發揮更大作用——協助您的業務配對合適的服務供應商，不單是開戶，還包括貸款、外匯、貿易融資、信用卡、商戶及 POS 服務等。","Want to see it for yourself?<br>Absolutely free for corporates and SMEs.":"想親自體驗嗎？<br>企業／中小企完全免費","+44 20 7946 0000":"+852 2345 6789","FREE":"免費","Free to use for corporates and SMEs":"企業及中小企可免費使用","Building your profile and sharing Passes with banks, partners, and institutions costs your business nothing.":"建立公司檔案，並向銀行、合作夥伴及機構分享 Pass，您的業務無須支付任何費用。"};
 Object.assign(ZH_HK, {"Five levels of Pass": "五個 Pass 級別", "Share only what each recipient needs.": "只分享每位接收者所需的資料。", "Each level includes everything in the level before it and adds one more layer. You choose the level for every Pass you share.": "每個級別都包含上一級別的全部內容，再多加一層資料。您分享的每一份 Pass，都由您選擇級別。", "Level 1": "第 1 級", "Level 2": "第 2 級", "Level 3": "第 3 級", "Level 4": "第 4 級", "Level 5": "第 5 級", "Introduction": "簡介", "Basic": "基本", "Standard": "標準", "Full": "完整", "Full Document": "完整文件", "Business-card style intro": "名片式簡介", "First screening": "初步篩選", "More detail": "更多細節", "Adds who owns and runs it": "加入擁有人及管理層資料", "Checked against documents": "經文件核對", "What you do": "您的業務內容", "Market + business model": "市場及業務模式", "Revenue + business diagram": "收入及業務圖", "Directors + shareholders": "董事及股東", "Verified info + KYB summary": "已核實資料及 KYB 摘要", "Green: quick look": "綠色：快速了解", "Blue: detail and ownership": "藍色：詳細資料及持有權", "Orange: verified": "橙色：已核實"});
+Object.assign(ZH_HK, {"Use with your AI": "配合您的 AI 使用", "Use BCPASS in your own AI": "在您自己的 AI 中使用 BCPASS", "Your pass, inside the AI you already use.": "您的 Pass，用在您慣用的 AI 裡。", "Add our ready-made assistant to Claude, ChatGPT or Gemini, and it turns your pass into answers for a bank's questions, a cover note and a document checklist.": "在 Claude、ChatGPT 或 Gemini 加入我們的現成助手，即可把您的 Pass 變成銀行問題的答案、附函及文件清單。", "The Bank application assistant": "銀行申請助手", "Tell it which bank. It prepares the pack.": "告訴它是哪間銀行，它就會準備好整套資料。", "Answer sheet": "答案表", "The usual bank questions, answered from your pass, with the pass field each answer came from.": "以您的 Pass 回答銀行常見問題，並註明每個答案來自哪個欄位。", "Gaps": "缺漏", "What the bank is likely to ask that your pass does not yet say. It never fills a gap with a guess.": "銀行可能會問、但您的 Pass 尚未說明的事項。它不會用猜測去填補缺漏。", "Cover note": "附函", "A short, factual draft you can send with your application, ready for you to edit.": "一份簡短、按事實撰寫的草稿，可隨申請一併寄出，您可自行修改。", "Document checklist": "文件清單", "The documents banks usually ask for. The bank's own list always decides.": "銀行通常要求的文件。一切以銀行本身的清單為準。", "Choose your AI": "選擇您的 AI", "Set it up in a few minutes.": "幾分鐘即可設定好。", "You will need a copy of your pass: attach it or paste it into the chat. Menu names change from time to time, so follow your AI's own help if something has moved.": "您需要一份 Pass 副本：可附加檔案或貼到對話中。選單名稱可能會更改，如有變動，請參考該 AI 的說明。", "Download the skill below.": "下載下方的技能檔。", "In Claude, open Settings, then Capabilities, then Skills, and upload the file.": "在 Claude 開啟「設定」，再到「功能」，然後到「技能」，上載該檔案。", "Attach or paste your pass and ask: \"Prepare my application for [bank name].\"": "附加或貼上您的 Pass，然後說：「請為我準備向［銀行名稱］提交的申請。」", "Download the skill (.zip)": "下載技能檔 (.zip)", "Copy the instructions below.": "複製下方的指示。", "Create a custom GPT or a Project and paste them into its instructions.": "建立自訂 GPT 或專案，並把指示貼到其指示欄。", "Copy the instructions": "複製指示", "Create a Gem and paste them into its instructions.": "建立 Gem，並把指示貼到其指示欄。", "Connect your AI to your pass": "把您的 AI 連接到您的 Pass", "Coming soon": "即將推出", "Claude and ChatGPT can read your passes directly, with no copying. Sign in to BCPASS, open Share pass and choose \"Connect your own AI\" to make a private connector link, then paste it into your AI as a custom connector. The link is read-only: your AI can look, but it cannot change anything, and it never receives your BCPASS login. You can switch it off at any time.": "Claude 和 ChatGPT 可直接讀取您的 Pass，毋須複製。請登入 BCPASS，開啟「分享 Pass」並選擇「Connect your own AI」建立專屬連接連結，再把它作為自訂連接器貼到您的 AI。此連結只可讀取：您的 AI 只能查看，不能更改任何內容，也不會取得您的 BCPASS 登入資料。您可隨時關閉。", "Using Gemini? Use the instructions above for now.": "使用 Gemini？目前請使用上方的指示。", "Go to my account": "前往我的帳戶", "Before you use your own AI": "使用自己的 AI 之前", "Anything you put into an AI leaves BCPASS. That AI company handles it under its own terms, and BCPASS cannot see or control what happens next.": "您放進 AI 的任何內容都會離開 BCPASS。該 AI 公司會按其自身條款處理，BCPASS 無法看到或控制之後的情況。", "You choose which pass level to give it. If you are unsure, use a lower level. Your pass still expires and can be switched off, but a copy already inside your AI is outside our control.": "由您決定提供哪個級別的 Pass。如不肯定，請選用較低級別。您的 Pass 仍會到期，也可隨時關閉，但已在您的 AI 內的副本，不在我們控制範圍。", "AI can make mistakes. Check every answer, note and checklist before you send anything to a bank.": "AI 可能出錯。在向銀行提交任何內容之前，請檢查每個答案、附函及清單。", "You are responsible for what you share and for what you send. BCPASS is not a bank, lawyer or financial adviser, and the assistant does not give legal, tax or investment advice. Every bank still runs its own checks.": "您須為所分享及所提交的內容負責。BCPASS 並非銀行、律師或財務顧問，助手亦不提供法律、稅務或投資意見。每間銀行仍會自行進行審查。", "Need a pass first?": "還沒有 Pass？", "Downloaded. Now upload it in Claude under Settings, Capabilities, Skills.": "已下載。請在 Claude 的「設定」>「功能」>「技能」上載。", "Sorry, the download did not work. Try another browser.": "抱歉，下載未成功。請試用其他瀏覽器。", "Copied. Paste it into your AI's instructions box.": "已複製。請貼到您的 AI 的指示欄。", "Sorry, copying did not work. Try another browser.": "抱歉，複製未成功。請試用其他瀏覽器。"});
 
 var I18N = { lang: 'en' };
 var I18N_RULES = [
@@ -7036,7 +7336,7 @@ function T(en){
   return en;
 }
 (function(){
-  const SCREENS = ['home','about','services','ai','privacy','partners','login','signup','mfa-enroll','mfa-challenge','forgot','reset'];
+  const SCREENS = ['home','about','services','ai','aitools','privacy','partners','login','signup','mfa-enroll','mfa-challenge','forgot','reset'];
   const INLINE = new Set(['A','B','STRONG','EM','I','SPAN','BR','CODE','SMALL','U','SUP','SUB','MARK','ABBR']);
   const SKIP = new Set(['SCRIPT','STYLE','SVG','TEXTAREA','INPUT','NOSCRIPT','IFRAME']);
   const ATTRS = ['placeholder','aria-label','title','alt'];
