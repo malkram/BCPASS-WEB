@@ -574,6 +574,21 @@ ul{ margin:0; padding:0; list-style:none; }
 .pass-allowed-list li:last-child{ border-bottom:none; }
 .pass-allowed-list .pa-kind{ color: var(--muted); font-size:0.74rem; margin-left:6px; white-space:nowrap; }
 .pass-allowed-list button{ white-space:nowrap; flex-shrink:0; background:none; border:none; color:#9B2C2C; font-size:0.78rem; cursor:pointer; padding:2px 4px; }
+.final-step{ margin-top:6px; }
+.fs-opt{ font-weight:400; color:var(--muted); font-size:0.78rem; }
+.fs-docs{ display:flex; flex-direction:column; margin-bottom:8px; }
+.fs-docs .doc-row{ padding:10px 4px; }
+.fs-docs .doc-row.fs-out{ opacity:0.55; }
+.fs-msg{ min-height:1.2em; margin:8px 0 0; font-size:0.82rem; color:var(--ink-soft); }
+.fs-msg.err{ color:#A33A2A; }
+.fs-msg.ok{ color:var(--accent); }
+.fs-review{ margin-top:12px; padding:14px 16px; border:1px solid var(--line); border-radius:8px; background:var(--paper-raise); font-size:0.88rem; }
+.fs-review p{ margin:0 0 8px; }
+.fs-review ul{ margin:6px 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:8px; }
+.fs-review li{ display:flex; gap:8px; align-items:flex-start; }
+.fs-review li .tag{ flex-shrink:0; margin-top:1px; }
+.fs-signoff{ margin-top:16px; padding-top:14px; border-top:1px solid var(--line); }
+.fs-done{ margin:14px 0 0; padding:10px 12px; border-radius:8px; background:var(--accent-soft); color:var(--accent); font-size:0.86rem; }
 .pass-new-allowed{ margin:2px 0 10px 28px; max-width:420px; }
 .pass-new-allowed .field{ margin-bottom:6px; max-width:none; }
 @media (max-width:640px){ .pass-new-allowed{ margin-left:0; } }
@@ -2868,9 +2883,35 @@ body.marketing-mode #ai-status{ display:none; }
             <p class="side-title" style="margin-top:18px">Checks</p>
             <div class="point-list" id="checks-list"></div>
 
-            <p class="side-title" style="margin-top:18px">Supplementary comments</p>
-            <p class="biz-hint" style="font-size:0.8rem;color:var(--muted);margin:-4px 0 10px">Optional — add anything that helps explain the discrepancies or checks above. Shown to financial institutions exactly as written, with your consent — not summarized or edited, and not processed by AI. You don't need to resolve them individually to continue.</p>
-            <textarea class="field-text" id="summary-comments-box" rows="3" placeholder="Add anything you'd like the financial institution to see, word for word. Not processed by AI."></textarea>
+            <div class="final-step" id="final-step">
+              <p class="side-title" style="margin-top:18px">Final step: comments and documents</p>
+              <p class="biz-hint" style="font-size:0.8rem;color:var(--muted);margin:-4px 0 10px">Optional — add anything that helps explain the discrepancies or checks above, plus any extra documents. Your comments are shown to financial institutions exactly as written, with your consent. AI never changes, summarises or rewrites your words. You don't need to resolve the items above individually to continue.</p>
+              <textarea class="field-text" id="summary-comments-box" rows="4" placeholder="Add anything you'd like the financial institution to see, word for word."></textarea>
+
+              <p class="side-title" style="margin-top:18px">How would you like to finish?</p>
+              <label class="pass-access-opt"><input type="radio" name="fs-mode" value="agent_review"><span>Ask the agent to review first<small>The agent reads your comments and any documents you add, then suggests what to check, such as gaps or things that don't match. It never changes your words, and you stay in control. Documents added this way are read by the agent.</small></span></label>
+              <label class="pass-access-opt"><input type="radio" name="fs-mode" value="verbatim"><span>Sign off exactly as written<small>Your comments and documents go to financial institutions word for word, as uploaded. They are not read, summarised or changed by AI.</small></span></label>
+
+              <div id="fs-body" style="display:none">
+                <p class="side-title" style="margin-top:14px">Documents for this step <span class="fs-opt">(optional)</span></p>
+                <div class="fs-docs" id="fs-docs"></div>
+                <button class="btn btn-ghost btn-small" id="fs-upload-btn" type="button">+ Add a document</button>
+                <input type="file" id="fs-file" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.webp">
+                <p class="fs-msg" id="fs-upload-msg" role="status"></p>
+
+                <div id="fs-agent" style="display:none">
+                  <button class="btn btn-primary btn-small" id="fs-review-btn" type="button" style="margin-top:12px">Ask the agent to review</button>
+                  <div class="fs-review" id="fs-review" style="display:none"></div>
+                </div>
+
+                <div class="fs-signoff">
+                  <p class="fs-msg" id="fs-signoff-note"></p>
+                  <button class="btn btn-primary" id="fs-signoff-btn" type="button">Confirm final sign-off</button>
+                  <p class="fs-msg" id="fs-signoff-msg" role="status"></p>
+                </div>
+              </div>
+              <p class="fs-done" id="fs-done" style="display:none"></p>
+            </div>
           </div>
 
           <aside class="split-side">
@@ -5525,6 +5566,7 @@ async function loadSummaryForCase(){
   renderBusinessDiagram(data.business_diagram);
   renderDiscrepancyList(discrepancies);
   renderChecksList(flags);
+  fsLoad();
 }
 
 // MAX's holistic "readiness to send to a bank" comment (25 Sept) — tier
@@ -5558,17 +5600,24 @@ async function loadDocumentsForCase(){
   if(gridEl) gridEl.innerHTML = ''; // rebuild fresh each time, rather than risk duplicating rows
 
   if(!supabaseClient || !currentCaseId) return;
-  const { data: docs, error } = await supabaseClient
+  let { data: docs, error } = await supabaseClient
     .from('kyb_documents')
-    .select('category, file_reference, processed_at')
+    .select('category, file_reference, processed_at, supplementary_mode')
     .eq('case_id', currentCaseId)
     .order('uploaded_at', { ascending: true });
+  if(error && /supplementary_mode/i.test(error.message || '')){   // database not updated yet (40_final_signoff.sql): load without it
+    ({ data: docs, error } = await supabaseClient.from('kyb_documents').select('category, file_reference, processed_at')
+      .eq('case_id', currentCaseId).order('uploaded_at', { ascending: true }));
+  }
   if(error){ console.error('Could not load documents:', error.message); return; }
 
   (docs || []).forEach(d => {
     const filename = d.file_reference ? d.file_reference.split('/').pop() : 'UK company registry check';
     const row = createDocRow(filename);
-    if(d.processed_at){
+    if(d.supplementary_mode === 'verbatim'){
+      setRowCategory(row, 'Added in the final step');
+      setRowStatus(row, `<span class="tag tag-green doc-status">Kept as uploaded, not read by AI</span>`);
+    } else if(d.processed_at){
       setRowCategory(row, d.category);
       if(d.category === 'Pending manual review'){
         setRowStatus(row, `<span class="tag tag-amber doc-status">Uploaded — will be reviewed by our team</span>`);
@@ -6706,6 +6755,155 @@ document.getElementById('summary-generate-pass-btn')?.addEventListener('click', 
     btn.disabled = false;
     btn.textContent = original;
   }
+});
+
+
+// ============================================================
+// SUMMARY "FINAL STEP" (9 Nov 2026): the client finishes the summary one of two ways.
+//   agent_review: the agent (review-final-notes) reads the saved comments and the documents added in this step (DEXTER reads them)
+//                 and SUGGESTS what to check. It never rewrites the client's words.
+//   verbatim:     comments and documents are signed off exactly as written / uploaded. Documents are NOT sent to DEXTER.
+// Either way the sign-off is recorded in kyb_final_signoffs with a snapshot of the exact comment text.
+// ============================================================
+const FS = { docs: [], review: null, reviewedText: null, busy: false, caseId: null };
+const fsEl = id => document.getElementById(id);
+const fsMode = () => document.querySelector('input[name="fs-mode"]:checked')?.value || '';
+function fsSay(id, text, kind){ const e = fsEl(id); if(e){ e.textContent = text || ''; e.className = 'fs-msg' + (kind ? ' ' + kind : ''); } }
+function fsDate(iso){ try{ return new Date(iso).toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' }); }catch(_){ return ''; } }
+
+function fsRenderDocs(){
+  const box = fsEl('fs-docs'); if(!box) return;
+  const mode = fsMode();
+  box.replaceChildren(...FS.docs.map(d => {
+    const row = document.createElement('div'); row.className = 'doc-row' + (d.supplementary_mode === mode ? '' : ' fs-out');
+    const info = document.createElement('div'); info.className = 'doc-info';
+    const name = document.createElement('span'); name.className = 'doc-name'; name.textContent = d.name;
+    const sub = document.createElement('span'); sub.className = 'doc-sub';
+    sub.textContent = d.supplementary_mode === 'verbatim' ? 'Kept exactly as uploaded. Not read by AI.' : (d.category ? 'Read by the agent: ' + d.category : 'Read by the agent');
+    info.append(name, sub);
+    const tag = document.createElement('span');
+    if(d.supplementary_mode !== mode){ tag.className = 'tag tag-muted'; tag.textContent = 'Not included'; sub.textContent = 'Added under the other choice, so it is left out of this sign-off.'; }
+    else if(d.category === 'Pending manual review'){ tag.className = 'tag tag-amber'; tag.textContent = 'Our team will review'; }
+    else { tag.className = 'tag tag-green'; tag.textContent = 'Included'; }
+    row.append(info, tag); return row;
+  }));
+}
+function fsSyncMode(){
+  const mode = fsMode();
+  const body = fsEl('fs-body'); if(body) body.style.display = mode ? '' : 'none';
+  const agent = fsEl('fs-agent'); if(agent) agent.style.display = mode === 'agent_review' ? '' : 'none';
+  fsRenderDocs();
+  const note = fsEl('fs-signoff-note');
+  if(note) note.textContent = mode === 'agent_review'
+    ? 'Run the review first, then sign off. By signing off you confirm these final comments and documents are the company\'s own.'
+    : mode === 'verbatim' ? 'By signing off you confirm these final comments and documents are the company\'s own, and are to be shown exactly as written and uploaded.' : '';
+  fsSay('fs-signoff-msg', '');
+}
+async function fsLoad(){
+  if(!supabaseClient || !currentCaseId) return;
+  if(FS.caseId !== currentCaseId){ FS.caseId = currentCaseId; FS.review = null; FS.reviewedText = null; if(fsEl('fs-review')) fsEl('fs-review').style.display = 'none'; }
+  try{
+    const { data, error } = await supabaseClient.from('kyb_documents')
+      .select('document_id, file_reference, category, supplementary_mode')
+      .eq('case_id', currentCaseId).not('supplementary_mode', 'is', null).order('uploaded_at', { ascending: true });
+    if(!error) FS.docs = (data || []).map(d => ({ id: d.document_id, name: String(d.file_reference || '').split('/').pop().replace(/^\d+-/, ''), category: d.category, supplementary_mode: d.supplementary_mode }));
+  }catch(_){}
+  fsRenderDocs();
+  try{
+    const { data, error } = await supabaseClient.from('kyb_final_signoffs').select('mode, signed_at').eq('case_id', currentCaseId).order('signed_at', { ascending: false }).limit(1);
+    const done = fsEl('fs-done');
+    if(!error && data && data[0] && done){
+      done.style.display = '';
+      done.textContent = `Final sign-off recorded on ${fsDate(data[0].signed_at)}: ${data[0].mode === 'verbatim' ? 'comments and documents signed off exactly as written' : 'comments and documents reviewed by the agent first'}. You can sign off again if you change anything.`;
+    } else if(done) done.style.display = 'none';
+  }catch(_){}
+}
+document.querySelectorAll('input[name="fs-mode"]').forEach(r => r.addEventListener('change', fsSyncMode));
+
+fsEl('fs-upload-btn')?.addEventListener('click', () => {
+  if(!fsMode()){ fsSay('fs-upload-msg', 'Choose how you would like to finish first.', 'err'); return; }
+  fsEl('fs-file').click();
+});
+fsEl('fs-file')?.addEventListener('change', async () => {
+  const input = fsEl('fs-file'); const file = input.files?.[0]; input.value = '';
+  if(!file) return;
+  const mode = fsMode();
+  if(!mode){ fsSay('fs-upload-msg', 'Choose how you would like to finish first.', 'err'); return; }
+  if(!currentCaseId || !supabaseClient){ fsSay('fs-upload-msg', 'Open a company first.', 'err'); return; }
+  if(!/\.(pdf|png|jpe?g|webp)$/i.test(file.name)){ fsSay('fs-upload-msg', 'Please add a PDF or an image (PNG, JPG or WEBP).', 'err'); return; }
+  if(file.size > 25 * 1024 * 1024){ fsSay('fs-upload-msg', 'That file is too large. Please keep files under 25 MB.', 'err'); return; }
+  const btn = fsEl('fs-upload-btn'); btn.disabled = true;
+  try{
+    fsSay('fs-upload-msg', 'Uploading ' + file.name + '…');
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    const safe = file.name.replace(/[^A-Za-z0-9._ -]/g, '_');
+    const filePath = `${user.id}/${currentCaseId}/${Date.now()}-${safe}`;
+    const { error: upErr } = await supabaseClient.storage.from('kyb-documents').upload(filePath, file);
+    if(upErr) throw new Error('Upload failed: ' + upErr.message);
+    const { data: row, error: insErr } = await supabaseClient.from('kyb_documents')
+      .insert({ case_id: currentCaseId, category: null, file_reference: filePath, supplementary_mode: mode }).select('document_id').single();
+    if(insErr) throw new Error(/supplementary_mode/i.test(insErr.message) ? 'The database needs its one-off update first (40_final_signoff.sql).' : 'Could not record the upload: ' + insErr.message);
+    let category = null;
+    if(mode === 'agent_review'){
+      fsSay('fs-upload-msg', 'The agent is reading ' + file.name + '…');
+      try{
+        const res = await callFunction('run-dexter', { case_id: currentCaseId, document_id: row.document_id });
+        category = res?.skipped_ai_processing ? 'Pending manual review' : (res?.dexter_output?.document_classification?.category || null);
+      }catch(_){ /* still added; the review will say it could not be read */ }
+    }
+    // verbatim: deliberately NOT sent to run-dexter, so no AI reads it.
+    FS.docs.push({ id: row.document_id, name: file.name, category, supplementary_mode: mode });
+    fsRenderDocs();
+    fsSay('fs-upload-msg', mode === 'verbatim' ? 'Added. It will be kept exactly as uploaded and not read by AI.' : 'Added and read by the agent.', 'ok');
+  }catch(err){ fsSay('fs-upload-msg', err.message || 'Sorry, that did not work. Please try again.', 'err'); }
+  finally{ btn.disabled = false; }
+});
+
+fsEl('fs-review-btn')?.addEventListener('click', async () => {
+  if(FS.busy) return; FS.busy = true;
+  const btn = fsEl('fs-review-btn'); btn.disabled = true; btn.textContent = 'The agent is reviewing…';
+  const out = fsEl('fs-review');
+  try{
+    await flushSave(); // the agent reads the saved comments, so make sure what is on screen is saved first
+    const res = await callFunction('review-final-notes', { case_id: currentCaseId });
+    FS.review = res; FS.reviewedText = fsEl('summary-comments-box')?.value ?? '';
+    fsSay('fs-signoff-msg', '');
+    out.replaceChildren();
+    const lead = document.createElement('p'); lead.textContent = res.overall || (res.suggestions?.length ? 'Here is what you may want to look at.' : 'Nothing stands out.');
+    out.appendChild(lead);
+    if(res.suggestions?.length){
+      const ul = document.createElement('ul'); const label = { missing_info:'Missing', conflict:'Doesn\'t match', document:'Document', clarity:'Unclear' };
+      res.suggestions.forEach(sg => { const li = document.createElement('li'); const t = document.createElement('span'); t.className = 'tag tag-amber'; t.textContent = label[sg.kind] || 'Check'; const tx = document.createElement('span'); tx.textContent = sg.text; li.append(t, tx); ul.appendChild(li); });
+      out.appendChild(ul);
+      const hint = document.createElement('p'); hint.style.marginTop = '10px'; hint.className = 'fs-msg'; hint.textContent = 'These are suggestions only. Edit your comments above if you want to act on one, add a document, and ask for a new review, or go ahead and sign off.';
+      out.appendChild(hint);
+    }
+    out.style.display = '';
+  }catch(err){ out.style.display = ''; out.replaceChildren(Object.assign(document.createElement('p'), { className:'fs-msg err', textContent: (err && err.message) || 'The review could not be run. You can try again, or choose to sign off exactly as written.' })); }
+  finally{ FS.busy = false; btn.disabled = false; btn.textContent = FS.review ? 'Ask the agent to review again' : 'Ask the agent to review'; }
+});
+
+fsEl('fs-signoff-btn')?.addEventListener('click', async () => {
+  const mode = fsMode();
+  if(!mode){ fsSay('fs-signoff-msg', 'Choose how you would like to finish first.', 'err'); return; }
+  if(mode === 'agent_review' && !FS.review){ fsSay('fs-signoff-msg', 'Please run the agent\'s review first, or choose to sign off exactly as written.', 'err'); return; }
+  if(FS.busy) return; FS.busy = true;
+  const btn = fsEl('fs-signoff-btn'); btn.disabled = true;
+  try{
+    if(!supabaseClient || !currentCaseId) throw new Error('Not ready yet. Please try again in a moment.');
+    await flushSave(); // saves the comments exactly as typed, so what institutions see is what was signed off
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(!user) throw new Error('Not logged in.');
+    const text = fsEl('summary-comments-box')?.value ?? '';
+    const ids = FS.docs.filter(d => d.supplementary_mode === mode).map(d => d.id);
+    const { error } = await supabaseClient.from('kyb_final_signoffs').insert({
+      case_id: currentCaseId, user_id: user.id, mode, comments_text: text, document_ids: ids, agent_review: mode === 'agent_review' ? FS.review : null,
+    });
+    if(error) throw new Error(/kyb_final_signoffs|relation|does not exist/i.test(error.message) ? 'The database needs its one-off update first (40_final_signoff.sql).' : 'Could not record the sign-off: ' + error.message);
+    fsSay('fs-signoff-msg', mode === 'agent_review' && FS.reviewedText !== null && FS.reviewedText !== text ? 'Signed off. Note: you changed your comments after the agent reviewed them.' : 'Signed off.', 'ok');
+    await fsLoad();
+  }catch(err){ fsSay('fs-signoff-msg', err.message || 'Sorry, that did not work. Please try again.', 'err'); }
+  finally{ FS.busy = false; btn.disabled = false; }
 });
 
 // ---- Matching screen (Maisy Part A, free tier) ----
