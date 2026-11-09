@@ -574,6 +574,9 @@ ul{ margin:0; padding:0; list-style:none; }
 .pass-allowed-list li:last-child{ border-bottom:none; }
 .pass-allowed-list .pa-kind{ color: var(--muted); font-size:0.74rem; margin-left:6px; white-space:nowrap; }
 .pass-allowed-list button{ white-space:nowrap; flex-shrink:0; background:none; border:none; color:#9B2C2C; font-size:0.78rem; cursor:pointer; padding:2px 4px; }
+.pass-new-allowed{ margin:2px 0 10px 28px; max-width:420px; }
+.pass-new-allowed .field{ margin-bottom:6px; max-width:none; }
+@media (max-width:640px){ .pass-new-allowed{ margin-left:0; } }
 .pass-allowed-add{ display:flex; gap:8px; margin-top:8px; }
 .pass-allowed-add input{ flex:1; min-width:0; }
 .pass-send-domain{ display:flex; gap:8px; align-items:flex-start; font-size:0.8rem; color: var(--ink-soft); margin:-2px 0 10px; }
@@ -2978,7 +2981,14 @@ body.marketing-mode #ai-status{ display:none; }
             <div class="restricted-callout" id="pass-new-restricted" style="display:none"></div>
             <div id="pass-new-access-wrap" style="display:none;margin-bottom:12px">
               <p class="side-title" style="margin-bottom:6px">Who can open it?</p>
-              <label class="pass-access-opt"><input type="radio" name="pass-new-access" value="named" checked><span>Only the people I name<small>They confirm their email address with a one-time code. Works with any email, including Gmail. You add the addresses after creating the pass, or just send it by email.</small></span></label>
+              <label class="pass-access-opt"><input type="radio" name="pass-new-access" value="named" checked><span>Only the person or organisation I name<small>They confirm their email address with a one-time code. Works with any email, including Gmail. Add their email address below, or add it after creating the pass, or just send it by email.</small></span></label>
+              <div class="pass-new-allowed" id="pass-new-allowed-wrap">
+                <label class="field">
+                  <span>Email address of the person or organisation</span>
+                  <input type="text" id="pass-new-allowed" class="field-text" placeholder="name@example.com or @bank.com" autocomplete="off" maxlength="600">
+                </label>
+                <p class="side-note" style="margin:4px 0 0">Add one person's email address, or a whole organisation with its domain (for example @bank.com). To add several, separate them with commas. You can change this list later.</p>
+              </div>
               <label class="pass-access-opt"><input type="radio" name="pass-new-access" value="work_email"><span>Anyone with a work email address<small>Anyone who has the link can open it after confirming a work email. Personal email addresses (Gmail, Outlook and similar) are not accepted.</small></span></label>
             </div>
             <button class="btn btn-primary" id="pass-create-btn">Create pass →</button>
@@ -3048,7 +3058,7 @@ body.marketing-mode #ai-status{ display:none; }
 
           <div class="pass-access-box" id="pass-access-box" style="display:none">
             <p class="side-title">Who can open this pass</p>
-            <label class="pass-access-opt"><input type="radio" name="pass-access" value="named"><span>Only the people I name<small>Any email address works, including Gmail, as long as you have added it below.</small></span></label>
+            <label class="pass-access-opt"><input type="radio" name="pass-access" value="named"><span>Only the person or organisation I name<small>Any email address works, including Gmail, as long as you have added it below.</small></span></label>
             <label class="pass-access-opt"><input type="radio" name="pass-access" value="work_email"><span>Anyone with a work email address<small>Personal email addresses are not accepted.</small></span></label>
             <div id="pass-allowed-wrap">
               <ul class="pass-allowed-list" id="pass-allowed-list"></ul>
@@ -5840,6 +5850,7 @@ function renderNewPassExpiryOptions(){
   if(!sel) return;
   const accessWrap = document.getElementById('pass-new-access-wrap');
   if(accessWrap) accessWrap.style.display = passNeedsVerification(newPassTier) ? '' : 'none';
+  syncNewPassAllowed();
   const restricted = document.getElementById('pass-new-restricted');
   if(restricted){
     restricted.style.display = passNeedsVerification(newPassTier) ? '' : 'none';
@@ -5891,6 +5902,29 @@ function readNewPassExpiry(){
   return when.toISOString();
 }
 
+// "Only the person or organisation I name": the email box in the create form shows only while that choice is picked.
+function syncNewPassAllowed(){
+  const wrap = document.getElementById('pass-new-allowed-wrap');
+  if(!wrap) return;
+  const named = (document.querySelector('input[name="pass-new-access"]:checked')?.value || 'named') === 'named';
+  wrap.style.display = named ? '' : 'none';
+}
+document.querySelectorAll('input[name="pass-new-access"]').forEach(r => r.addEventListener('change', syncNewPassAllowed));
+// Reads the box: one or several addresses or domains separated by commas, spaces or new lines. Returns { items } or { error }.
+function readNewPassAllowed(){
+  const raw = document.getElementById('pass-new-allowed')?.value || '';
+  const parts = raw.split(/[\s,;]+/).map(x => x.trim()).filter(Boolean);
+  const items = [], seen = new Set();
+  for(const part of parts){
+    const parsed = parseAllowedInput(part);
+    if(parsed.error) return { error: `"${part}": ${parsed.error}` };
+    const key = parsed.kind + ':' + parsed.value;
+    if(!seen.has(key)){ seen.add(key); items.push({ kind: parsed.kind, value: parsed.value }); }
+  }
+  if(items.length > 20) return { error: 'Please add up to 20 at a time. You can add more after creating the pass.' };
+  return { items };
+}
+
 document.getElementById('pass-create-btn')?.addEventListener('click', async (e) => {
   const btn = e.currentTarget;
   const original = btn.textContent;
@@ -5904,8 +5938,14 @@ document.getElementById('pass-create-btn')?.addEventListener('click', async (e) 
     const label = document.getElementById('pass-new-label')?.value.trim();
     const forWho = document.getElementById('pass-new-for')?.value.trim();
     const row = { case_id: currentCaseId, user_id: user.id, pass_tier: newPassTier, enabled: true, expires_at };
+    let newAllowed = [];
     if(passNeedsVerification(newPassTier)){
       row.access_mode = document.querySelector('input[name="pass-new-access"]:checked')?.value === 'work_email' ? 'work_email' : 'named';
+      if(row.access_mode === 'named'){
+        const parsedAllowed = readNewPassAllowed();   // checked before anything is created, so a typo never leaves a half-made pass
+        if(parsedAllowed.error) throw new Error(parsedAllowed.error);
+        newAllowed = parsedAllowed.items;
+      }
     }
     if(label || forWho) row.label = label || forWho;
     if(forWho) row.recipient_org = forWho;
@@ -5923,12 +5963,21 @@ document.getElementById('pass-create-btn')?.addEventListener('click', async (e) 
       }
       throw error;
     }
+    let allowedFailed = false;
+    if(newAllowed.length){
+      const { error: allowErr } = await supabaseClient.from('kyb_pass_allowed_viewers')
+        .insert(newAllowed.map(a => ({ link_id: created.link_id, kind: a.kind, value: a.value })));
+      allowedFailed = !!allowErr;
+    }
+    const allowedInput = document.getElementById('pass-new-allowed');
+    if(allowedInput && !allowedFailed) allowedInput.value = '';
     const labelInput = document.getElementById('pass-new-label');
     if(labelInput) labelInput.value = '';
     const forInput = document.getElementById('pass-new-for');
     if(forInput) forInput.value = '';
     await loadPassLinkForCase(created.link_id);
     document.getElementById('pass-selected-area')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if(allowedFailed) alert("Your pass was created, but the email address(es) could not be saved. Please add them under \"Who can open this pass\".");
   } catch(err) {
     alert("Could not create the pass: " + (err.message || err));
   } finally {
@@ -5974,7 +6023,7 @@ function renderPassLinkBox(){
   const verifyNote = document.getElementById('pass-send-verify-note');
   if(verifyNote) verifyNote.textContent = passNeedsVerification(currentPassLink.pass_tier)
     ? (currentPassLink.access_mode === 'named'
-        ? 'Only the people you name can open this level. They confirm their email address with a one-time code first, and their visit is recorded below.'
+        ? 'Only the person or organisation you name can open this level. They confirm their email address with a one-time code first, and their visit is recorded below.'
         : 'The person opening this level confirms their work email with a one-time code first. Their visit is recorded below.') : '';
   prefillPassSendForm();
   loadPassActivity();
@@ -6182,7 +6231,7 @@ function renderPassRestrictedBanner(){
   const named = currentPassLink.access_mode === 'named';
   wrap.innerHTML = `<div class="restricted-callout ${named ? '' : 'is-open'}">${LOCK_SVG}<div><b>Restricted pass: sensitive data</b>${named
     ? 'Only the people and organisations on your list can open this pass, after confirming their email address with a one-time code. Everyone else is turned away.'
-    : 'This pass holds sensitive company data, and anyone with a work email address can open it. For tighter control, choose "Only the people I name" under "Who can open this pass".'}</div></div>`;
+    : 'This pass holds sensitive company data, and anyone with a work email address can open it. For tighter control, choose "Only the person or organisation I name" under "Who can open this pass".'}</div></div>`;
 }
 
 function renderPassAccessBox(){
@@ -6239,7 +6288,7 @@ function renderPassLinkBox_noQr(){
   const verifyNote = document.getElementById('pass-send-verify-note');
   if(verifyNote && currentPassLink) verifyNote.textContent = passNeedsVerification(currentPassLink.pass_tier)
     ? (currentPassLink.access_mode === 'named'
-        ? 'Only the people you name can open this level. They confirm their email address with a one-time code first, and their visit is recorded below.'
+        ? 'Only the person or organisation you name can open this level. They confirm their email address with a one-time code first, and their visit is recorded below.'
         : 'The person opening this level confirms their work email with a one-time code first. Their visit is recorded below.') : '';
 }
 
